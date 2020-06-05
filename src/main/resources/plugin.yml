@@ -1,0 +1,12 @@
+name: The-Punisher
+author: 54mpenguin
+website: https://54mpenguin.com
+version: ${project.version}
+api-version: 1.13
+main: com.i54mpenguin.punisher.bukkit.PunisherBukkitPlugin
+softdepend: [LuckPerms, Votifier, NuVotifier]
+description: The Bukkit side of the Punisher plugin.
+
+commands:
+  ban:
+    description: bans a player.
