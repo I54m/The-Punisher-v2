@@ -1,7 +1,6 @@
 package com.i54mpenguin.punisher.utils;
 
-import com.i54mpenguin.punisher.bukkit.PunisherBukkit;
-import me.fiftyfour.punisher.bungee.PunisherPlugin;
+import com.i54mpenguin.punisher.PunisherPlugin;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -12,11 +11,11 @@ import java.nio.charset.Charset;
 
 public class UpdateChecker {
 
-    private static String versionString = callURL("https://api.54mpenguin.com/the-punisher/version/");
+    private static final String versionString = callURL();
 
     public static String getCurrentVersion(){
         StringBuilder result = new StringBuilder();
-        readData(versionString, result, "current-version-number");
+        readData(result, "current-version-number");
         if (result.toString().equals("null")){
             return null;
         }else
@@ -26,8 +25,8 @@ public class UpdateChecker {
     public static boolean check() throws Exception{
         if (getCurrentVersion() == null)
             return false;
-        try {
-            Class.forName("net.md_5.bungee.BungeeCord");
+//        try {
+//            Class.forName("net.md_5.bungee.BungeeCord");
             PunisherPlugin plugin = PunisherPlugin.getInstance();
             if (!getCurrentVersion().equals(plugin.getDescription().getVersion())) {
                 String[] thisParts = plugin.getDescription().getVersion().split("\\.");
@@ -44,53 +43,53 @@ public class UpdateChecker {
                         throw new Exception("Your version number is newer than the version on the website, either you have a dev version or the website api has not been updated!");
                     }
                 }
-                return false;
-            }else return false;
-        }catch (ClassNotFoundException CNFE){
-            PunisherBukkit plugin = PunisherBukkit.getInstance();
-            if (!getCurrentVersion().equals(plugin.getDescription().getVersion())) {
-                String[] thisParts = plugin.getDescription().getVersion().split("\\.");
-                String[] thatParts = getCurrentVersion().split("\\.");
-                int length = Math.max(thisParts.length, thatParts.length);
-                for (int i = 0; i < length; i++) {
-                    int thisPart = i < thisParts.length ?
-                            Integer.parseInt(thisParts[i]) : 0;
-                    int thatPart = i < thatParts.length ?
-                            Integer.parseInt(thatParts[i]) : 0;
-                    if (thisPart < thatPart)
-                        return true;
-                    if (thisPart > thatPart) {
-                        throw new Exception("Your version number is newer than the version on the website, either you have a dev version or the website api has not been updated!");
-                    }
-                }
-                return false;
-            }else return false;
-        }
+            }
+            return false;
+//        } catch (ClassNotFoundException CNFE){
+//            PunisherBukkit plugin = PunisherBukkit.getInstance();
+//            if (!getCurrentVersion().equals(plugin.getDescription().getVersion())) {
+//                String[] thisParts = plugin.getDescription().getVersion().split("\\.");
+//                String[] thatParts = getCurrentVersion().split("\\.");
+//                int length = Math.max(thisParts.length, thatParts.length);
+//                for (int i = 0; i < length; i++) {
+//                    int thisPart = i < thisParts.length ?
+//                            Integer.parseInt(thisParts[i]) : 0;
+//                    int thatPart = i < thatParts.length ?
+//                            Integer.parseInt(thatParts[i]) : 0;
+//                    if (thisPart < thatPart)
+//                        return true;
+//                    if (thisPart > thatPart) {
+//                        throw new Exception("Your version number is newer than the version on the website, either you have a dev version or the website api has not been updated!");
+//                    }
+//                }
+//                return false;
+//            }else return false;
+//        }
     }
 
     public static String getRealeaseDate(){
         StringBuilder result = new StringBuilder();
-        readData(versionString, result, "last-update");
+        readData(result, "last-update");
         if (result.toString().equals("null")){
             return null;
         }else
         return result.toString();
     }
 
-    private static void readData(String toRead, StringBuilder result, String lookingFor) {
+    private static void readData(StringBuilder result, String lookingFor) {
         String lookFor = lookingFor + ":\"";
-        if (toRead == null) {
+        if (UpdateChecker.versionString == null) {
             result.append("null");
             return;
         }
-        int i = toRead.indexOf(lookFor) + lookFor.length();
+        int i = UpdateChecker.versionString.indexOf(lookFor) + lookFor.length();
         while (i < 200) {
-            if (toRead.length() == 0) {
+            if (UpdateChecker.versionString.length() == 0) {
                 result.append("null");
                 break;
             }
-            if (!String.valueOf(toRead.charAt(i)).equalsIgnoreCase("\"")) {
-                result.append(String.valueOf(toRead.charAt(i)));
+            if (!String.valueOf(UpdateChecker.versionString.charAt(i)).equalsIgnoreCase("\"")) {
+                result.append(String.valueOf(UpdateChecker.versionString.charAt(i)));
             } else {
                 break;
             }
@@ -98,12 +97,12 @@ public class UpdateChecker {
         }
     }
 
-    private static String callURL(String URL) {
+    private static String callURL() {
         StringBuilder sb = new StringBuilder();
         URLConnection urlConn;
         InputStreamReader in = null;
         try {
-            urlConn = new URL(URL).openConnection();
+            urlConn = new URL("https://api.54mpenguin.com/the-punisher/version/").openConnection();
             urlConn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.95 Safari/537.11");
             urlConn.connect();
             urlConn.setReadTimeout(60 * 1000);
