@@ -4,7 +4,13 @@ import com.i54mpenguin.protocol.api.injector.NettyPipelineInjector;
 import com.i54mpenguin.protocol.api.listener.PlayerListener;
 import com.i54mpenguin.protocol.inventory.InventoryModule;
 import com.i54mpenguin.protocol.items.ItemsModule;
-import com.i54mpenguin.punisher.commands.PunishCommand;
+import com.i54mpenguin.punisher.chats.AdminChat;
+import com.i54mpenguin.punisher.chats.StaffChat;
+import com.i54mpenguin.punisher.commands.*;
+import com.i54mpenguin.punisher.listeners.*;
+import com.i54mpenguin.punisher.managers.DatabaseManager;
+import com.i54mpenguin.punisher.managers.PunishmentManager;
+import com.i54mpenguin.punisher.managers.WorkerManager;
 import com.i54mpenguin.punisher.objects.gui.ConfirmationGUI;
 import com.i54mpenguin.punisher.objects.gui.punishgui.LevelOne;
 import com.i54mpenguin.punisher.objects.gui.punishgui.LevelThree;
@@ -16,8 +22,6 @@ import com.i54mpenguin.punisher.utils.UpdateChecker;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
-import com.i54mpenguin.punisher.commands.BroadcastCommand;
-import com.i54mpenguin.punisher.commands.SuperBroadcast;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.ComponentBuilder;
@@ -61,7 +65,7 @@ public class PunisherPlugin extends Plugin {
     private final WorkerManager workerManager = WorkerManager.getINSTANCE();
 
     /*
-     * Config Variables
+     * Config variables
      *  TODO: 8/06/2020 add new files (gui.yml) and remove things that may be stored in a database (reputation, playerinfo, discordintegration, cooldowns, staffhide)
      */
     private File configFile, punishmentsFile;
@@ -71,15 +75,19 @@ public class PunisherPlugin extends Plugin {
     private static Configuration punishmentsConfig, config;
             //reputationConfig, staffHideConfig, playerInfoConfig, cooldownsConfig;
 
-
-    private static FileHandler logsHandler;
+    /*
+     * Logging system variables
+     */
+    private FileHandler logsHandler;
+    private boolean loggingStarted = false;
     @Getter
     private static final Logger LOGS = Logger.getLogger("Punisher Logs");
+
     @Getter // TODO: 8/06/2020 only send prefix in messages that will show in chat
     private String prefix = ChatColor.GRAY + "[" + ChatColor.RED + "Punisher" + ChatColor.GRAY + "] " + ChatColor.RESET;
+
     @Getter
     private LuckPermsHook luckPermsHook;
-
     @Getter
     private final NettyPipelineInjector nettyPipelineInjector = new NettyPipelineInjector();
 
@@ -115,11 +123,10 @@ public class PunisherPlugin extends Plugin {
             registerCommands();
             //register event listeners
             registerListeners();
-
             //load all configs and create them if they don't exist
             getLogger().info(ChatColor.GREEN + "Loading Configs...");
             loadConfigs();
-            //check main config version
+            //check main config version and rename to old_config.yml if it is outdated
             if (!config.getString("Configversion").equals(this.getDescription().getVersion())) {
                 getLogger().warning(ChatColor.RED + "Old config.yml detected!");
                 getLogger().warning(ChatColor.RED + "Renaming old config to old_config.yml!");
@@ -134,6 +141,7 @@ public class PunisherPlugin extends Plugin {
                 config.set("Configversion", this.getDescription().getVersion());
                 saveConfig();
             }
+            // TODO: 8/06/2020 set this to work with player data configs
 //            //make sure info config has last join id set
 //            if (!playerInfoConfig.contains("lastjoinid")) {
 //                playerInfoConfig.set("lastjoinid", 0);
@@ -191,30 +199,26 @@ public class PunisherPlugin extends Plugin {
                 } catch (Exception e) {
                     getLogger().severe(ChatColor.RED + e.getMessage());
                 }
-            } else if (this.getDescription().getVersion().contains("LEGACY")) {//if legacy then alert console
+            } else if (this.getDescription().getVersion().contains("LEGACY")) {//if running a legacy version then alert user
                 getLogger().warning(prefix + ChatColor.GREEN + "You are running a LEGACY version of The Punisher");
                 getLogger().warning(prefix + ChatColor.GREEN + "This version is no longer updated with new features and ONLY MAJOR BUGS WILL BE FIXED!!");
                 getLogger().warning(prefix + ChatColor.GREEN + "It is recommended that you update to the latest version to have new features.");
                 getLogger().warning(prefix + ChatColor.GREEN + "Update checking is not needed in this version");
                 isUpdate = false;
             } else {
-                getLogger().info(prefix + ChatColor.GREEN + "You are running a PRE-RELEASE version of The Punisher");
+                getLogger().info(prefix + ChatColor.GREEN + "You are running an unofficial release version of The Punisher");
                 getLogger().info(prefix + ChatColor.GREEN + "Update checking is not needed in this version");
                 isUpdate = false;
             }
 
-            //check if rep on vote should be enabled
-            if ((getProxy().getPluginManager().getPlugin("NuVotifier") != null || getProxy().getPluginManager().getPlugin("Votifier") != null) && config.getBoolean("Voting.addRepOnVote")) {
-                getLogger().info(prefix + ChatColor.GREEN + "Enabled Rep on Vote feature!");
-                getProxy().getPluginManager().registerListener(this, new PlayerVote());
-            }
-            //check if discord integration is enabled
-            if (config.getBoolean("DiscordIntegration.Enabled"))
-                DiscordMain.startBot();
-
-            //start logging to logs file
-            getLogger().info(prefix + ChatColor.GREEN + "Beginning Logging...");
-            LOGS.info("****START OF LOGS BEGINNING DATE: " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss")) + "****"); // TODO: 15/05/2020 maybe make it so this only get's logged once we receive the first log
+//            //check if rep on vote should be enabled
+//            if ((getProxy().getPluginManager().getPlugin("NuVotifier") != null || getProxy().getPluginManager().getPlugin("Votifier") != null) && config.getBoolean("Voting.addRepOnVote")) {
+//                getLogger().info(prefix + ChatColor.GREEN + "Enabled Rep on Vote feature!");
+//                getProxy().getPluginManager().registerListener(this, new PlayerVote());
+//            }
+//            //check if discord integration is enabled
+//            if (config.getBoolean("DiscordIntegration.Enabled"))
+//                DiscordMain.startBot();
 
             //start database manager
             getLogger().info(prefix + ChatColor.GREEN + "Starting Database Manager...");
@@ -227,7 +231,7 @@ public class PunisherPlugin extends Plugin {
 
 
 
-
+            //plugin loading/enabling is now complete so we announce it
             setLoaded(true);
             long duration = (System.nanoTime() - startTime) / 1000000;
             getLogger().info(prefix + ChatColor.GREEN + "Successfully enabled The Punisher v" + this.getDescription().getVersion() + " By 54mpenguin (took " + duration + "ms)");
@@ -245,6 +249,23 @@ public class PunisherPlugin extends Plugin {
 
     @Override
     public void onDisable() {
+        try {
+            getProxy().getPluginManager().unregisterListeners(this);
+            getProxy().getPluginManager().unregisterCommands(this);
+            if (workerManager.isStarted())
+                workerManager.stop();
+            dbManager.stop();
+//            DiscordMain.shutdown();
+            File latestLogs = new File(getDataFolder() + "/logs/latest.log");
+            if (latestLogs.length() != 0) {
+                LOGS.info("****END OF LOGS ENDING DATE: " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MMM-yyyy HH:mm:ss")) + "****");
+                SimpleDateFormat format = new SimpleDateFormat("dd-MMM-yyyy_HH-mm-ss");
+                Files.move(latestLogs.toPath(), new File(getDataFolder() + "/logs/" + format.format(Calendar.getInstance().getTime()) + ".log").toPath());
+            }
+            logsHandler.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
     }
 
@@ -315,36 +336,41 @@ public class PunisherPlugin extends Plugin {
 //        cooldownsFile = new File(getDataFolder(), "/data/cooldowns.yml");
 //        playerInfoFile = new File(getDataFolder(), "/data/playerinfo.yml");
 //        discordIntegrationFile = new File(getDataFolder(), "/data/discordintegration.yml");
-        File logsdir = new File(getDataFolder() + "/logs/");
-        File datadir = new File(getDataFolder() + "/data/");
-        if (!getDataFolder().exists()) {
+        File logsDir = new File(getDataFolder() + "/logs/");
+        File playerDataDir = new File(getDataFolder() + "/playerdata/");
+        if (!getDataFolder().exists())
             getDataFolder().mkdir();
-        }
-        if (!logsdir.exists()) {
-            logsdir.mkdir();
-        }
-        if (!datadir.exists()) {
-            datadir.mkdir();
-        }
-        // TODO: 15/05/2020 make it save current log as latest.log and then rename previous latest.log if it is not empty
-        SimpleDateFormat format = new SimpleDateFormat("dd-MMM-yyyy_HH-mm-ss");
-        logsHandler = new FileHandler(getDataFolder() + "/logs/" + format.format(Calendar.getInstance().getTime()) + ".log");
+        if (!logsDir.exists())
+            logsDir.mkdir();
+        if (!playerDataDir.exists())
+            playerDataDir.mkdir();
+
+
+        logsHandler = new FileHandler(getDataFolder() + "/logs/latest.log");
         logsHandler.setFormatter(new Formatter() {
             @Override
             public String format(LogRecord record) {
+                if (!loggingStarted) {
+                    //start logging to logs file
+                    loggingStarted = true;
+                    getLogger().info(prefix + ChatColor.GREEN + "First log received!, Beginning Logging...");
+                    LOGS.info("****START OF LOGS BEGINNING DATE: " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MMM-yyyy HH:mm:ss")) + "****");
+                }
                 if (record.getLevel() != Level.SEVERE)
                     getLogger().log(record);
-                SimpleDateFormat logTime = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+                SimpleDateFormat logTime = new SimpleDateFormat("dd-MMM HH:mm:ss");
                 Calendar cal = new GregorianCalendar();
                 cal.setTimeInMillis(record.getMillis());
-                return "\n" + record.getLevel() + " "
-                        + logTime.format(cal.getTime())
-                        + ": "
+                return "\n[" + record.getLevel() + "] "
+                        + "[" + logTime.format(cal.getTime())
+                        + "]: "
                         + record.getMessage();
             }
         });
         LOGS.setUseParentHandlers(false);
         LOGS.addHandler(logsHandler);
+
+
         if (!punishmentsFile.exists()) {
             punishmentsFile.createNewFile();
             saveDefaultPunishments();
@@ -400,37 +426,37 @@ public class PunisherPlugin extends Plugin {
         }
     }
 
-    public static void saveRep() {
-        try {
-            ConfigurationProvider.getProvider(YamlConfiguration.class).save(reputationConfig, reputationFile);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public static void saveInfo() {
-        try {
-            ConfigurationProvider.getProvider(YamlConfiguration.class).save(playerInfoConfig, playerInfoFile);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public static void saveCooldowns() {
-        try {
-            ConfigurationProvider.getProvider(YamlConfiguration.class).save(cooldownsConfig, cooldownsFile);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public static void saveStaffHide() {
-        try {
-            ConfigurationProvider.getProvider(YamlConfiguration.class).save(staffHideConfig, staffHideFile);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+//    public static void saveRep() {
+//        try {
+//            ConfigurationProvider.getProvider(YamlConfiguration.class).save(reputationConfig, reputationFile);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//    }
+//
+//    public static void saveInfo() {
+//        try {
+//            ConfigurationProvider.getProvider(YamlConfiguration.class).save(playerInfoConfig, playerInfoFile);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//    }
+//
+//    public static void saveCooldowns() {
+//        try {
+//            ConfigurationProvider.getProvider(YamlConfiguration.class).save(cooldownsConfig, cooldownsFile);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//    }
+//
+//    public static void saveStaffHide() {
+//        try {
+//            ConfigurationProvider.getProvider(YamlConfiguration.class).save(staffHideConfig, staffHideFile);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//    }
 
     public void saveDefaultPunishments() {
         try {
