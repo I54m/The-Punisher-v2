@@ -92,6 +92,9 @@ public class PunisherPlugin extends Plugin {
     private final NettyPipelineInjector nettyPipelineInjector = new NettyPipelineInjector();
 
 
+    /**
+     * This method is used to pre load the protocol side of the plugin and setup the plugin instance.
+     */
     @Override
     public void onLoad() {
         getLogger().info("Preloading plugin...");
@@ -102,6 +105,9 @@ public class PunisherPlugin extends Plugin {
         getLogger().info("Plugin preloaded!");
     }
 
+    /**
+     * This method is the main start method which sill go through and start and setup each part of the plugin in the correct order.
+     */
     @Override
     public void onEnable() {
         try {
@@ -247,6 +253,9 @@ public class PunisherPlugin extends Plugin {
         }
     }
 
+    /**
+     * This method is the shutdown method and is used when we reload the plugin in {@link AdminCommands} as well as when the server shuts down.
+     */
     @Override
     public void onDisable() {
         try {
@@ -269,12 +278,18 @@ public class PunisherPlugin extends Plugin {
 
     }
 
+    /**
+     * This method is used to initialize the required modules for the protocol side of the plugin.
+     */
     private void initProtocol() {
         ProxyServer.getInstance().getPluginManager().registerListener(this, new PlayerListener(this));
         ItemsModule.initModule();
         InventoryModule.initModule();
     }
 
+    /**
+     * this method is used to setup and pre load all our gui menus.
+     */
     private void setupMenus() {
         LevelZero.setupMenu();
         LevelOne.setupMenu();
@@ -283,6 +298,9 @@ public class PunisherPlugin extends Plugin {
         ConfirmationGUI.setupMenu();
     }
 
+    /**
+     * This method is used to register all our event listeners.
+     */
     private void registerListeners() {
         getLogger().info(prefix + ChatColor.GREEN + "Registering Listeners...");
         getProxy().getPluginManager().registerListener(this, new PlayerChat());
@@ -294,6 +312,9 @@ public class PunisherPlugin extends Plugin {
         getProxy().getPluginManager().registerListener(this, new PlayerDisconnect());
     }
 
+    /**
+     * This method is used to register all our commands.
+     */
     private void registerCommands() {
         getProxy().getPluginManager().registerCommand(this, new PunishCommand());
         getLogger().info(prefix + ChatColor.GREEN + "Registering Commands...");
@@ -328,6 +349,10 @@ public class PunisherPlugin extends Plugin {
         getProxy().getPluginManager().registerCommand(this, new AdminChat());
     }
 
+    /**
+     * This method loads all the config files and creates them if they don't exist.
+     * @throws Exception If the config files could not be loaded.
+     */
     public void loadConfigs() throws Exception {
         punishmentsFile = new File(getDataFolder(), "punishments.yml");
         configFile = new File(getDataFolder(), "config.yml");
@@ -417,6 +442,9 @@ public class PunisherPlugin extends Plugin {
 //        }
     }
 
+    /**
+     * This method saves the main config file.
+     */
     public void saveConfig() {
         try {
             ConfigurationProvider.getProvider(YamlConfiguration.class).save(punishmentsConfig, punishmentsFile);
@@ -458,6 +486,9 @@ public class PunisherPlugin extends Plugin {
 //        }
 //    }
 
+    /**
+     * This method saves the default punishments to the punishments config file when it is first created.
+     */
     public void saveDefaultPunishments() {
         try {
             Files.copy(getResourceAsStream("punishments.yml"), punishmentsFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
@@ -466,6 +497,9 @@ public class PunisherPlugin extends Plugin {
         }
     }
 
+    /**
+     * This method saves the default config to the config file when it is first created.
+     */
     private void saveDefaultConfig() {
         try {
             Files.copy(getResourceAsStream("bungeeconfig.yml"), configFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
