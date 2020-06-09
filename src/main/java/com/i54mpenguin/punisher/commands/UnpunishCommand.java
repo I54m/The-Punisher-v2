@@ -1,13 +1,13 @@
 package com.i54mpenguin.punisher.commands;
 
-import me.fiftyfour.punisher.bungee.PunisherPlugin;
+import com.i54mpenguin.punisher.PunisherPlugin;
+import com.i54mpenguin.punisher.exceptions.DataFecthException;
+import com.i54mpenguin.punisher.exceptions.PunishmentsDatabaseException;
 import com.i54mpenguin.punisher.handlers.ErrorHandler;
 import com.i54mpenguin.punisher.managers.PunishmentManager;
 import com.i54mpenguin.punisher.objects.Punishment;
-import com.i54mpenguin.punisher.exceptions.DataFecthException;
-import com.i54mpenguin.punisher.exceptions.PunishmentsDatabaseException;
-import me.fiftyfour.punisher.universal.util.NameFetcher;
-import me.fiftyfour.punisher.universal.util.UUIDFetcher;
+import com.i54mpenguin.punisher.utils.NameFetcher;
+import com.i54mpenguin.punisher.utils.UUIDFetcher;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
@@ -34,11 +34,11 @@ public class UnpunishCommand extends Command {
 
     @Override
     public void execute(CommandSender commandSender, String[] strings) {
-        commandSender.sendMessage(new ComponentBuilder(plugin.prefix).append("Unpunish command is currently not functioning properly!").color(ChatColor.RED).create());
+        commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Unpunish command is currently not functioning properly!").color(ChatColor.RED).create());
         if (commandSender instanceof ProxiedPlayer) {
             ProxiedPlayer player = (ProxiedPlayer) commandSender;
             if (strings.length <= 1) {
-                player.sendMessage(new ComponentBuilder(plugin.prefix).append("Remove a punishment from a player's history (CaSe SeNsItIvE!!)").color(ChatColor.RED).append("\nUsage: /unpunish <player name> <reason>").color(ChatColor.WHITE).create());
+                player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Remove a punishment from a player's history (CaSe SeNsItIvE!!)").color(ChatColor.RED).append("\nUsage: /unpunish <player name> <reason>").color(ChatColor.WHITE).create());
                 return;
             }
             ProxiedPlayer findTarget = ProxyServer.getInstance().getPlayer(strings[0]);
@@ -59,7 +59,7 @@ public class UnpunishCommand extends Command {
             }
             String reasonString = reason.toString().replace("-", "_").replace(" ", "_").replace("/", "_");
             if (reasonString.toLowerCase().contains("manual")) {
-                player.sendMessage(new ComponentBuilder(plugin.prefix).append("Manual Punishments may not be removed from history!").color(ChatColor.RED).create());
+                player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Manual Punishments may not be removed from history!").color(ChatColor.RED).create());
                 return;
             }
             ArrayList<String> reasonslist = new ArrayList<>();
@@ -71,9 +71,9 @@ public class UnpunishCommand extends Command {
                 reasonslist.add(reason1.toString());
             }
             if (!reasonslist.contains(reasonString)) {
-                player.sendMessage(new ComponentBuilder(plugin.prefix).append("That is not a punishment reason!").color(ChatColor.RED).create());
-                player.sendMessage(new ComponentBuilder(plugin.prefix).append("Reasons are as follows (Case Sensitive):").color(ChatColor.RED).create());
-                player.sendMessage(new ComponentBuilder(plugin.prefix).append(reasons.toString()).color(ChatColor.RED).create());
+                player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("That is not a punishment reason!").color(ChatColor.RED).create());
+                player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Reasons are as follows (Case Sensitive):").color(ChatColor.RED).create());
+                player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append(reasons.toString()).color(ChatColor.RED).create());
                 return;
             }
             if (future != null) {
@@ -111,7 +111,7 @@ public class UnpunishCommand extends Command {
                     }
                 }
             } else {
-                player.sendMessage(new ComponentBuilder(plugin.prefix).append("That is not a player's name").color(ChatColor.RED).create());
+                player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("That is not a player's name").color(ChatColor.RED).create());
             }
         } else {
             commandSender.sendMessage(new TextComponent("You must be a player to use this command!"));

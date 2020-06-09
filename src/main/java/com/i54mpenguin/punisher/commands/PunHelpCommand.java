@@ -1,6 +1,6 @@
 package com.i54mpenguin.punisher.commands;
 
-import me.fiftyfour.punisher.bungee.PunisherPlugin;
+import com.i54mpenguin.punisher.PunisherPlugin;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.chat.ComponentBuilder;
@@ -24,7 +24,7 @@ public class PunHelpCommand extends Command {
             commandSender.sendMessage(new ComponentBuilder("/ban <player> [length<s|m|h|d|w|M|perm>] [reason]").color(ChatColor.RED).append(": Manually ban a player").color(ChatColor.WHITE).create());
         if (commandSender.hasPermission("punisher.clearchat"))
             commandSender.sendMessage(new ComponentBuilder("/clearchat").color(ChatColor.RED).append(": clear the chat for all players (except staff)").color(ChatColor.WHITE).create());
-        if (PunisherPlugin.config.getBoolean("DiscordIntegration.Enabled")) {
+        if (PunisherPlugin.getInstance().getConfig().getBoolean("DiscordIntegration.Enabled")) {
             if (commandSender.hasPermission("punisher.discord"))
                 commandSender.sendMessage(new ComponentBuilder("/discord").color(ChatColor.RED).append(": Main command for Discord integration").color(ChatColor.WHITE).create());
             if (commandSender.hasPermission("punisher.discord.admin"))

@@ -21,12 +21,12 @@ public class ServerConnect implements Listener {
     public void onServerConnect(ServerConnectEvent event) {
         if (DiscordMain.jda == null) return;
         ProxiedPlayer player = event.getPlayer();
-        if (PunisherPlugin.config.getBoolean("DiscordIntegration.EnableRoleSync") && DiscordMain.verifiedUsers.containsKey(player.getUniqueId()) && event.getReason() == ServerConnectEvent.Reason.JOIN_PROXY) {
+        if (plugin.getConfig().getBoolean("DiscordIntegration.EnableRoleSync") && DiscordMain.verifiedUsers.containsKey(player.getUniqueId()) && event.getReason() == ServerConnectEvent.Reason.JOIN_PROXY) {
             workerManager.runWorker(new WorkerManager.Worker(() -> {
                 User user = DiscordMain.jda.getUserById(DiscordMain.verifiedUsers.get(player.getUniqueId()));
-                Guild guild = DiscordMain.jda.getGuildById(PunisherPlugin.config.getString("DiscordIntegration.GuildId"));
+                Guild guild = DiscordMain.jda.getGuildById(plugin.getConfig().getString("DiscordIntegration.GuildId"));
                 if (guild != null && user != null)
-                    for (String roleids : PunisherPlugin.config.getStringList("DiscordIntegration.RolesToSync")) {
+                    for (String roleids : plugin.getConfig().getStringList("DiscordIntegration.RolesToSync")) {
                         try {
                             guild.getMember(user).getRoles().forEach((role -> {
                                 if (roleids.equals(role.getId()) && !player.hasPermission("punisher.discord.role." + roleids))
@@ -42,8 +42,8 @@ public class ServerConnect implements Listener {
                     }
             }));
         }
-        if (PunisherPlugin.config.getBoolean("DiscordIntegration.EnableJoinLogging")) {
-            TextChannel loggingChannel = DiscordMain.jda.getTextChannelById(PunisherPlugin.config.getString("DiscordIntegration.JoinLoggingChannelId"));
+        if (plugin.getConfig().getBoolean("DiscordIntegration.EnableJoinLogging")) {
+            TextChannel loggingChannel = DiscordMain.jda.getTextChannelById(plugin.getConfig().getString("DiscordIntegration.JoinLoggingChannelId"));
             if (loggingChannel != null)
                 switch (event.getReason()) {
                     case JOIN_PROXY:

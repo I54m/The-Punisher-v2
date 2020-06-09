@@ -1,11 +1,11 @@
 package com.i54mpenguin.punisher.managers;
 
-import com.zaxxer.hikari.HikariDataSource;
-import lombok.Getter;
-import me.fiftyfour.punisher.bungee.PunisherPlugin;
+import com.i54mpenguin.punisher.PunisherPlugin;
+import com.i54mpenguin.punisher.exceptions.PunishmentsDatabaseException;
 import com.i54mpenguin.punisher.handlers.ErrorHandler;
 import com.i54mpenguin.punisher.objects.Punishment;
-import com.i54mpenguin.punisher.exceptions.PunishmentsDatabaseException;
+import com.zaxxer.hikari.HikariDataSource;
+import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
 
 public class DatabaseManager {
 
-    private PunisherPlugin plugin = PunisherPlugin.getInstance();
+    private final PunisherPlugin plugin = PunisherPlugin.getInstance();
     private final PunishmentManager punishmentManager = PunishmentManager.getINSTANCE();
     private final WorkerManager workerManager = WorkerManager.getINSTANCE();
     private final ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
@@ -47,15 +47,13 @@ public class DatabaseManager {
 
     public void start() throws Exception {
         //setup mysql connection
-        if (plugin == null)
-            plugin = PunisherPlugin.getInstance();
-        plugin.getLogger().info(plugin.prefix + ChatColor.GREEN + "Establishing MYSQL connection...");
-        host = PunisherPlugin.config.getString("MySQL.host", "localhost");
-        database = PunisherPlugin.config.getString("MySQL.database", "punisherdb");
-        username = PunisherPlugin.config.getString("MySQL.username", "punisher");
-        password = PunisherPlugin.config.getString("MySQL.password", "punisher");
-        port = PunisherPlugin.config.getInt("MySQL.port", 3306);
-        extraArguments = PunisherPlugin.config.getString("MySQL.extraArguments", "?useSSL=false");
+        plugin.getLogger().info(plugin.getPrefix() + ChatColor.GREEN + "Establishing MYSQL connection...");
+        host = plugin.getConfig().getString("MySQL.host", "localhost");
+        database = plugin.getConfig().getString("MySQL.database", "punisherdb");
+        username = plugin.getConfig().getString("MySQL.username", "punisher");
+        password = plugin.getConfig().getString("MySQL.password", "punisher");
+        port = plugin.getConfig().getInt("MySQL.port", 3306);
+        extraArguments = plugin.getConfig().getString("MySQL.extraArguments", "?useSSL=false");
         hikari = new HikariDataSource();
         hikari.addDataSourceProperty("serverName", host);
         hikari.addDataSourceProperty("port", port);
@@ -78,14 +76,14 @@ public class DatabaseManager {
             if (cacheTask != null)
                 cacheTask.cancel();
             if (hikari != null && !hikari.isClosed()) {
-                plugin.getLogger().info(plugin.prefix + ChatColor.GREEN + "Closing Storage....");
+                plugin.getLogger().info(plugin.getPrefix() + ChatColor.GREEN + "Closing Storage....");
                 hikari.close();
                 connection = null;
                 hikari = null;
-                plugin.getLogger().info(plugin.prefix + ChatColor.GREEN + "Storage Closed");
+                plugin.getLogger().info(plugin.getPrefix() + ChatColor.GREEN + "Storage Closed");
             }
         } catch (Exception e) {
-            plugin.getLogger().severe(plugin.prefix + ChatColor.RED + "Error occurred on database manager shutdown!");
+            plugin.getLogger().severe(plugin.getPrefix() + ChatColor.RED + "Error occurred on database manager shutdown!");
             e.printStackTrace();
         }
     }
@@ -96,22 +94,22 @@ public class DatabaseManager {
             if (connection != null && !connection.isClosed() || hikari == null)
                 return;
             connection = hikari.getConnection();
-            plugin.getLogger().info(plugin.prefix + ChatColor.GREEN + "MYSQL Connected to server: " + host + ":" + port + " with user: " + username + "!");
+            plugin.getLogger().info(plugin.getPrefix() + ChatColor.GREEN + "MYSQL Connected to server: " + host + ":" + port + " with user: " + username + "!");
         } catch (SQLException e) {
-            plugin.getLogger().severe(plugin.prefix + ChatColor.RED + "MYSQL Connection failed!!! (SQLException)");
-            PunisherPlugin.LOGS.severe("Error Message: " + e.getMessage());
+            plugin.getLogger().severe(plugin.getPrefix() + ChatColor.RED + "MYSQL Connection failed!!! (SQLException)");
+            PunisherPlugin.getLOGS().severe("Error Message: " + e.getMessage());
             StringBuilder stacktrace = new StringBuilder();
             for (StackTraceElement stackTraceElement : e.getStackTrace()) {
                 stacktrace.append(stackTraceElement.toString()).append("\n");
             }
-            PunisherPlugin.LOGS.severe("Stack Trace: " + stacktrace.toString());
+            PunisherPlugin.getLOGS().severe("Stack Trace: " + stacktrace.toString());
             if (e.getCause() != null)
-                PunisherPlugin.LOGS.severe("Error Cause Message: " + e.getCause().getMessage());
+                PunisherPlugin.getLOGS().severe("Error Cause Message: " + e.getCause().getMessage());
             ProxyServer.getInstance().getLogger().severe(" ");
-            ProxyServer.getInstance().getLogger().severe(plugin.prefix + ChatColor.RED + "An error was encountered and debug info was logged to log file!");
-            ProxyServer.getInstance().getLogger().severe(plugin.prefix + ChatColor.RED + "Error Message: " + e.getMessage());
+            ProxyServer.getInstance().getLogger().severe(plugin.getPrefix() + ChatColor.RED + "An error was encountered and debug info was logged to log file!");
+            ProxyServer.getInstance().getLogger().severe(plugin.getPrefix() + ChatColor.RED + "Error Message: " + e.getMessage());
             if (e.getCause() != null)
-                ProxyServer.getInstance().getLogger().severe(plugin.prefix + ChatColor.RED + "Error Cause Message: " + e.getCause().getMessage());
+                ProxyServer.getInstance().getLogger().severe(plugin.getPrefix() + ChatColor.RED + "Error Cause Message: " + e.getCause().getMessage());
             ProxyServer.getInstance().getLogger().severe(" ");
             throw new Exception("Mysql connection failed", e);
         }
@@ -123,7 +121,7 @@ public class DatabaseManager {
 
     private void setupmysql() throws Exception {
         try {
-            plugin.getLogger().info(plugin.prefix + ChatColor.GREEN + "Setting up MYSQL...");
+            plugin.getLogger().info(plugin.getPrefix() + ChatColor.GREEN + "Setting up MYSQL...");
             String createdb = "CREATE DATABASE IF NOT EXISTS " + database;
             String punishments = "CREATE TABLE IF NOT EXISTS `punisherdb`.`punishments` ( `id` INT NOT NULL AUTO_INCREMENT , `type` VARCHAR(4) NOT NULL , `reason` VARCHAR(20) NOT NULL ," +
                     " `issueDate` VARCHAR(20) NOT NULL , `expiration` BIGINT NULL DEFAULT NULL , `targetUUID` VARCHAR(32) NOT NULL , `targetName` VARCHAR(16) NOT NULL , " +
@@ -165,24 +163,24 @@ public class DatabaseManager {
             stmt5.close();
             stmt6.executeUpdate();
             stmt6.close();
-            plugin.getLogger().info(plugin.prefix + ChatColor.GREEN + "MYSQL setup!");
-            plugin.getLogger().info(plugin.prefix + ChatColor.GREEN + "Started Database Manager!");
+            plugin.getLogger().info(plugin.getPrefix() + ChatColor.GREEN + "MYSQL setup!");
+            plugin.getLogger().info(plugin.getPrefix() + ChatColor.GREEN + "Started Database Manager!");
         } catch (SQLException e) {
-            plugin.getLogger().severe(plugin.prefix + ChatColor.RED + "Could not Setup MYSQL!!");
-            plugin.getLogger().severe(plugin.prefix + ChatColor.RED + "Could not Start Database Manager!!");
-            PunisherPlugin.LOGS.severe("Error Message: " + e.getMessage());
+            plugin.getLogger().severe(plugin.getPrefix() + ChatColor.RED + "Could not Setup MYSQL!!");
+            plugin.getLogger().severe(plugin.getPrefix() + ChatColor.RED + "Could not Start Database Manager!!");
+            PunisherPlugin.getLOGS().severe("Error Message: " + e.getMessage());
             StringBuilder stacktrace = new StringBuilder();
             for (StackTraceElement stackTraceElement : e.getStackTrace()) {
                 stacktrace.append(stackTraceElement.toString()).append("\n");
             }
-            PunisherPlugin.LOGS.severe("Stack Trace: " + stacktrace.toString());
+            PunisherPlugin.getLOGS().severe("Stack Trace: " + stacktrace.toString());
             if (e.getCause() != null)
-                PunisherPlugin.LOGS.severe("Error Cause Message: " + e.getCause().getMessage());
+                PunisherPlugin.getLOGS().severe("Error Cause Message: " + e.getCause().getMessage());
             ProxyServer.getInstance().getLogger().severe(" ");
-            ProxyServer.getInstance().getLogger().severe(plugin.prefix + ChatColor.RED + "An error was encountered and debug info was logged to log file!");
-            ProxyServer.getInstance().getLogger().severe(plugin.prefix + ChatColor.RED + "Error Message: " + e.getMessage());
+            ProxyServer.getInstance().getLogger().severe(plugin.getPrefix() + ChatColor.RED + "An error was encountered and debug info was logged to log file!");
+            ProxyServer.getInstance().getLogger().severe(plugin.getPrefix() + ChatColor.RED + "Error Message: " + e.getMessage());
             if (e.getCause() != null)
-                ProxyServer.getInstance().getLogger().severe(plugin.prefix + ChatColor.RED + "Error Cause Message: " + e.getCause().getMessage());
+                ProxyServer.getInstance().getLogger().severe(plugin.getPrefix() + ChatColor.RED + "Error Cause Message: " + e.getCause().getMessage());
             ProxyServer.getInstance().getLogger().severe(" ");
             throw new Exception("Failed to setup mysql!", e);
         }
@@ -337,8 +335,8 @@ public class DatabaseManager {
                 errorHandler.adminChatAlert(pde, plugin.getProxy().getConsole());
             }
             cacheTask = plugin.getProxy().getScheduler().schedule(plugin, () -> {
-                if (PunisherPlugin.config.getBoolean("MySql.debugMode"))
-                    plugin.getLogger().info(plugin.prefix + ChatColor.GREEN + "Caching Punishments...");
+                if (plugin.getConfig().getBoolean("MySql.debugMode"))
+                    plugin.getLogger().info(plugin.getPrefix() + ChatColor.GREEN + "Caching Punishments...");
                 try {
                     workerManager.runWorker(new WorkerManager.Worker(this::resetCache));
                 } catch (Exception e) {

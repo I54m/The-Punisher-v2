@@ -1,18 +1,15 @@
 package com.i54mpenguin.punisher.managers;
 
 import com.i54mpenguin.punisher.PunisherPlugin;
-import com.i54mpenguin.punisher.utils.NameFetcher;
-import com.i54mpenguin.punisher.utils.UUIDFetcher;
-import lombok.Getter;
-import me.fiftyfour.punisher.bungee.PunisherPlugin;
 import com.i54mpenguin.punisher.chats.StaffChat;
-import com.i54mpenguin.punisher.handlers.ErrorHandler;
-import com.i54mpenguin.punisher.objects.Punishment;
 import com.i54mpenguin.punisher.exceptions.PunishmentCalculationException;
 import com.i54mpenguin.punisher.exceptions.PunishmentsDatabaseException;
-import me.fiftyfour.punisher.universal.util.NameFetcher;
+import com.i54mpenguin.punisher.handlers.ErrorHandler;
+import com.i54mpenguin.punisher.objects.Punishment;
+import com.i54mpenguin.punisher.utils.NameFetcher;
 import com.i54mpenguin.punisher.utils.Permissions;
-import me.fiftyfour.punisher.universal.util.UUIDFetcher;
+import com.i54mpenguin.punisher.utils.UUIDFetcher;
+import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.ComponentBuilder;
@@ -94,20 +91,20 @@ public class PunishmentManager {
         if (isMuted(targetuuid) && type == Punishment.Type.MUTE) {
             String oldPunisherID = getMute(targetuuid).getPunisherUUID();
             if (!Permissions.higher(player, oldPunisherID) && !punisherUUID.equals("CONSOLE")) {
-                player.sendMessage(new ComponentBuilder(plugin.prefix).append("You cannot mute: " + targetname + " as they have an active mute by someone with higher permissions than you!").color(ChatColor.RED).event(getMute(targetuuid).getHoverEvent()).create());
+                player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("You cannot mute: " + targetname + " as they have an active mute by someone with higher permissions than you!").color(ChatColor.RED).event(getMute(targetuuid).getHoverEvent()).create());
                 return;
             }
         } else if (isBanned(targetuuid) && type == Punishment.Type.BAN) {
             String oldPunisherID = getMute(targetuuid).getPunisherUUID();
             if (!Permissions.higher(player, oldPunisherID) && !punisherUUID.equals("CONSOLE")) {
-                player.sendMessage(new ComponentBuilder(plugin.prefix).append("You cannot ban: " + targetname + " as they have an active ban by someone with higher permissions than you!").color(ChatColor.RED).event(getMute(targetuuid).getHoverEvent()).create());
+                player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("You cannot ban: " + targetname + " as they have an active ban by someone with higher permissions than you!").color(ChatColor.RED).event(getMute(targetuuid).getHoverEvent()).create());
                 return;
             }
         }
 
         if (locked.contains(targetuuid)) {
             if (player != null)
-                player.sendMessage(new ComponentBuilder(plugin.prefix).append("Punishing " + targetname + " is currently locked! Please try again later!").color(ChatColor.RED).create());
+                player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Punishing " + targetname + " is currently locked! Please try again later!").color(ChatColor.RED).create());
             return;
         }
 
@@ -122,20 +119,20 @@ public class PunishmentManager {
                 else
                     reasonMessage = reason.toString().replace("_", " ");
                 if (target != null && target.isConnected()) {
-                    if (PunisherPlugin.config.getBoolean("Warn Sound.Enabled")) {
+                    if (plugin.getConfig().getBoolean("Warn Sound.Enabled")) {
                         try {
                             ByteArrayOutputStream outbytes = new ByteArrayOutputStream();
                             DataOutputStream out = new DataOutputStream(outbytes);
                             out.writeUTF("playsound");
-                            out.writeUTF(PunisherPlugin.config.getString("Warn Sound.Sound"));
+                            out.writeUTF(plugin.getConfig().getString("Warn Sound.Sound"));
                             target.getServer().sendData("punisher:minor", outbytes.toByteArray());
                         } catch (IOException ioe) {
                             ioe.printStackTrace();
                         }
                     }
-                    if (PunisherPlugin.config.getBoolean("Warn Title.Enabled")) {
-                        String titleText = PunisherPlugin.config.getString("Warn Title.Title Message");
-                        String subtitleText = PunisherPlugin.config.getString("Warn Title.Subtitle Message");
+                    if (plugin.getConfig().getBoolean("Warn Title.Enabled")) {
+                        String titleText = plugin.getConfig().getString("Warn Title.Title Message");
+                        String subtitleText = plugin.getConfig().getString("Warn Title.Subtitle Message");
                         if (punishment.getMessage() != null) {
                             titleText = titleText.replace("%reason%", punishment.getMessage());
                             subtitleText = subtitleText.replace("%reason%", punishment.getMessage());
@@ -145,11 +142,11 @@ public class PunishmentManager {
                         }
                         ProxyServer.getInstance().createTitle().title(new TextComponent(ChatColor.translateAlternateColorCodes('&', titleText)))
                                 .subTitle(new TextComponent(ChatColor.translateAlternateColorCodes('&', subtitleText)))
-                                .fadeIn(PunisherPlugin.config.getInt("Warn Title.Fade In"))
-                                .stay(PunisherPlugin.config.getInt("Warn Title.Stay")).fadeOut(PunisherPlugin.config.getInt("Warn Title.Fade Out"))
+                                .fadeIn(plugin.getConfig().getInt("Warn Title.Fade In"))
+                                .stay(plugin.getConfig().getInt("Warn Title.Stay")).fadeOut(plugin.getConfig().getInt("Warn Title.Fade Out"))
                                 .send(target);
                     }
-                    String warnMessage = PunisherPlugin.config.getString("Warn Message");
+                    String warnMessage = plugin.getConfig().getString("Warn Message");
                     if (punishment.getMessage() != null)
                         warnMessage = warnMessage.replace("%reason%", punishment.getMessage());
                     else
@@ -158,17 +155,17 @@ public class PunishmentManager {
                     if (!reissue) {
                         dbManager.updatePunishment(punishment.setIssueDate().setStatus(Punishment.Status.Issued));
                         if (player != null && player.isConnected()) {
-                            PunisherPlugin.LOGS.info(targetname + " Was Warned for: " + reasonMessage + " by: " + player.getName());
+                            PunisherPlugin.getLOGS().info(targetname + " Was Warned for: " + reasonMessage + " by: " + player.getName());
                             if (announce)
                                 StaffChat.sendMessage(new ComponentBuilder(player.getName() + " Warned: " + targetname + " for: " + reasonMessage).color(ChatColor.RED).event(punishment.getHoverEvent()).create(), true);
                             else
-                                player.sendMessage(new ComponentBuilder(plugin.prefix).append("Silently Warned: " + targetname + " for: " + reasonMessage).color(ChatColor.RED).event(punishment.getHoverEvent()).create());
+                                player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Silently Warned: " + targetname + " for: " + reasonMessage).color(ChatColor.RED).event(punishment.getHoverEvent()).create());
                         } else {
-                            PunisherPlugin.LOGS.info(targetname + " Was Warned for: " + reasonMessage + " by: " + NameFetcher.getName(targetuuid));
+                            PunisherPlugin.getLOGS().info(targetname + " Was Warned for: " + reasonMessage + " by: " + NameFetcher.getName(targetuuid));
                             if (announce)
                                 StaffChat.sendMessage(new ComponentBuilder("CONSOLE Warned: " + targetname + " for: " + reasonMessage).color(ChatColor.RED).event(punishment.getHoverEvent()).create(), true);
                             else
-                                plugin.getProxy().getConsole().sendMessage(new ComponentBuilder(plugin.prefix).append("CONSOLE Warned: " + targetname + " for: " + reasonMessage).color(ChatColor.RED).create());
+                                plugin.getProxy().getConsole().sendMessage(new ComponentBuilder(plugin.getPrefix()).append("CONSOLE Warned: " + targetname + " for: " + reasonMessage).color(ChatColor.RED).create());
                         }
                     } else {
                         dbManager.updatePunishment(punishment.setStatus(Punishment.Status.Issued));
@@ -176,25 +173,25 @@ public class PunishmentManager {
                         String playername = NameFetcher.getName(punisherUUID);
                         ProxiedPlayer player2 = (player != null && player.isConnected()) ? player : ProxyServer.getInstance().getPlayer(UUIDFetcher.formatUUID(punisherUUID));
                         if (player2 != null && player2.isConnected())
-                            player2.sendMessage(new ComponentBuilder(plugin.prefix).append("Your warning on " + targetname + " for: " + reasonMessage + " has now been issued.").color(ChatColor.RED).create());
+                            player2.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Your warning on " + targetname + " for: " + reasonMessage + " has now been issued.").color(ChatColor.RED).create());
                         if (announce)
                             StaffChat.sendMessage(new ComponentBuilder("CONSOLE Issued Warning on: " + targetname + " for: " + reasonMessage + ". Warning was originally issued by: " + playername).color(ChatColor.RED).event(punishment.getHoverEvent()).create(), true);
-                        PunisherPlugin.LOGS.info(targetname + " Was Warned for: " + reasonMessage + " by: " + playername + ". This warning was originally issued on: " + punishment.getIssueDate());
+                        PunisherPlugin.getLOGS().info(targetname + " Was Warned for: " + reasonMessage + " by: " + playername + ". This warning was originally issued on: " + punishment.getIssueDate());
                     }
                 } else if (target == null || !target.isConnected()) {
                     PendingPunishments.put(punishment.getTargetUUID(), punishment.getId());
                     if (player != null && player.isConnected()) {
-                        PunisherPlugin.LOGS.info(targetname + " Was Warned for: " + reasonMessage + " by: " + player.getName() + ". Warning will be issued when they are online next.");
+                        PunisherPlugin.getLOGS().info(targetname + " Was Warned for: " + reasonMessage + " by: " + player.getName() + ". Warning will be issued when they are online next.");
                         if (announce)
                             StaffChat.sendMessage(new ComponentBuilder(player.getName() + " Warned: " + targetname + " for: " + reasonMessage + ". This warning will be issued when they are online next.").color(ChatColor.RED).event(punishment.getHoverEvent()).create(), true);
                         else
-                            player.sendMessage(new ComponentBuilder(plugin.prefix).append("Silently Warned: " + targetname + " for: " + reasonMessage + ". This warning will be issued when they are online next.").color(ChatColor.RED).event(punishment.getHoverEvent()).create());
+                            player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Silently Warned: " + targetname + " for: " + reasonMessage + ". This warning will be issued when they are online next.").color(ChatColor.RED).event(punishment.getHoverEvent()).create());
                     } else {
-                        PunisherPlugin.LOGS.info(targetname + " Was Warned for: " + reasonMessage + " by: " + NameFetcher.getName(targetuuid) + ". This warning will be issued when they are online next.");
+                        PunisherPlugin.getLOGS().info(targetname + " Was Warned for: " + reasonMessage + " by: " + NameFetcher.getName(targetuuid) + ". This warning will be issued when they are online next.");
                         if (announce)
                             StaffChat.sendMessage(new ComponentBuilder("CONSOLE Warned: " + targetname + " for: " + reasonMessage + ". This warning will be issued when they are online next.").color(ChatColor.RED).event(punishment.getHoverEvent()).create(), true);
                         else
-                            plugin.getProxy().getConsole().sendMessage(new ComponentBuilder(plugin.prefix).append("CONSOLE Warned: " + targetname + " for: " + reasonMessage + ". This warning will be issued when they are online next.").color(ChatColor.RED).event(punishment.getHoverEvent()).create());
+                            plugin.getProxy().getConsole().sendMessage(new ComponentBuilder(plugin.getPrefix()).append("CONSOLE Warned: " + targetname + " for: " + reasonMessage + ". This warning will be issued when they are online next.").color(ChatColor.RED).event(punishment.getHoverEvent()).create());
                     }
                 }
                 if (addHistory) {
@@ -212,7 +209,7 @@ public class PunishmentManager {
                     reasonMessage = reason.toString().replace("_", " ");
                 }
                 if (target != null && target.isConnected()) {
-                    String kickMessage = PunisherPlugin.config.getString("Kick Message");
+                    String kickMessage = plugin.getConfig().getString("Kick Message");
                     kickMessage = kickMessage.replace("%reason%", reasonMessage);
                     target.disconnect(new TextComponent(ChatColor.translateAlternateColorCodes('&', kickMessage)));
                 }
@@ -221,17 +218,17 @@ public class PunishmentManager {
                     dbManager.incrementStaffHistory(punishment);
                 }
                 if (player != null && player.isConnected()) {
-                    PunisherPlugin.LOGS.info(targetname + " Was Kicked for: " + reasonMessage + " by: " + player.getName());
+                    PunisherPlugin.getLOGS().info(targetname + " Was Kicked for: " + reasonMessage + " by: " + player.getName());
                     if (announce)
                         StaffChat.sendMessage(new ComponentBuilder(player.getName() + " Kicked: " + targetname + " for: " + reasonMessage).color(ChatColor.RED).event(punishment.getHoverEvent()).create(), true);
                     else
-                        player.sendMessage(new ComponentBuilder(plugin.prefix).append("Silently Kicked: " + targetname + " for: " + reasonMessage).color(ChatColor.RED).event(punishment.getHoverEvent()).create());
+                        player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Silently Kicked: " + targetname + " for: " + reasonMessage).color(ChatColor.RED).event(punishment.getHoverEvent()).create());
                 } else {
-                    PunisherPlugin.LOGS.info(targetname + " Was Kicked for: " + reasonMessage + " by: " + NameFetcher.getName(targetuuid));
+                    PunisherPlugin.getLOGS().info(targetname + " Was Kicked for: " + reasonMessage + " by: " + NameFetcher.getName(targetuuid));
                     if (announce)
                         StaffChat.sendMessage(new ComponentBuilder("CONSOLE Kicked: " + targetname + " for: " + reasonMessage).color(ChatColor.RED).event(punishment.getHoverEvent()).create(), true);
                     else
-                        plugin.getProxy().getConsole().sendMessage(new ComponentBuilder(plugin.prefix).append("CONSOLE Kicked: " + targetname + " for: " + reasonMessage).color(ChatColor.RED).event(punishment.getHoverEvent()).create());
+                        plugin.getProxy().getConsole().sendMessage(new ComponentBuilder(plugin.getPrefix()).append("CONSOLE Kicked: " + targetname + " for: " + reasonMessage).color(ChatColor.RED).event(punishment.getHoverEvent()).create());
                 }
                 if (minusRep)
                     ReputationManager.minusRep(targetname, targetuuid, repLoss);
@@ -246,34 +243,34 @@ public class PunishmentManager {
                 }
                 String timeleft = getTimeLeft(punishment);
                 if (target != null && target.isConnected()) {
-                    if (PunisherPlugin.config.getBoolean("Mute Sound.Enabled")) {
+                    if (plugin.getConfig().getBoolean("Mute Sound.Enabled")) {
                         try {
                             ByteArrayOutputStream outbytes = new ByteArrayOutputStream();
                             DataOutputStream out = new DataOutputStream(outbytes);
                             out.writeUTF("playsound");
-                            out.writeUTF(PunisherPlugin.config.getString("Mute Sound.Sound"));
+                            out.writeUTF(plugin.getConfig().getString("Mute Sound.Sound"));
                             target.getServer().sendData("punisher:minor", outbytes.toByteArray());
                         } catch (IOException ioe) {
                             ioe.printStackTrace();
                         }
                     }
-                    if (PunisherPlugin.config.getBoolean("Mute Title.Enabled")) {
-                        String titleText = PunisherPlugin.config.getString("Mute Title.Title Message");
-                        String subtitleText = PunisherPlugin.config.getString("Mute Title.Subtitle Message");
+                    if (plugin.getConfig().getBoolean("Mute Title.Enabled")) {
+                        String titleText = plugin.getConfig().getString("Mute Title.Title Message");
+                        String subtitleText = plugin.getConfig().getString("Mute Title.Subtitle Message");
                         titleText = titleText.replace("%reason%", reasonMessage);
                         subtitleText = subtitleText.replace("%reason%", reasonMessage);
                         if (announce)
                             ProxyServer.getInstance().createTitle().title(new TextComponent(ChatColor.translateAlternateColorCodes('&', titleText)))
                                     .subTitle(new TextComponent(ChatColor.translateAlternateColorCodes('&', subtitleText)))
-                                    .fadeIn(PunisherPlugin.config.getInt("Mute Title.Fade In"))
-                                    .stay(PunisherPlugin.config.getInt("Mute Title.Stay")).fadeOut(PunisherPlugin.config.getInt("Mute Title.Fade Out"))
+                                    .fadeIn(plugin.getConfig().getInt("Mute Title.Fade In"))
+                                    .stay(plugin.getConfig().getInt("Mute Title.Stay")).fadeOut(plugin.getConfig().getInt("Mute Title.Fade Out"))
                                     .send(target);
                     }
                     String muteMessage;
                     if (punishment.isPermanent())
-                        muteMessage = PunisherPlugin.config.getString("PermMute Message").replace("%reason%", reasonMessage).replace("%timeleft%", timeleft);
+                        muteMessage = plugin.getConfig().getString("PermMute Message").replace("%reason%", reasonMessage).replace("%timeleft%", timeleft);
                     else
-                        muteMessage = PunisherPlugin.config.getString("TempMute Message").replace("%reason%", reasonMessage).replace("%timeleft%", timeleft);
+                        muteMessage = plugin.getConfig().getString("TempMute Message").replace("%reason%", reasonMessage).replace("%timeleft%", timeleft);
                     if (announce)
                         target.sendMessage(new ComponentBuilder(ChatColor.translateAlternateColorCodes('&', muteMessage)).create());
                 }
@@ -291,18 +288,18 @@ public class PunishmentManager {
                 addActive(punishment);
                 PendingPunishments.remove(targetuuid);
                 if (player != null && player.isConnected()) {
-                    PunisherPlugin.LOGS.info(targetname + " Was Muted for: " + reasonMessage + " by: " + player.getName());
+                    PunisherPlugin.getLOGS().info(targetname + " Was Muted for: " + reasonMessage + " by: " + player.getName());
                     if (announce)
                         StaffChat.sendMessage(new ComponentBuilder(player.getName() + " Muted: " + targetname + " for: " + reasonMessage).color(ChatColor.RED).event(punishment.getHoverEvent()).create(), true);
                     else
-                        player.sendMessage(new ComponentBuilder(plugin.prefix).append("Silently Muted: " + targetname + " for: " + reasonMessage).color(ChatColor.RED).event(punishment.getHoverEvent()).create());
+                        player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Silently Muted: " + targetname + " for: " + reasonMessage).color(ChatColor.RED).event(punishment.getHoverEvent()).create());
 
                 } else {
-                    PunisherPlugin.LOGS.info(targetname + " Was Muted for: " + reasonMessage + " by: " + NameFetcher.getName(targetuuid));
+                    PunisherPlugin.getLOGS().info(targetname + " Was Muted for: " + reasonMessage + " by: " + NameFetcher.getName(targetuuid));
                     if (announce)
                         StaffChat.sendMessage(new ComponentBuilder("CONSOLE Muted: " + targetname + " for: " + reasonMessage).color(ChatColor.RED).event(punishment.getHoverEvent()).create(), true);
                     else
-                        plugin.getProxy().getConsole().sendMessage(new ComponentBuilder(plugin.prefix).append("CONSOLE Muted: " + targetname + " for: " + reasonMessage).event(punishment.getHoverEvent()).color(ChatColor.RED).create());
+                        plugin.getProxy().getConsole().sendMessage(new ComponentBuilder(plugin.getPrefix()).append("CONSOLE Muted: " + targetname + " for: " + reasonMessage).event(punishment.getHoverEvent()).color(ChatColor.RED).create());
                 }
                 if (minusRep)
                     ReputationManager.minusRep(targetname, targetuuid, repLoss);
@@ -318,9 +315,9 @@ public class PunishmentManager {
                 if (target != null && target.isConnected()) {
                     String banMessage;
                     if (punishment.isPermanent())
-                        banMessage = PunisherPlugin.config.getString("PermBan Message").replace("%timeleft%", timeleft);
+                        banMessage = plugin.getConfig().getString("PermBan Message").replace("%timeleft%", timeleft);
                     else
-                        banMessage = PunisherPlugin.config.getString("TempBan Message").replace("%timeleft%", timeleft);
+                        banMessage = plugin.getConfig().getString("TempBan Message").replace("%timeleft%", timeleft);
                     banMessage = banMessage.replace("%reason%", reasonMessage);
                     target.disconnect(new TextComponent(ChatColor.translateAlternateColorCodes('&', banMessage)));
                 }
@@ -338,17 +335,17 @@ public class PunishmentManager {
                 addActive(punishment);
                 PendingPunishments.remove(targetuuid);
                 if (player != null && player.isConnected()) {
-                    PunisherPlugin.LOGS.info(targetname + " Was Banned for: " + reasonMessage + " by: " + player.getName());
+                    PunisherPlugin.getLOGS().info(targetname + " Was Banned for: " + reasonMessage + " by: " + player.getName());
                     if (announce)
                         StaffChat.sendMessage(new ComponentBuilder(player.getName() + " Banned: " + targetname + " for: " + reasonMessage).color(ChatColor.RED).event(punishment.getHoverEvent()).create(), true);
                     else
-                        player.sendMessage(new ComponentBuilder(plugin.prefix).append("Silently Banned: " + targetname + " for: " + reasonMessage).color(ChatColor.RED).event(punishment.getHoverEvent()).create());
+                        player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Silently Banned: " + targetname + " for: " + reasonMessage).color(ChatColor.RED).event(punishment.getHoverEvent()).create());
                 } else {
-                    PunisherPlugin.LOGS.info(targetname + " Was Banned for: " + reasonMessage + " by: " + NameFetcher.getName(targetuuid));
+                    PunisherPlugin.getLOGS().info(targetname + " Was Banned for: " + reasonMessage + " by: " + NameFetcher.getName(targetuuid));
                     if (announce)
                         StaffChat.sendMessage(new ComponentBuilder("CONSOLE Banned: " + targetname + " for: " + reasonMessage).color(ChatColor.RED).event(punishment.getHoverEvent()).create(), true);
                     else
-                        plugin.getProxy().getConsole().sendMessage(new ComponentBuilder(plugin.prefix).append("CONSOLE Banned: " + targetname + " for: " + reasonMessage).event(punishment.getHoverEvent()).color(ChatColor.RED).create());
+                        plugin.getProxy().getConsole().sendMessage(new ComponentBuilder(plugin.getPrefix()).append("CONSOLE Banned: " + targetname + " for: " + reasonMessage).event(punishment.getHoverEvent()).color(ChatColor.RED).create());
                 }
             }
             if (minusRep)
@@ -367,13 +364,13 @@ public class PunishmentManager {
         if (isMuted(targetuuid) && punishment.getType() == Punishment.Type.MUTE) {
             String oldPunisherID = getMute(targetuuid).getPunisherUUID();
             if (!Permissions.higher(player, oldPunisherID) && !removeruuid.equals("CONSOLE")) {
-                player.sendMessage(new ComponentBuilder(plugin.prefix).append("You cannot unmute: " + targetname + " as they have an active mute by someone with higher permissions than you!").color(ChatColor.RED).create());
+                player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("You cannot unmute: " + targetname + " as they have an active mute by someone with higher permissions than you!").color(ChatColor.RED).create());
                 return;
             }
         } else if (isBanned(targetuuid) && punishment.getType() == Punishment.Type.BAN) {
             String oldPunisherID = getMute(targetuuid).getPunisherUUID();
             if (!Permissions.higher(player, oldPunisherID) && !removeruuid.equals("CONSOLE")) {
-                player.sendMessage(new ComponentBuilder(plugin.prefix).append("You cannot unban: " + targetname + " as they have an active ban by someone with higher permissions than you!").color(ChatColor.RED).create());
+                player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("You cannot unban: " + targetname + " as they have an active ban by someone with higher permissions than you!").color(ChatColor.RED).create());
                 return;
             }
         }
@@ -383,12 +380,12 @@ public class PunishmentManager {
                 if (announce)
                     StaffChat.sendMessage(new ComponentBuilder(player.getName() + " Unmuted: " + targetname).color(ChatColor.RED).event(punishment.getHoverEvent()).create(), true);
                 else
-                    player.sendMessage(new ComponentBuilder(plugin.prefix).append("Silently unmuted " + targetname).color(ChatColor.RED).event(punishment.getHoverEvent()).create());
-                PunisherPlugin.LOGS.info(targetname + " Was Unmuted by: " + player.getName());
+                    player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Silently unmuted " + targetname).color(ChatColor.RED).event(punishment.getHoverEvent()).create());
+                PunisherPlugin.getLOGS().info(targetname + " Was Unmuted by: " + player.getName());
             } else {
                 if (announce)
                     StaffChat.sendMessage(new ComponentBuilder("CONSOLE Unmuted: " + targetname).color(ChatColor.RED).event(punishment.getHoverEvent()).create(), true);
-                PunisherPlugin.LOGS.info(targetname + " Was Unmuted by: " + NameFetcher.getName(targetuuid));
+                PunisherPlugin.getLOGS().info(targetname + " Was Unmuted by: " + NameFetcher.getName(targetuuid));
             }
         }
         if (isBanned(targetuuid) && punishment.getType() == Punishment.Type.BAN) {
@@ -396,12 +393,12 @@ public class PunishmentManager {
                 if (announce)
                     StaffChat.sendMessage(new ComponentBuilder(player.getName() + " Unbanned: " + targetname).color(ChatColor.RED).event(punishment.getHoverEvent()).create(), true);
                 else
-                    player.sendMessage(new ComponentBuilder(plugin.prefix).append("Silently unbanned " + targetname).color(ChatColor.RED).event(punishment.getHoverEvent()).create());
-                PunisherPlugin.LOGS.info(targetname + " Was Unbanned by: " + player.getName());
+                    player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Silently unbanned " + targetname).color(ChatColor.RED).event(punishment.getHoverEvent()).create());
+                PunisherPlugin.getLOGS().info(targetname + " Was Unbanned by: " + player.getName());
             } else {
                 if (announce)
                     StaffChat.sendMessage(new ComponentBuilder("CONSOLE Unbanned: " + targetname).color(ChatColor.RED).event(punishment.getHoverEvent()).create(), true);
-                PunisherPlugin.LOGS.info(targetname + " Was Unbanned by: " + NameFetcher.getName(targetuuid));
+                PunisherPlugin.getLOGS().info(targetname + " Was Unbanned by: " + NameFetcher.getName(targetuuid));
             }
         }
         if (punishment.isRepBan())
@@ -424,7 +421,7 @@ public class PunishmentManager {
                     current--;
                 } else {
                     if (player != null) {
-                        player.sendMessage(new ComponentBuilder(plugin.prefix).append(targetname + " Already has 0 punishments for that offence!").color(ChatColor.RED).create());
+                        player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append(targetname + " Already has 0 punishments for that offence!").color(ChatColor.RED).create());
                         return;
                     }
                 }
@@ -440,8 +437,8 @@ public class PunishmentManager {
                 stmthistupdate.close();
             }
             if (player != null) {
-                PunisherPlugin.LOGS.info(player.getName() + " removed punishment: " + reason.toString().replace("_", " ") + " on player: " + targetname + " Through unpunish");
-                player.sendMessage(new ComponentBuilder(plugin.prefix).append("The punishment: " + reason.toString().replace("_", " ") + " on: " + targetname + " has been removed!").color(ChatColor.RED).event(punishment.getHoverEvent()).create());
+                PunisherPlugin.getLOGS().info(player.getName() + " removed punishment: " + reason.toString().replace("_", " ") + " on player: " + targetname + " Through unpunish");
+                player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("The punishment: " + reason.toString().replace("_", " ") + " on: " + targetname + " has been removed!").color(ChatColor.RED).event(punishment.getHoverEvent()).create());
                 if (announce)
                     StaffChat.sendMessage(new ComponentBuilder(player.getName() + " Unpunished: " + targetname + " for the offence: " + reason.toString().replace("_", " ")).color(ChatColor.RED).event(punishment.getHoverEvent()).create(), true);
             }
@@ -460,7 +457,7 @@ public class PunishmentManager {
         int punishmentno = dbManager.getOffences(punishment.getTargetUUID(), punishment.getReason());
         punishmentno++;
         if (punishmentno > 5) punishmentno = 5;
-        return (long) (60000 * PunisherPlugin.punishmentsConfig.getDouble(punishment.getReason().toString() + "." + punishmentno + ".length")) + System.currentTimeMillis();
+        return (long) (60000 * plugin.getPunishments().getDouble(punishment.getReason().toString() + "." + punishmentno + ".length")) + System.currentTimeMillis();
     }
 
     public Punishment.Type calculateType(String targetuuid, Punishment.Reason reason) throws SQLException, PunishmentCalculationException {
@@ -469,21 +466,21 @@ public class PunishmentManager {
         int punishmentno = dbManager.getOffences(targetuuid, reason);
         punishmentno++;
         if (punishmentno > 5) punishmentno = 5;
-        return Punishment.Type.valueOf(PunisherPlugin.punishmentsConfig.getString(reason.toString() + "." + punishmentno + ".type").toUpperCase());
+        return Punishment.Type.valueOf(plugin.getPunishments().getString(reason.toString() + "." + punishmentno + ".type").toUpperCase());
     }
 
     public double calculateRepLoss(@NotNull Punishment punishment) throws SQLException {
         if (punishment.isManual() && (punishment.isBan() || punishment.isMute()))
-            return PunisherPlugin.config.getDouble("ReputationScale." + punishment.getType().toString() + "." + 5);
+            return plugin.getConfig().getDouble("ReputationScale." + punishment.getType().toString() + "." + 5);
         if (punishment.isManual() && (punishment.isWarn() || punishment.isKick()))
-            return PunisherPlugin.config.getDouble("ReputationScale." + punishment.getType().toString());
+            return plugin.getConfig().getDouble("ReputationScale." + punishment.getType().toString());
         if (punishment.isBan() || punishment.isMute()) {
             int offence = dbManager.getOffences(punishment.getTargetUUID(), punishment.getReason());
             offence++;
             if (offence > 5) offence = 5;
-            return PunisherPlugin.config.getDouble("ReputationScale." + punishment.getType().toString() + "." + offence);
+            return plugin.getConfig().getDouble("ReputationScale." + punishment.getType().toString() + "." + offence);
         } else {
-            return PunisherPlugin.config.getDouble("ReputationScale." + punishment.getType().toString());
+            return plugin.getConfig().getDouble("ReputationScale." + punishment.getType().toString());
         }
     }
 
@@ -727,7 +724,7 @@ public class PunishmentManager {
                         errorHandler.log(pde);
                     }
                 }
-                PunisherPlugin.LOGS.info(punishment.getTargetName() + "'s punishment expired so it was removed");
+                PunisherPlugin.getLOGS().info(punishment.getTargetName() + "'s punishment expired so it was removed");
             }
             return String.valueOf(0);
         }

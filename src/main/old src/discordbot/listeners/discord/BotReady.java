@@ -30,7 +30,7 @@ public class BotReady extends ListenerAdapter {
                     status++;
                     return;
                 case 3:
-                    DiscordMain.jda.getPresence().setActivity(Activity.playing(PunisherPlugin.config.getString("DiscordIntegration.Playing")));
+                    DiscordMain.jda.getPresence().setActivity(Activity.playing(plugin.getConfig().getString("DiscordIntegration.Playing")));
                     status++;
                     return;
                 case 4:

@@ -1,9 +1,9 @@
 package com.i54mpenguin.punisher.commands;
 
-import me.fiftyfour.punisher.bungee.PunisherPlugin;
+import com.i54mpenguin.punisher.PunisherPlugin;
 import com.i54mpenguin.punisher.chats.StaffChat;
-import com.i54mpenguin.punisher.handlers.ErrorHandler;
 import com.i54mpenguin.punisher.exceptions.DataFecthException;
+import com.i54mpenguin.punisher.handlers.ErrorHandler;
 import com.i54mpenguin.punisher.utils.Permissions;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
@@ -25,17 +25,17 @@ public class KickCommand extends Command {
         if (commandSender instanceof ProxiedPlayer) {
             ProxiedPlayer player = (ProxiedPlayer) commandSender;
             if (strings.length < 1) {
-                player.sendMessage(new ComponentBuilder(plugin.prefix).append("Kick a player from the server").color(ChatColor.RED).append("\nUsage: /kick <player name> [custom meesage]").color(ChatColor.WHITE).create());
+                player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Kick a player from the server").color(ChatColor.RED).append("\nUsage: /kick <player name> [custom meesage]").color(ChatColor.WHITE).create());
                 return;
             }
             ProxiedPlayer target = ProxyServer.getInstance().getPlayer(strings[0]);
             if (target == null) {
-                player.sendMessage(new ComponentBuilder(plugin.prefix).append("That is not an online player's name!").color(ChatColor.RED).create());
+                player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("That is not an online player's name!").color(ChatColor.RED).create());
                 return;
             }
             try {
                 if (!Permissions.higher(player, target.getUniqueId().toString().replace("-", ""))) {
-                    player.sendMessage(new ComponentBuilder(plugin.prefix).append("You cannot punish that player!").color(ChatColor.RED).create());
+                    player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("You cannot punish that player!").color(ChatColor.RED).create());
                     return;
                 }
             }catch (Exception e){
@@ -58,7 +58,7 @@ public class KickCommand extends Command {
                 StaffChat.sendMessage(player.getName() + " Kicked: " + target.getName() + " for: " + sb.toString(), true);
                 target.disconnect(new TextComponent(ChatColor.translateAlternateColorCodes('&', sb.toString())));
             }
-            PunisherPlugin.LOGS.info(target.getName() + " was kicked by: " + player.getName() + " for: " + sb.toString());
+            PunisherPlugin.getLOGS().info(target.getName() + " was kicked by: " + player.getName() + " for: " + sb.toString());
         } else {
             commandSender.sendMessage(new TextComponent("You must be a player to use this command!"));
         }

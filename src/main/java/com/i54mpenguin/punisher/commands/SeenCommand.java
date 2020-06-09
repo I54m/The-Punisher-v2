@@ -1,11 +1,11 @@
 package com.i54mpenguin.punisher.commands;
 
-import me.fiftyfour.punisher.bungee.PunisherPlugin;
+import com.i54mpenguin.punisher.PunisherPlugin;
+import com.i54mpenguin.punisher.exceptions.DataFecthException;
 import com.i54mpenguin.punisher.handlers.ErrorHandler;
 import com.i54mpenguin.punisher.listeners.ServerConnect;
-import com.i54mpenguin.punisher.exceptions.DataFecthException;
-import me.fiftyfour.punisher.universal.util.NameFetcher;
-import me.fiftyfour.punisher.universal.util.UUIDFetcher;
+import com.i54mpenguin.punisher.utils.NameFetcher;
+import com.i54mpenguin.punisher.utils.UUIDFetcher;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
@@ -23,14 +23,14 @@ public class SeenCommand extends Command {
         super("seen", "punisher.seen", "lastseen");
     }
     
-    private PunisherPlugin plugin = PunisherPlugin.getInstance();
+    private final PunisherPlugin plugin = PunisherPlugin.getInstance();
 
 
     @Override
     public void execute(CommandSender commandSender, String[] strings) {
         if (strings.length != 1) {
-            commandSender.sendMessage(new ComponentBuilder(plugin.prefix).append("View the last seen information about a player.").color(ChatColor.RED).create());
-            commandSender.sendMessage(new ComponentBuilder(plugin.prefix).append("Usage: /seen <player>").color(ChatColor.WHITE).create());
+            commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("View the last seen information about a player.").color(ChatColor.RED).create());
+            commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Usage: /seen <player>").color(ChatColor.WHITE).create());
             return;
         }
         if (strings[0].contains("#")) {
@@ -45,42 +45,42 @@ public class SeenCommand extends Command {
                 commandSender.sendMessage(new ComponentBuilder(strings[0] + " is higher than the last used join id. Highest last used join id: " + ServerConnect.lastJoinId).color(ChatColor.RED).create());
                 return;
             }
-            String targetuuid = PunisherPlugin.playerInfoConfig.getString(String.valueOf(joinid));
-            String targetname = NameFetcher.getName(targetuuid);
-            if (targetname == null) {
-                targetname = strings[0];
-            }
-
-            long lastlogin = (System.currentTimeMillis() - PunisherPlugin.playerInfoConfig.getLong(targetuuid + ".lastlogin"));
-            long lastlogout = (System.currentTimeMillis() - PunisherPlugin.playerInfoConfig.getLong(targetuuid + ".lastlogout"));
-            String lastloginString, lastlogoutString;
-            int daysago = (int) (lastlogin / (1000 * 60 * 60 * 24));
-            int hoursago = (int) (lastlogin / (1000 * 60 * 60) % 24);
-            int minutesago = (int) (lastlogin / (1000 * 60) % 60);
-            int secondsago = (int) (lastlogin / 1000 % 60);
-            if (secondsago <= 0) secondsago = 1;
-            if (daysago >= 1)
-                lastloginString = daysago + "d " + hoursago + "h " + minutesago + "m " + secondsago + "s " + " ago";
-            else if (hoursago >= 1) lastloginString = hoursago + "h " + minutesago + "m " + secondsago + "s " + " ago";
-            else if (minutesago >= 1) lastloginString = minutesago + "m " + secondsago + "s " + " ago";
-            else lastloginString = secondsago + "s " + " ago";
-            daysago = (int) (lastlogout / (1000 * 60 * 60 * 24));
-            hoursago = (int) (lastlogout / (1000 * 60 * 60) % 24);
-            minutesago = (int) (lastlogout / (1000 * 60) % 60);
-            secondsago = (int) (lastlogout / 1000 % 60);
-            if (secondsago <= 0) secondsago = 1;
-            if (daysago >= 1)
-                lastlogoutString = daysago + "d " + hoursago + "h " + minutesago + "m " + secondsago + "s " + " ago";
-            else if (hoursago >= 1) lastlogoutString = hoursago + "h " + minutesago + "m " + secondsago + "s " + " ago";
-            else if (minutesago >= 1) lastlogoutString = minutesago + "m " + secondsago + "s " + " ago";
-            else lastlogoutString = secondsago + "s " + " ago";
-            commandSender.sendMessage(new ComponentBuilder(plugin.prefix).append("Last seen Information for " + targetname + "(#" + PunisherPlugin.playerInfoConfig.getInt(targetuuid + ".joinid") + ")").color(ChatColor.RED).create());
-            commandSender.sendMessage(new ComponentBuilder("First Joined Date: ").color(ChatColor.RED).append(PunisherPlugin.playerInfoConfig.getString(targetuuid + ".firstjoin")).color(ChatColor.GREEN).create());
-            commandSender.sendMessage(new ComponentBuilder("Last Login: ").color(ChatColor.RED).append(lastloginString).color(ChatColor.GREEN).create());
-            commandSender.sendMessage(new ComponentBuilder("Last Server Played: ").color(ChatColor.RED).append(PunisherPlugin.playerInfoConfig.getString(targetuuid + ".lastserver")).color(ChatColor.GREEN).create());
-            if (PunisherPlugin.playerInfoConfig.contains(targetuuid + ".lastlogout"))
-                commandSender.sendMessage(new ComponentBuilder("Last Logout: ").color(ChatColor.RED).append(lastlogoutString).color(ChatColor.GREEN).create());
-            return;
+//            String targetuuid = PunisherPlugin.playerInfoConfig.getString(String.valueOf(joinid));
+//            String targetname = NameFetcher.getName(targetuuid);
+//            if (targetname == null) {
+//                targetname = strings[0];
+//            }
+//
+//            long lastlogin = (System.currentTimeMillis() - PunisherPlugin.playerInfoConfig.getLong(targetuuid + ".lastlogin"));
+//            long lastlogout = (System.currentTimeMillis() - PunisherPlugin.playerInfoConfig.getLong(targetuuid + ".lastlogout"));
+//            String lastloginString, lastlogoutString;
+//            int daysago = (int) (lastlogin / (1000 * 60 * 60 * 24));
+//            int hoursago = (int) (lastlogin / (1000 * 60 * 60) % 24);
+//            int minutesago = (int) (lastlogin / (1000 * 60) % 60);
+//            int secondsago = (int) (lastlogin / 1000 % 60);
+//            if (secondsago <= 0) secondsago = 1;
+//            if (daysago >= 1)
+//                lastloginString = daysago + "d " + hoursago + "h " + minutesago + "m " + secondsago + "s " + " ago";
+//            else if (hoursago >= 1) lastloginString = hoursago + "h " + minutesago + "m " + secondsago + "s " + " ago";
+//            else if (minutesago >= 1) lastloginString = minutesago + "m " + secondsago + "s " + " ago";
+//            else lastloginString = secondsago + "s " + " ago";
+//            daysago = (int) (lastlogout / (1000 * 60 * 60 * 24));
+//            hoursago = (int) (lastlogout / (1000 * 60 * 60) % 24);
+//            minutesago = (int) (lastlogout / (1000 * 60) % 60);
+//            secondsago = (int) (lastlogout / 1000 % 60);
+//            if (secondsago <= 0) secondsago = 1;
+//            if (daysago >= 1)
+//                lastlogoutString = daysago + "d " + hoursago + "h " + minutesago + "m " + secondsago + "s " + " ago";
+//            else if (hoursago >= 1) lastlogoutString = hoursago + "h " + minutesago + "m " + secondsago + "s " + " ago";
+//            else if (minutesago >= 1) lastlogoutString = minutesago + "m " + secondsago + "s " + " ago";
+//            else lastlogoutString = secondsago + "s " + " ago";
+//            commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Last seen Information for " + targetname + "(#" + PunisherPlugin.playerInfoConfig.getInt(targetuuid + ".joinid") + ")").color(ChatColor.RED).create());
+//            commandSender.sendMessage(new ComponentBuilder("First Joined Date: ").color(ChatColor.RED).append(PunisherPlugin.playerInfoConfig.getString(targetuuid + ".firstjoin")).color(ChatColor.GREEN).create());
+//            commandSender.sendMessage(new ComponentBuilder("Last Login: ").color(ChatColor.RED).append(lastloginString).color(ChatColor.GREEN).create());
+//            commandSender.sendMessage(new ComponentBuilder("Last Server Played: ").color(ChatColor.RED).append(PunisherPlugin.playerInfoConfig.getString(targetuuid + ".lastserver")).color(ChatColor.GREEN).create());
+//            if (PunisherPlugin.playerInfoConfig.contains(targetuuid + ".lastlogout"))
+//                commandSender.sendMessage(new ComponentBuilder("Last Logout: ").color(ChatColor.RED).append(lastlogoutString).color(ChatColor.GREEN).create());
+//            return;
         }
         ProxiedPlayer findTarget = ProxyServer.getInstance().getPlayer(strings[0]);
         Future<String> future;
@@ -111,7 +111,7 @@ public class SeenCommand extends Command {
             executorService.shutdown();
         }
         if (targetuuid == null) {
-            commandSender.sendMessage(new ComponentBuilder(plugin.prefix).append(strings[0] + " is not a player's name!").color(ChatColor.RED).create());
+            commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append(strings[0] + " is not a player's name!").color(ChatColor.RED).create());
             return;
         }
         if (targetname == null) {
@@ -120,36 +120,36 @@ public class SeenCommand extends Command {
                 targetname = strings[0];
             }
         }
-        if (!PunisherPlugin.playerInfoConfig.contains(targetuuid)){
-            commandSender.sendMessage(new ComponentBuilder(plugin.prefix).append(targetname + " has not joined the server yet!").color(ChatColor.RED).create());
-            return;
-        }
-        long lastlogin = (System.currentTimeMillis() - PunisherPlugin.playerInfoConfig.getLong(targetuuid + ".lastlogin"));
-        long lastlogout = (System.currentTimeMillis() - PunisherPlugin.playerInfoConfig.getLong(targetuuid + ".lastlogout"));
-        String lastloginString, lastlogoutString;
-        int daysago = (int) (lastlogin / (1000 * 60 * 60 * 24));
-        int hoursago = (int) (lastlogin / (1000 * 60 * 60) % 24);
-        int minutesago = (int) (lastlogin / (1000 * 60) % 60);
-        int secondsago = (int) (lastlogin / 1000 % 60);
-        if (secondsago <= 0) secondsago = 1;
-        if (daysago >= 1) lastloginString = daysago + "d " + hoursago + "h " + minutesago + "m " + secondsago + "s " + " ago";
-        else if (hoursago >= 1) lastloginString = hoursago + "h " + minutesago + "m " + secondsago + "s " + " ago";
-        else if (minutesago >= 1) lastloginString = minutesago + "m " + secondsago + "s " + " ago";
-        else lastloginString = secondsago + "s " + " ago";
-        daysago = (int) (lastlogout / (1000 * 60 * 60 * 24));
-        hoursago = (int) (lastlogout / (1000 * 60 * 60) % 24);
-        minutesago = (int) (lastlogout / (1000 * 60) % 60);
-        secondsago = (int) (lastlogout / 1000 % 60);
-        if (secondsago <= 0) secondsago = 1;
-        if (daysago >= 1) lastlogoutString = daysago + "d " + hoursago + "h " + minutesago + "m " + secondsago + "s " + " ago";
-        else if (hoursago >= 1) lastlogoutString = hoursago + "h " + minutesago + "m " + secondsago + "s " + " ago";
-        else if (minutesago >= 1) lastlogoutString = minutesago + "m " + secondsago + "s " + " ago";
-        else lastlogoutString = secondsago + "s " + " ago";
-        commandSender.sendMessage(new ComponentBuilder(plugin.prefix).append("Last seen Information for " + targetname + "(#" + PunisherPlugin.playerInfoConfig.getInt(targetuuid + ".joinid") + ")").color(ChatColor.RED).create());
-        commandSender.sendMessage(new ComponentBuilder("First Joined Date: ").color(ChatColor.RED).append(PunisherPlugin.playerInfoConfig.getString(targetuuid + ".firstjoin")).color(ChatColor.GREEN).create());
-        commandSender.sendMessage(new ComponentBuilder("Last Login: ").color(ChatColor.RED).append(lastloginString).color(ChatColor.GREEN).create());
-        commandSender.sendMessage(new ComponentBuilder("Last Server Played: ").color(ChatColor.RED).append(PunisherPlugin.playerInfoConfig.getString(targetuuid + ".lastserver")).color(ChatColor.GREEN).create());
-        if (PunisherPlugin.playerInfoConfig.contains(targetuuid + ".lastlogout"))
-            commandSender.sendMessage(new ComponentBuilder("Last Logout: ").color(ChatColor.RED).append(lastlogoutString).color(ChatColor.GREEN).create());
+//        if (!PunisherPlugin.playerInfoConfig.contains(targetuuid)){
+//            commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append(targetname + " has not joined the server yet!").color(ChatColor.RED).create());
+//            return;
+//        }
+//        long lastlogin = (System.currentTimeMillis() - PunisherPlugin.playerInfoConfig.getLong(targetuuid + ".lastlogin"));
+//        long lastlogout = (System.currentTimeMillis() - PunisherPlugin.playerInfoConfig.getLong(targetuuid + ".lastlogout"));
+//        String lastloginString, lastlogoutString;
+//        int daysago = (int) (lastlogin / (1000 * 60 * 60 * 24));
+//        int hoursago = (int) (lastlogin / (1000 * 60 * 60) % 24);
+//        int minutesago = (int) (lastlogin / (1000 * 60) % 60);
+//        int secondsago = (int) (lastlogin / 1000 % 60);
+//        if (secondsago <= 0) secondsago = 1;
+//        if (daysago >= 1) lastloginString = daysago + "d " + hoursago + "h " + minutesago + "m " + secondsago + "s " + " ago";
+//        else if (hoursago >= 1) lastloginString = hoursago + "h " + minutesago + "m " + secondsago + "s " + " ago";
+//        else if (minutesago >= 1) lastloginString = minutesago + "m " + secondsago + "s " + " ago";
+//        else lastloginString = secondsago + "s " + " ago";
+//        daysago = (int) (lastlogout / (1000 * 60 * 60 * 24));
+//        hoursago = (int) (lastlogout / (1000 * 60 * 60) % 24);
+//        minutesago = (int) (lastlogout / (1000 * 60) % 60);
+//        secondsago = (int) (lastlogout / 1000 % 60);
+//        if (secondsago <= 0) secondsago = 1;
+//        if (daysago >= 1) lastlogoutString = daysago + "d " + hoursago + "h " + minutesago + "m " + secondsago + "s " + " ago";
+//        else if (hoursago >= 1) lastlogoutString = hoursago + "h " + minutesago + "m " + secondsago + "s " + " ago";
+//        else if (minutesago >= 1) lastlogoutString = minutesago + "m " + secondsago + "s " + " ago";
+//        else lastlogoutString = secondsago + "s " + " ago";
+//        commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Last seen Information for " + targetname + "(#" + PunisherPlugin.playerInfoConfig.getInt(targetuuid + ".joinid") + ")").color(ChatColor.RED).create());
+//        commandSender.sendMessage(new ComponentBuilder("First Joined Date: ").color(ChatColor.RED).append(PunisherPlugin.playerInfoConfig.getString(targetuuid + ".firstjoin")).color(ChatColor.GREEN).create());
+//        commandSender.sendMessage(new ComponentBuilder("Last Login: ").color(ChatColor.RED).append(lastloginString).color(ChatColor.GREEN).create());
+//        commandSender.sendMessage(new ComponentBuilder("Last Server Played: ").color(ChatColor.RED).append(PunisherPlugin.playerInfoConfig.getString(targetuuid + ".lastserver")).color(ChatColor.GREEN).create());
+//        if (PunisherPlugin.playerInfoConfig.contains(targetuuid + ".lastlogout"))
+//            commandSender.sendMessage(new ComponentBuilder("Last Logout: ").color(ChatColor.RED).append(lastlogoutString).color(ChatColor.GREEN).create());
     }
 }

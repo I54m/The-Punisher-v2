@@ -1,15 +1,15 @@
 package com.i54mpenguin.punisher.commands;
 
 import com.google.gson.Gson;
-import me.fiftyfour.punisher.bungee.PunisherPlugin;
+import com.i54mpenguin.punisher.PunisherPlugin;
+import com.i54mpenguin.punisher.exceptions.DataFecthException;
+import com.i54mpenguin.punisher.exceptions.PunishmentsDatabaseException;
 import com.i54mpenguin.punisher.handlers.ErrorHandler;
 import com.i54mpenguin.punisher.managers.PunishmentManager;
 import com.i54mpenguin.punisher.objects.Punishment;
-import com.i54mpenguin.punisher.exceptions.DataFecthException;
-import com.i54mpenguin.punisher.exceptions.PunishmentsDatabaseException;
-import me.fiftyfour.punisher.universal.util.NameFetcher;
+import com.i54mpenguin.punisher.utils.NameFetcher;
 import com.i54mpenguin.punisher.utils.Permissions;
-import me.fiftyfour.punisher.universal.util.UUIDFetcher;
+import com.i54mpenguin.punisher.utils.UUIDFetcher;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
@@ -43,7 +43,7 @@ public class BanCommand extends Command {
         }
         ProxiedPlayer player = (ProxiedPlayer) commandSender;
         if (strings.length == 0) {
-            player.sendMessage(new ComponentBuilder(plugin.prefix).append("Ban a player from the server").color(ChatColor.RED).append("\nUsage: /ban <player> [length<s|m|h|d|w|M|perm>] [reason]").color(ChatColor.WHITE).create());
+            player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Ban a player from the server").color(ChatColor.RED).append("\nUsage: /ban <player> [length<s|m|h|d|w|M|perm>] [reason]").color(ChatColor.WHITE).create());
             return;
         }
         if (targetname != null || targetuuid != null) {
@@ -88,8 +88,8 @@ public class BanCommand extends Command {
                 }
             }
         } catch (NumberFormatException e) {
-            player.sendMessage(new ComponentBuilder(plugin.prefix).append(strings[1] + " is not a valid duration!").color(ChatColor.RED).create());
-            player.sendMessage(new ComponentBuilder(plugin.prefix).append("Ban a player from the server").color(ChatColor.RED).append("\nUsage: /ban <player> [length<s|m|h|d|w|M|perm>] [reason]").color(ChatColor.WHITE).create());
+            player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append(strings[1] + " is not a valid duration!").color(ChatColor.RED).create());
+            player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Ban a player from the server").color(ChatColor.RED).append("\nUsage: /ban <player> [length<s|m|h|d|w|M|perm>] [reason]").color(ChatColor.WHITE).create());
             return;
         }
         StringBuilder reason = new StringBuilder();
@@ -134,7 +134,7 @@ public class BanCommand extends Command {
         }
         try {
             if (!Permissions.higher(player, targetuuid)) {
-                player.sendMessage(new ComponentBuilder(plugin.prefix).append("You cannot punish that player!").color(ChatColor.RED).create());
+                player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("You cannot punish that player!").color(ChatColor.RED).create());
                 return;
             }
         } catch (Exception e) {

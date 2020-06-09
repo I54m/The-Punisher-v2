@@ -1,13 +1,13 @@
 package com.i54mpenguin.punisher.commands;
 
-import me.fiftyfour.punisher.bungee.PunisherPlugin;
+import com.i54mpenguin.punisher.PunisherPlugin;
+import com.i54mpenguin.punisher.exceptions.DataFecthException;
 import com.i54mpenguin.punisher.fetchers.Status;
 import com.i54mpenguin.punisher.handlers.ErrorHandler;
 import com.i54mpenguin.punisher.managers.PunishmentManager;
 import com.i54mpenguin.punisher.objects.Punishment;
-import com.i54mpenguin.punisher.exceptions.DataFecthException;
-import me.fiftyfour.punisher.universal.util.NameFetcher;
-import me.fiftyfour.punisher.universal.util.UUIDFetcher;
+import com.i54mpenguin.punisher.utils.NameFetcher;
+import com.i54mpenguin.punisher.utils.UUIDFetcher;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
@@ -39,7 +39,7 @@ public class HistoryCommand extends Command {
         if (commandSender instanceof ProxiedPlayer) {
             ProxiedPlayer player = (ProxiedPlayer) commandSender;
             if (strings.length == 0) {
-                player.sendMessage(new ComponentBuilder(plugin.prefix).append("View a player's punishment history").color(ChatColor.RED).append("\nUsage: /history <player name> [page no]").color(ChatColor.WHITE).create());
+                player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("View a player's punishment history").color(ChatColor.RED).append("\nUsage: /history <player name> [page no]").color(ChatColor.WHITE).create());
                 return;
             }
             ProxiedPlayer findTarget = ProxyServer.getInstance().getPlayer(strings[0]);
@@ -89,7 +89,7 @@ public class HistoryCommand extends Command {
                         try {
                             page = Integer.parseInt(strings[1]);
                         }catch(NumberFormatException nfe){
-                            player.sendMessage(new ComponentBuilder(plugin.prefix).append(strings[1] + " is not a valid page number!").color(ChatColor.RED).create());
+                            player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append(strings[1] + " is not a valid page number!").color(ChatColor.RED).create());
                             return;
                         }
                     }
@@ -137,9 +137,9 @@ public class HistoryCommand extends Command {
                     executorService1.shutdown();
                     player.sendMessage(status);
                 } else
-                    player.sendMessage(new ComponentBuilder(plugin.prefix).append(targetname + " has not been punished yet!").color(ChatColor.RED).create());
+                    player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append(targetname + " has not been punished yet!").color(ChatColor.RED).create());
             } else
-                player.sendMessage(new ComponentBuilder(plugin.prefix).append("That is not a player's name").color(ChatColor.RED).create());
+                player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("That is not a player's name").color(ChatColor.RED).create());
         } else
             commandSender.sendMessage(new TextComponent("You must be a player to use this command!"));
     }

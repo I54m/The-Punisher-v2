@@ -1,14 +1,13 @@
 package com.i54mpenguin.punisher.fetchers;
 
-import me.fiftyfour.punisher.bungee.PunisherPlugin;
+import com.i54mpenguin.punisher.PunisherPlugin;
 import com.i54mpenguin.punisher.chats.StaffChat;
+import com.i54mpenguin.punisher.exceptions.DataFecthException;
 import com.i54mpenguin.punisher.handlers.ErrorHandler;
 import com.i54mpenguin.punisher.managers.DatabaseManager;
-import com.i54mpenguin.punisher.managers.ReputationManager;
-import com.i54mpenguin.punisher.exceptions.DataFecthException;
-import me.fiftyfour.punisher.universal.util.NameFetcher;
+import com.i54mpenguin.punisher.utils.NameFetcher;
 import com.i54mpenguin.punisher.utils.Permissions;
-import me.fiftyfour.punisher.universal.util.UUIDFetcher;
+import com.i54mpenguin.punisher.utils.UUIDFetcher;
 import com.i54mpenguin.punisher.utils.UserFetcher;
 import net.luckperms.api.cacheddata.CachedPermissionData;
 import net.luckperms.api.context.ContextManager;
@@ -42,7 +41,7 @@ public class PlayerInfo implements Callable<Map<String, String>> {
     public Map<String, String> call() throws Exception {
         Map<String, String> info = new HashMap<>();
         info.put("uuid", UUIDFetcher.formatUUID(targetuuid).toString());
-        User user = plugin.luckPermsHook.getApi().getUserManager().getUser(targetName);
+        User user = plugin.getLuckPermsHook().getApi().getUserManager().getUser(targetName);
         if (user == null) {
             UserFetcher userFetcher = new UserFetcher();
             userFetcher.setUuid(UUIDFetcher.formatUUID(targetuuid));
@@ -62,7 +61,7 @@ public class PlayerInfo implements Callable<Map<String, String>> {
             executorService.shutdown();
         }
         if (user != null) {
-            ContextManager cm = plugin.luckPermsHook.getApi().getContextManager();
+            ContextManager cm = plugin.getLuckPermsHook().getApi().getContextManager();
             QueryOptions queryOptions = cm.getQueryOptions(user).orElse(cm.getStaticQueryOptions());
             info.put("prefix", Permissions.getPrefix(user));
             CachedPermissionData permissionData = user.getCachedData().getPermissionData(queryOptions);
@@ -105,32 +104,32 @@ public class PlayerInfo implements Callable<Map<String, String>> {
         }else if (!results.next() && altslist.toString().isEmpty())
             altslist.append("no known alts");
         info.put("alts", altslist.toString());
-        info.put("firstjoin", PunisherPlugin.playerInfoConfig.getString(targetuuid + ".firstjoin"));
-        info.put("lastserver", PunisherPlugin.playerInfoConfig.getString(targetuuid + ".lastserver"));
-        info.put("reputation", ReputationManager.getRep(targetuuid));
-        long lastlogin = (System.currentTimeMillis() - PunisherPlugin.playerInfoConfig.getLong(targetuuid + ".lastlogin"));
-        long lastlogout = (System.currentTimeMillis() - PunisherPlugin.playerInfoConfig.getLong(targetuuid + ".lastlogout"));
-        String lastloginString, lastlogoutString;
-        int daysago = (int) (lastlogin / (1000 * 60 * 60 * 24));
-        int hoursago = (int) (lastlogin / (1000 * 60 * 60) % 24);
-        int minutesago = (int) (lastlogin / (1000 * 60) % 60);
-        int secondsago = (int) (lastlogin / 1000 % 60);
-        if (secondsago <= 0) secondsago = 1;
-        if (daysago >= 1) lastloginString = daysago + "d " + hoursago + "h " + minutesago + "m " + secondsago + "s " + " ago";
-        else if (hoursago >= 1) lastloginString = hoursago + "h " + minutesago + "m " + secondsago + "s " + " ago";
-        else if (minutesago >= 1) lastloginString = minutesago + "m " + secondsago + "s " + " ago";
-        else lastloginString = secondsago + "s " + " ago";
-        daysago = (int) (lastlogout / (1000 * 60 * 60 * 24));
-        hoursago = (int) (lastlogout / (1000 * 60 * 60) % 24);
-        minutesago = (int) (lastlogout / (1000 * 60) % 60);
-        secondsago = (int) (lastlogout / 1000 % 60);
-        if (secondsago <= 0) secondsago = 1;
-        if (daysago >= 1) lastlogoutString = daysago + "d " + hoursago + "h " + minutesago + "m " + secondsago + "s " + " ago";
-        else if (hoursago >= 1) lastlogoutString = hoursago + "h " + minutesago + "m " + secondsago + "s " + " ago";
-        else if (minutesago >= 1) lastlogoutString = minutesago + "m " + secondsago + "s " + " ago";
-        else lastlogoutString = secondsago + "s " + " ago";
-        info.put("lastlogin", lastloginString);
-        info.put("lastlogout", lastlogoutString);
+//        info.put("firstjoin", PunisherPlugin.playerInfoConfig.getString(targetuuid + ".firstjoin"));
+//        info.put("lastserver", PunisherPlugin.playerInfoConfig.getString(targetuuid + ".lastserver"));
+//        info.put("reputation", ReputationManager.getRep(targetuuid));
+//        long lastlogin = (System.currentTimeMillis() - PunisherPlugin.playerInfoConfig.getLong(targetuuid + ".lastlogin"));
+//        long lastlogout = (System.currentTimeMillis() - PunisherPlugin.playerInfoConfig.getLong(targetuuid + ".lastlogout"));
+//        String lastloginString, lastlogoutString;
+//        int daysago = (int) (lastlogin / (1000 * 60 * 60 * 24));
+//        int hoursago = (int) (lastlogin / (1000 * 60 * 60) % 24);
+//        int minutesago = (int) (lastlogin / (1000 * 60) % 60);
+//        int secondsago = (int) (lastlogin / 1000 % 60);
+//        if (secondsago <= 0) secondsago = 1;
+//        if (daysago >= 1) lastloginString = daysago + "d " + hoursago + "h " + minutesago + "m " + secondsago + "s " + " ago";
+//        else if (hoursago >= 1) lastloginString = hoursago + "h " + minutesago + "m " + secondsago + "s " + " ago";
+//        else if (minutesago >= 1) lastloginString = minutesago + "m " + secondsago + "s " + " ago";
+//        else lastloginString = secondsago + "s " + " ago";
+//        daysago = (int) (lastlogout / (1000 * 60 * 60 * 24));
+//        hoursago = (int) (lastlogout / (1000 * 60 * 60) % 24);
+//        minutesago = (int) (lastlogout / (1000 * 60) % 60);
+//        secondsago = (int) (lastlogout / 1000 % 60);
+//        if (secondsago <= 0) secondsago = 1;
+//        if (daysago >= 1) lastlogoutString = daysago + "d " + hoursago + "h " + minutesago + "m " + secondsago + "s " + " ago";
+//        else if (hoursago >= 1) lastlogoutString = hoursago + "h " + minutesago + "m " + secondsago + "s " + " ago";
+//        else if (minutesago >= 1) lastlogoutString = minutesago + "m " + secondsago + "s " + " ago";
+//        else lastlogoutString = secondsago + "s " + " ago";
+//        info.put("lastlogin", lastloginString);
+//        info.put("lastlogout", lastlogoutString);
         String sqlhist = "SELECT * FROM `history` WHERE UUID='" + targetuuid + "'";
         PreparedStatement stmthist = dbManager.connection.prepareStatement(sqlhist);
         ResultSet resultshist = stmthist.executeQuery();

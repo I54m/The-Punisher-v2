@@ -1,10 +1,8 @@
 package com.i54mpenguin.punisher.utils;
 
-import net.luckperms.api.LuckPerms;
+import com.i54mpenguin.punisher.PunisherPlugin;
 import net.luckperms.api.model.user.User;
 import net.luckperms.api.model.user.UserManager;
-import org.bukkit.Bukkit;
-import org.bukkit.plugin.RegisteredServiceProvider;
 
 import java.util.UUID;
 import java.util.concurrent.Callable;
@@ -19,10 +17,10 @@ public class UserFetcher implements Callable<User> {
 
     @Override
     public User call() throws Exception {
-        RegisteredServiceProvider<LuckPerms> provider = Bukkit.getServicesManager().getRegistration(LuckPerms.class);
-        if (provider == null)
-            throw new ClassNotFoundException("Luckperms is not enabled!");
-        UserManager userManager = provider.getProvider().getUserManager();
+//        RegisteredServiceProvider<LuckPerms> provider = Bukkit.getServicesManager().getRegistration(LuckPerms.class);
+//        if (provider == null)
+//            throw new ClassNotFoundException("Luckperms is not enabled!");
+        UserManager userManager = PunisherPlugin.getInstance().getLuckPermsHook().getApi().getUserManager();
         CompletableFuture<User> userFuture = userManager.loadUser(uuid);
         return userFuture.join();
     }

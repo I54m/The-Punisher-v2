@@ -1,8 +1,8 @@
 package com.i54mpenguin.punisher.handlers;
 
-import lombok.Getter;
-import me.fiftyfour.punisher.bungee.PunisherPlugin;
+import com.i54mpenguin.punisher.PunisherPlugin;
 import com.i54mpenguin.punisher.chats.AdminChat;
+import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.chat.ComponentBuilder;
@@ -22,7 +22,7 @@ public class ErrorHandler {
     private ErrorHandler(){}
 
     private Throwable previousException = null;
-    private PunisherPlugin plugin = PunisherPlugin.getInstance();
+    private final PunisherPlugin plugin = PunisherPlugin.getInstance();
 
     public void log(Throwable e){
         if (!isExceptionCausedByPunisher(e))
@@ -33,23 +33,21 @@ public class ErrorHandler {
         }else
             previousException = e;
         logToFile(e);
-        if (plugin == null)
-            plugin = PunisherPlugin.getInstance();
         plugin.getLogger().warning(" ");
-        plugin.getLogger().warning(plugin.prefix + ChatColor.RED + "An error was encountered and debug info was logged to log file!");
-        plugin.getLogger().warning(plugin.prefix + ChatColor.RED + "Error Message: " + e.getMessage());
+        plugin.getLogger().warning(ChatColor.RED + "An error was encountered and debug info was logged to log file!");
+        plugin.getLogger().warning(ChatColor.RED + "Error Message: " + e.getMessage());
         plugin.getLogger().warning(" ");
     }
 
     private void logToFile(Throwable e){
-        PunisherPlugin.LOGS.severe("Error Type: " + e.getClass().getName());
-        PunisherPlugin.LOGS.severe("Error Message: " + e.getMessage());
+        PunisherPlugin.getLOGS().severe("Error Type: " + e.getClass().getName());
+        PunisherPlugin.getLOGS().severe("Error Message: " + e.getMessage());
         StringBuilder stacktrace = new StringBuilder();
         for (StackTraceElement stackTraceElement : e.getStackTrace()) {
             stacktrace.append(stackTraceElement.toString()).append("\n");
         }
-        PunisherPlugin.LOGS.severe("Stack Trace: " + stacktrace.toString());
-        PunisherPlugin.LOGS.severe("\n");
+        PunisherPlugin.getLOGS().severe("Stack Trace: " + stacktrace.toString());
+        PunisherPlugin.getLOGS().severe("\n");
     }
 
     private void detailedAlert(Throwable e, CommandSender sender){
@@ -59,8 +57,8 @@ public class ErrorHandler {
             return;
         else
             previousException = e;
-        sender.sendMessage(new ComponentBuilder(plugin.prefix).append("ERROR: ").color(ChatColor.DARK_RED).append(e.getMessage()).color(ChatColor.RED).create());
-        sender.sendMessage(new ComponentBuilder(plugin.prefix).append("This error will be logged! Please inform a dev asap, this plugin may no longer function as intended!").color(ChatColor.RED).create());
+        sender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("ERROR: ").color(ChatColor.DARK_RED).append(e.getMessage()).color(ChatColor.RED).create());
+        sender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("This error will be logged! Please inform a dev asap, this plugin may no longer function as intended!").color(ChatColor.RED).create());
     }
 
     public void alert(Throwable e, CommandSender sender){
@@ -72,8 +70,8 @@ public class ErrorHandler {
             previousException = e;
         if (sender.hasPermission("punisher.admin")) detailedAlert(e, sender);
         else {
-            sender.sendMessage(new ComponentBuilder(plugin.prefix).append("ERROR: ").color(ChatColor.DARK_RED).append("An unexpected error occurred while trying to perform that action!").color(ChatColor.RED).create());
-            sender.sendMessage(new ComponentBuilder(plugin.prefix).append("This error will be logged! Please inform an admin+ asap, this plugin may no longer function as intended!").color(ChatColor.RED).create());
+            sender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("ERROR: ").color(ChatColor.DARK_RED).append("An unexpected error occurred while trying to perform that action!").color(ChatColor.RED).create());
+            sender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("This error will be logged! Please inform an admin+ asap, this plugin may no longer function as intended!").color(ChatColor.RED).create());
             adminChatAlert(e, sender);
         }
     }
@@ -106,7 +104,7 @@ public class ErrorHandler {
     public boolean isExceptionCausedByPunisher(final Throwable e) {
         final List<StackTraceElement> all = getEverything(e, new ArrayList<>());
         for (final StackTraceElement element : all) {
-            if (element.getClassName().toLowerCase().contains("me.fiftyfour.punisher"))
+            if (element.getClassName().toLowerCase().contains("com.i54mpenguin.punisher"))
                 return true;
         }
         return false;

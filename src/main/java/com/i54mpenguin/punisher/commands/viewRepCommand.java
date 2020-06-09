@@ -1,11 +1,11 @@
 package com.i54mpenguin.punisher.commands;
 
-import me.fiftyfour.punisher.bungee.PunisherPlugin;
+import com.i54mpenguin.punisher.PunisherPlugin;
 import com.i54mpenguin.punisher.exceptions.DataFecthException;
 import com.i54mpenguin.punisher.handlers.ErrorHandler;
 import com.i54mpenguin.punisher.managers.ReputationManager;
-import me.fiftyfour.punisher.universal.util.NameFetcher;
-import me.fiftyfour.punisher.universal.util.UUIDFetcher;
+import com.i54mpenguin.punisher.utils.NameFetcher;
+import com.i54mpenguin.punisher.utils.UUIDFetcher;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
@@ -32,7 +32,7 @@ public class viewRepCommand extends Command {
         if (commandSender instanceof ProxiedPlayer) {
             ProxiedPlayer player = (ProxiedPlayer) commandSender;
             if (strings.length == 0) {
-                player.sendMessage(new ComponentBuilder(plugin.prefix).append("View a player's reputation score").color(ChatColor.RED).append("\nUsage: /viewrep <player name>").color(ChatColor.WHITE).create());
+                player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("View a player's reputation score").color(ChatColor.RED).append("\nUsage: /viewrep <player name>").color(ChatColor.WHITE).create());
                 return;
             }
             ProxiedPlayer findTarget = ProxyServer.getInstance().getPlayer(strings[0]);
@@ -74,7 +74,7 @@ public class viewRepCommand extends Command {
                     try {
                         repDouble = Double.parseDouble(rep);
                     }catch(NumberFormatException e){
-                        player.sendMessage(new ComponentBuilder(plugin.prefix).append("An internal error occurred: That player's reputation is not a number! Reputation System returned: ").color(ChatColor.RED).append(rep).color(ChatColor.RED).create());
+                        player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("An internal error occurred: That player's reputation is not a number! Reputation System returned: ").color(ChatColor.RED).append(rep).color(ChatColor.RED).create());
                         return;
                     }
                     if (repDouble == 5){
@@ -91,9 +91,9 @@ public class viewRepCommand extends Command {
                 } else {
                     reputation.append(ChatColor.WHITE).append("(").append("-").append(ChatColor.WHITE).append(")");
                 }
-                player.sendMessage(new ComponentBuilder(plugin.prefix).append(targetname + "'s Reputation is: ").color(ChatColor.RED).append(reputation.toString()).color(ChatColor.RED).create());
+                player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append(targetname + "'s Reputation is: ").color(ChatColor.RED).append(reputation.toString()).color(ChatColor.RED).create());
             } else {
-                player.sendMessage(new ComponentBuilder(plugin.prefix).append("That is not a player's name").color(ChatColor.RED).create());
+                player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("That is not a player's name").color(ChatColor.RED).create());
             }
         } else {
             commandSender.sendMessage(new TextComponent("You must be a player to use this command!"));

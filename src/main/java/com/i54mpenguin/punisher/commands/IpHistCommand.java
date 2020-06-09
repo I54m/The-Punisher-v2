@@ -1,12 +1,12 @@
 package com.i54mpenguin.punisher.commands;
 
-import me.fiftyfour.punisher.bungee.PunisherPlugin;
-import com.i54mpenguin.punisher.handlers.ErrorHandler;
-import com.i54mpenguin.punisher.managers.DatabaseManager;
+import com.i54mpenguin.punisher.PunisherPlugin;
 import com.i54mpenguin.punisher.exceptions.DataFecthException;
 import com.i54mpenguin.punisher.exceptions.PunishmentsDatabaseException;
-import me.fiftyfour.punisher.universal.util.NameFetcher;
-import me.fiftyfour.punisher.universal.util.UUIDFetcher;
+import com.i54mpenguin.punisher.handlers.ErrorHandler;
+import com.i54mpenguin.punisher.managers.DatabaseManager;
+import com.i54mpenguin.punisher.utils.NameFetcher;
+import com.i54mpenguin.punisher.utils.UUIDFetcher;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
@@ -39,7 +39,7 @@ public class IpHistCommand extends Command {
         if (commandSender instanceof ProxiedPlayer) {
             ProxiedPlayer player = (ProxiedPlayer) commandSender;
             if (strings.length < 1) {
-                player.sendMessage(new ComponentBuilder(plugin.prefix).append("Please provide a player's name!").create());
+                player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Please provide a player's name!").create());
                 return;
             }
             ProxiedPlayer findTarget = ProxyServer.getInstance().getPlayer(strings[0]);
@@ -70,7 +70,7 @@ public class IpHistCommand extends Command {
                 executorService.shutdown();
             }
             if (targetuuid == null) {
-                player.sendMessage(new ComponentBuilder(plugin.prefix).append("That is not a player's name!").color(ChatColor.RED).create());
+                player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("That is not a player's name!").color(ChatColor.RED).create());
                 return;
             }
             String targetName = NameFetcher.getName(targetuuid);
@@ -86,7 +86,7 @@ public class IpHistCommand extends Command {
                     iphist.put(results.getLong("date"), results.getString("ip"));
                 }
                 if (iphist.isEmpty()) {
-                    player.sendMessage(new ComponentBuilder(plugin.prefix).append(targetName + " does not have any ips stored in the database").color(ChatColor.RED).create());
+                    player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append(targetName + " does not have any ips stored in the database").color(ChatColor.RED).create());
                     return;
                 }
                 player.sendMessage(new ComponentBuilder("|-----").strikethrough(true).color(ChatColor.GREEN).append(" " + targetName + "'s Ip hist ")

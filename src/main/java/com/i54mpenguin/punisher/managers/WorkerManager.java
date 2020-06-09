@@ -1,7 +1,7 @@
 package com.i54mpenguin.punisher.managers;
 
+import com.i54mpenguin.punisher.PunisherPlugin;
 import lombok.Getter;
-import me.fiftyfour.punisher.bungee.PunisherPlugin;
 import net.md_5.bungee.api.ChatColor;
 
 import java.util.ArrayList;
@@ -13,14 +13,12 @@ public class WorkerManager {
     private final ArrayList<Worker> workers = new ArrayList<>();
     private boolean locked = true;
     private Thread mainThread;
-    private PunisherPlugin plugin = PunisherPlugin.getInstance();
+    private final PunisherPlugin plugin = PunisherPlugin.getInstance();
 
     private WorkerManager() {
     }
 
     public void start() {
-        if (plugin == null)
-            plugin = PunisherPlugin.getInstance();
         try {
             if (!locked)
                 throw new Exception("Worker Manager Already started!");
@@ -30,7 +28,7 @@ public class WorkerManager {
         }
         mainThread = Thread.currentThread();
         locked = false;
-        plugin.getLogger().info(plugin.prefix + ChatColor.GREEN + "Started Worker Manager!");
+        plugin.getLogger().info(plugin.getPrefix() + ChatColor.GREEN + "Started Worker Manager!");
     }
 
     public boolean isStarted() {
@@ -48,17 +46,17 @@ public class WorkerManager {
         locked = true;
         try {
             if (!workers.isEmpty()){
-                plugin.getLogger().info(plugin.prefix + ChatColor.GREEN + "Pausing main thread while workers finish up!");
+                plugin.getLogger().info(plugin.getPrefix() + ChatColor.GREEN + "Pausing main thread while workers finish up!");
                 mainThread.wait();
             }
         } catch (InterruptedException e) {
-            plugin.getLogger().severe(plugin.prefix + ChatColor.RED + "Error: main thread was interrupted while waiting for workers to finish!");
-            plugin.getLogger().severe(plugin.prefix + ChatColor.RED + "Interrupting workers, this may cause data loss!!");
-            PunisherPlugin.LOGS.severe("Error: main thread was interrupted while waiting for workers to finish!");
-            PunisherPlugin.LOGS.severe("Interrupting workers, this may cause data loss!!");
+            plugin.getLogger().severe(plugin.getPrefix() + ChatColor.RED + "Error: main thread was interrupted while waiting for workers to finish!");
+            plugin.getLogger().severe(plugin.getPrefix() + ChatColor.RED + "Interrupting workers, this may cause data loss!!");
+            PunisherPlugin.getLOGS().severe("Error: main thread was interrupted while waiting for workers to finish!");
+            PunisherPlugin.getLOGS().severe("Interrupting workers, this may cause data loss!!");
             for (Worker worker : workers) {
-                plugin.getLogger().severe(plugin.prefix + ChatColor.RED + "Interrupting " + worker.getName());
-                PunisherPlugin.LOGS.severe("Interrupting " + worker.getName());
+                plugin.getLogger().severe(plugin.getPrefix() + ChatColor.RED + "Interrupting " + worker.getName());
+                PunisherPlugin.getLOGS().severe("Interrupting " + worker.getName());
                 worker.interrupt();
             }
         }

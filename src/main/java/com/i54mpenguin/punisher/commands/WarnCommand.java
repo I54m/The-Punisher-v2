@@ -1,11 +1,11 @@
 package com.i54mpenguin.punisher.commands;
 
-import me.fiftyfour.punisher.bungee.PunisherPlugin;
+import com.i54mpenguin.punisher.PunisherPlugin;
+import com.i54mpenguin.punisher.exceptions.DataFecthException;
+import com.i54mpenguin.punisher.exceptions.PunishmentsDatabaseException;
 import com.i54mpenguin.punisher.handlers.ErrorHandler;
 import com.i54mpenguin.punisher.managers.PunishmentManager;
 import com.i54mpenguin.punisher.objects.Punishment;
-import com.i54mpenguin.punisher.exceptions.DataFecthException;
-import com.i54mpenguin.punisher.exceptions.PunishmentsDatabaseException;
 import com.i54mpenguin.punisher.utils.Permissions;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
@@ -33,7 +33,7 @@ public class WarnCommand extends Command {
         }
         ProxiedPlayer player = (ProxiedPlayer) commandSender;
         if (strings.length == 0) {
-            player.sendMessage(new ComponentBuilder(plugin.prefix).append("Warn a player for breaking the rules").color(ChatColor.RED).append("\nUsage: /warn <player> [reason]").color(ChatColor.WHITE).create());
+            player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Warn a player for breaking the rules").color(ChatColor.RED).append("\nUsage: /warn <player> [reason]").color(ChatColor.WHITE).create());
             return;
         }
         ProxiedPlayer target = ProxyServer.getInstance().getPlayer(strings[0]);
@@ -51,7 +51,7 @@ public class WarnCommand extends Command {
         }
         try {
             if (!Permissions.higher(player, targetuuid)) {
-                player.sendMessage(new ComponentBuilder(plugin.prefix).append("You cannot punish that player!").color(ChatColor.RED).create());
+                player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("You cannot punish that player!").color(ChatColor.RED).create());
                 return;
             }
         } catch (Exception e) {

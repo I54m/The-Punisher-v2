@@ -1,12 +1,12 @@
 package com.i54mpenguin.punisher.commands;
 
-import me.fiftyfour.punisher.bungee.PunisherPlugin;
+import com.i54mpenguin.punisher.PunisherPlugin;
+import com.i54mpenguin.punisher.exceptions.DataFecthException;
 import com.i54mpenguin.punisher.fetchers.PlayerInfo;
 import com.i54mpenguin.punisher.fetchers.Status;
 import com.i54mpenguin.punisher.handlers.ErrorHandler;
-import com.i54mpenguin.punisher.exceptions.DataFecthException;
-import me.fiftyfour.punisher.universal.util.NameFetcher;
-import me.fiftyfour.punisher.universal.util.UUIDFetcher;
+import com.i54mpenguin.punisher.utils.NameFetcher;
+import com.i54mpenguin.punisher.utils.UUIDFetcher;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
@@ -29,7 +29,7 @@ public class PlayerInfoCommand extends Command {
         super("playerinfo", "punisher.playerinfo", "info", "pi", "player");
     }
 
-    private PunisherPlugin plugin = PunisherPlugin.getInstance();
+    private final PunisherPlugin plugin = PunisherPlugin.getInstance();
     private String targetuuid;
 
     @Override
@@ -40,11 +40,11 @@ public class PlayerInfoCommand extends Command {
         }
         ProxiedPlayer player = (ProxiedPlayer) commandSender;
         if (strings.length <= 0){
-            player.sendMessage(new ComponentBuilder(plugin.prefix).append("View useful information about a player").color(ChatColor.RED).create());
-            player.sendMessage(new ComponentBuilder(plugin.prefix).append("Usage: /playerinfo <player>").color(ChatColor.WHITE).create());
+            player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("View useful information about a player").color(ChatColor.RED).create());
+            player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Usage: /playerinfo <player>").color(ChatColor.WHITE).create());
             return;
         }
-        player.sendMessage(new ComponentBuilder(plugin.prefix).append("Collecting info on: " + strings[0] + ". Please wait...").color(ChatColor.GREEN).create());
+        player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Collecting info on: " + strings[0] + ". Please wait...").color(ChatColor.GREEN).create());
         ProxiedPlayer findTarget = ProxyServer.getInstance().getPlayer(strings[0]);
         Future<String> future = null;
         ExecutorService executorService = null;
@@ -72,7 +72,7 @@ public class PlayerInfoCommand extends Command {
             }
         }
         if (targetuuid == null) {
-            player.sendMessage(new ComponentBuilder(plugin.prefix).append(strings[0] + " is not a player's name!").color(ChatColor.RED).create());
+            player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append(strings[0] + " is not a player's name!").color(ChatColor.RED).create());
             return;
         }
         String targetname = NameFetcher.getName(targetuuid);
@@ -85,9 +85,9 @@ public class PlayerInfoCommand extends Command {
         ExecutorService executorServiceinfo = Executors.newSingleThreadExecutor();
         Future<Map<String, String>> futureInfo = executorServiceinfo.submit(playerInfo);
         List<String> notes = new ArrayList<>();
-        if (PunisherPlugin.playerInfoConfig.contains(targetuuid + ".notes")){
-            notes = PunisherPlugin.playerInfoConfig.getStringList(targetuuid + ".notes");
-        }
+//        if (PunisherPlugin.playerInfoConfig.contains(targetuuid + ".notes")){
+//            notes = PunisherPlugin.playerInfoConfig.getStringList(targetuuid + ".notes");
+//        }
         ExecutorService executorService1;
         Future<BaseComponent[]> futurestatus;
         Status statusClass = new Status();

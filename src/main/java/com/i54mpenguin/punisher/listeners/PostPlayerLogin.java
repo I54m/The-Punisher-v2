@@ -1,16 +1,16 @@
 package com.i54mpenguin.punisher.listeners;
 
-import me.fiftyfour.punisher.bungee.PunisherPlugin;
+import com.i54mpenguin.punisher.PunisherPlugin;
 import com.i54mpenguin.punisher.chats.StaffChat;
+import com.i54mpenguin.punisher.exceptions.PunishmentIssueException;
+import com.i54mpenguin.punisher.exceptions.PunishmentsDatabaseException;
 import com.i54mpenguin.punisher.handlers.ErrorHandler;
 import com.i54mpenguin.punisher.managers.DatabaseManager;
 import com.i54mpenguin.punisher.managers.PunishmentManager;
 import com.i54mpenguin.punisher.managers.WorkerManager;
 import com.i54mpenguin.punisher.objects.Punishment;
-import com.i54mpenguin.punisher.exceptions.PunishmentIssueException;
-import com.i54mpenguin.punisher.exceptions.PunishmentsDatabaseException;
-import me.fiftyfour.punisher.universal.util.NameFetcher;
-import me.fiftyfour.punisher.universal.util.UUIDFetcher;
+import com.i54mpenguin.punisher.utils.NameFetcher;
+import com.i54mpenguin.punisher.utils.UUIDFetcher;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.ComponentBuilder;
@@ -67,7 +67,7 @@ public class PostPlayerLogin implements Listener {
             if (punishmngr.isBanned(fetcheduuid)) {
                 if (player.hasPermission("punisher.bypass")) {
                     punishmngr.remove(punishmngr.getBan(fetcheduuid), null, true, true, false);
-                    PunisherPlugin.LOGS.info(player.getName() + " Bypassed their ban and were unbanned");
+                    PunisherPlugin.getLOGS().info(player.getName() + " Bypassed their ban and were unbanned");
                     plugin.getProxy().getScheduler().schedule(plugin, () ->
                                     StaffChat.sendMessage(new ComponentBuilder(targetName + " Bypassed their ban, Unbanning...").color(ChatColor.RED).event(punishmngr.getBan(fetcheduuid).getHoverEvent()).create(), true)
                             , 5, TimeUnit.SECONDS);
@@ -75,15 +75,15 @@ public class PostPlayerLogin implements Listener {
                     Punishment ban = punishmngr.getBan(fetcheduuid);
                     if (System.currentTimeMillis() > ban.getExpiration()) {
                         punishmngr.remove(punishmngr.getBan(fetcheduuid), null, false, false, false);
-                        PunisherPlugin.LOGS.info(player.getName() + "'s ban expired so they were unbanned");
+                        PunisherPlugin.getLOGS().info(player.getName() + "'s ban expired so they were unbanned");
                     } else {
                         String timeleft = punishmngr.getTimeLeft(ban);
                         String reason = ban.getMessage();
                         if (ban.isPermanent()) {
-                            String banMessage = PunisherPlugin.config.getString("PermBan Message").replace("%timeleft%", timeleft).replace("%reason%", reason);
+                            String banMessage = plugin.getConfig().getString("PermBan Message").replace("%timeleft%", timeleft).replace("%reason%", reason);
                             player.disconnect(new TextComponent(ChatColor.translateAlternateColorCodes('&', banMessage)));
                         } else {
-                            String banMessage = PunisherPlugin.config.getString("TempBan Message").replace("%timeleft%", timeleft).replace("%reason%", reason);
+                            String banMessage = plugin.getConfig().getString("TempBan Message").replace("%timeleft%", timeleft).replace("%reason%", reason);
                             player.disconnect(new TextComponent(ChatColor.translateAlternateColorCodes('&', banMessage)));
                         }
                     }

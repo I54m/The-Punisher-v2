@@ -1,6 +1,6 @@
 package com.i54mpenguin.punisher.commands;
 
-import me.fiftyfour.punisher.bungee.PunisherPlugin;
+import com.i54mpenguin.punisher.PunisherPlugin;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
@@ -28,7 +28,7 @@ public class SuperBroadcast extends Command {
         }
         ProxiedPlayer player = (ProxiedPlayer) commandSender;
         if (strings.length == 0) {
-            player.sendMessage(new ComponentBuilder(plugin.prefix).append("Send a message to all servers").color(ChatColor.RED).append("\nUsage: /superbroadcast <message>").color(ChatColor.WHITE).create());
+            player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Send a message to all servers").color(ChatColor.RED).append("\nUsage: /superbroadcast <message>").color(ChatColor.WHITE).create());
             return;
         }
         StringBuilder sb = new StringBuilder();
@@ -38,8 +38,8 @@ public class SuperBroadcast extends Command {
         ProxyServer.getInstance().broadcast(new ComponentBuilder(prefix.replace("%server%", player.getServer().getInfo().getName()).replace("%player%", player.getName())).append(sb.toString()).color(color).create());
         ProxyServer.getInstance().broadcast(new TextComponent("\n"));
         if (title == null){
-            if (!PunisherPlugin.config.getString("superbroadcast-title").equalsIgnoreCase("none")) {
-                String[] titleargs = PunisherPlugin.config.getString("superbroadcast-title").split(":");
+            if (!plugin.getConfig().getString("superbroadcast-title").equalsIgnoreCase("none")) {
+                String[] titleargs = plugin.getConfig().getString("superbroadcast-title").split(":");
                 try {
                     SuperBroadcast.title = ProxyServer.getInstance().createTitle().subTitle(new ComponentBuilder(titleargs[0]).create())
                             .fadeIn(Integer.parseInt(titleargs[1])).stay(Integer.parseInt(titleargs[2])).fadeOut(Integer.parseInt(titleargs[3]));

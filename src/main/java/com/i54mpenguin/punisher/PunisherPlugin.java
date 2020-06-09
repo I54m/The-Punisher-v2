@@ -99,12 +99,17 @@ public class PunisherPlugin extends Plugin {
      */
     @Override
     public void onLoad() {
-        getLogger().info("Preloading plugin...");
-        //setup plugin instance
-        setInstance(this);
-        //initialize packet gui system
-        initProtocol();
-        getLogger().info("Plugin preloaded!");
+        try {
+            getLogger().info("Preloading plugin...");
+            //setup plugin instance
+            setInstance(this);
+            //initialize packet gui system
+            initProtocol();
+            getLogger().info("Plugin preloaded!");
+        } catch (Exception e) {
+            getLogger().severe("Unable to complete plugin preload: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     /**

@@ -1,15 +1,14 @@
 package com.i54mpenguin.punisher.commands;
 
-import me.fiftyfour.punisher.bungee.PunisherPlugin;
+import com.i54mpenguin.punisher.PunisherPlugin;
 import com.i54mpenguin.punisher.chats.AdminChat;
-import me.fiftyfour.punisher.bungee.discordbot.DiscordMain;
+import com.i54mpenguin.punisher.exceptions.PunishmentsDatabaseException;
 import com.i54mpenguin.punisher.handlers.ErrorHandler;
 import com.i54mpenguin.punisher.listeners.ServerConnect;
 import com.i54mpenguin.punisher.managers.DatabaseManager;
 import com.i54mpenguin.punisher.managers.PunishmentManager;
 import com.i54mpenguin.punisher.managers.WorkerManager;
 import com.i54mpenguin.punisher.objects.Punishment;
-import com.i54mpenguin.punisher.exceptions.PunishmentsDatabaseException;
 import com.i54mpenguin.punisher.utils.UpdateChecker;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
@@ -24,8 +23,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
-
-import static me.fiftyfour.punisher.bungee.PunisherPlugin.update;
 
 public class AdminCommands extends Command {
     private final PunisherPlugin plugin = PunisherPlugin.getInstance();
@@ -45,19 +42,19 @@ public class AdminCommands extends Command {
         if (strings.length != 0) {
             if (strings[0].equalsIgnoreCase("reseteverything") || (strings.length > 1 && strings[1].equalsIgnoreCase("reset"))) {
                 if (!confirmation.containsKey(commandSender)) {
-                    commandSender.sendMessage(new ComponentBuilder(plugin.prefix).append("This command will reset settings and values to their defaults!").color(ChatColor.RED).create());
-                    commandSender.sendMessage(new ComponentBuilder(plugin.prefix).append("THIS CANNOT BE UNDONE!!").bold(true).color(ChatColor.RED).create());
-                    commandSender.sendMessage(new ComponentBuilder(plugin.prefix).append("It is recommended you use caution with this command!").color(ChatColor.RED).create());
-                    commandSender.sendMessage(new ComponentBuilder(plugin.prefix).append("To confirm, please re-type the command within 30 seconds!").color(ChatColor.RED).create());
+                    commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("This command will reset settings and values to their defaults!").color(ChatColor.RED).create());
+                    commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("THIS CANNOT BE UNDONE!!").bold(true).color(ChatColor.RED).create());
+                    commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("It is recommended you use caution with this command!").color(ChatColor.RED).create());
+                    commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("To confirm, please re-type the command within 30 seconds!").color(ChatColor.RED).create());
                     confirmation.put(commandSender, System.currentTimeMillis());
                     return;
                 } else {
                     long time = confirmation.get(commandSender);
                     if (System.currentTimeMillis() - time > 30000) {
-                        commandSender.sendMessage(new ComponentBuilder(plugin.prefix).append("This command will reset settings and values to their defaults!").color(ChatColor.RED).create());
-                        commandSender.sendMessage(new ComponentBuilder(plugin.prefix).append("THIS CANNOT BE UNDONE!!").bold(true).color(ChatColor.RED).create());
-                        commandSender.sendMessage(new ComponentBuilder(plugin.prefix).append("It is recommended you use caution with this command!").color(ChatColor.RED).create());
-                        commandSender.sendMessage(new ComponentBuilder(plugin.prefix).append("To confirm, please re-type the command within 30 seconds!").color(ChatColor.RED).create());
+                        commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("This command will reset settings and values to their defaults!").color(ChatColor.RED).create());
+                        commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("THIS CANNOT BE UNDONE!!").bold(true).color(ChatColor.RED).create());
+                        commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("It is recommended you use caution with this command!").color(ChatColor.RED).create());
+                        commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("To confirm, please re-type the command within 30 seconds!").color(ChatColor.RED).create());
                         confirmation.put(commandSender, System.currentTimeMillis());
                         return;
                     } else confirmation.remove(commandSender);
@@ -65,48 +62,48 @@ public class AdminCommands extends Command {
             }
             if (strings[0].equalsIgnoreCase("punishments")) {
                 if (strings.length == 1) {
-                    commandSender.sendMessage(new ComponentBuilder(plugin.prefix).append("Usage: /punisher punishments <reset|delete>").color(ChatColor.RED).create());
+                    commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Usage: /punisher punishments <reset|delete>").color(ChatColor.RED).create());
                     return;
                 }
                 if (strings[1].equalsIgnoreCase("reset")) {
                     AdminChat.sendMessage("\n", false);
                     plugin.saveDefaultPunishments();
-                    PunisherPlugin.LOGS.warning(commandSender.getName() + " reset punishments");
+                    PunisherPlugin.getLOGS().warning(commandSender.getName() + " reset punishments");
                     AdminChat.sendMessage(commandSender.getName() + " has reset all punishments", true);
                     AdminChat.sendMessage("This means automatic punishments will use default values!", true);
                     try {
                         plugin.loadConfigs();
                     } catch (Exception e) {
-                        commandSender.sendMessage(new ComponentBuilder(plugin.prefix).append("Unable to reload config files, try restarting your server and try again.").color(ChatColor.RED).create());
+                        commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Unable to reload config files, try restarting your server and try again.").color(ChatColor.RED).create());
                         AdminChat.sendMessage("Plugin failed to reload config! Try restarting the server and try again!", true);
                     }
                     AdminChat.sendMessage("\n", false);
                 } else if (strings[1].equalsIgnoreCase("delete")) {
-                    PunisherPlugin.punishmentsConfig.set("Minor_Chat_Offence", null);
-                    PunisherPlugin.punishmentsConfig.set("Major_Chat_Offence", null);
-                    PunisherPlugin.punishmentsConfig.set("DDoS/DoX_Threats", null);
-                    PunisherPlugin.punishmentsConfig.set("Inappropriate_Link", null);
-                    PunisherPlugin.punishmentsConfig.set("Impersonating_Staff", null);
-                    PunisherPlugin.punishmentsConfig.set("X-Raying", null);
-                    PunisherPlugin.punishmentsConfig.set("AutoClicker(Non_PvP)", null);
-                    PunisherPlugin.punishmentsConfig.set("Fly/Speed_Hacking", null);
-                    PunisherPlugin.punishmentsConfig.set("Malicious_PvP_Hacks", null);
-                    PunisherPlugin.punishmentsConfig.set("Other_Hacks", null);
-                    PunisherPlugin.punishmentsConfig.set("Server_Advertisement", null);
-                    PunisherPlugin.punishmentsConfig.set("Exploiting", null);
-                    PunisherPlugin.punishmentsConfig.set("TPA-Trapping", null);
-                    PunisherPlugin.punishmentsConfig.set("Other_Major_Offence", null);
-                    PunisherPlugin.punishmentsConfig.set("Other_Minor_Offence", null);
-                    PunisherPlugin.punishmentsConfig.set("Player_Impersonation", null);
+                    plugin.getPunishments().set("Minor_Chat_Offence", null);
+                    plugin.getPunishments().set("Major_Chat_Offence", null);
+                    plugin.getPunishments().set("DDoS/DoX_Threats", null);
+                    plugin.getPunishments().set("Inappropriate_Link", null);
+                    plugin.getPunishments().set("Impersonating_Staff", null);
+                    plugin.getPunishments().set("X-Raying", null);
+                    plugin.getPunishments().set("AutoClicker(Non_PvP)", null);
+                    plugin.getPunishments().set("Fly/Speed_Hacking", null);
+                    plugin.getPunishments().set("Malicious_PvP_Hacks", null);
+                    plugin.getPunishments().set("Other_Hacks", null);
+                    plugin.getPunishments().set("Server_Advertisement", null);
+                    plugin.getPunishments().set("Exploiting", null);
+                    plugin.getPunishments().set("TPA-Trapping", null);
+                    plugin.getPunishments().set("Other_Major_Offence", null);
+                    plugin.getPunishments().set("Other_Minor_Offence", null);
+                    plugin.getPunishments().set("Player_Impersonation", null);
                     plugin.saveConfig();
                     AdminChat.sendMessages(true, commandSender.getName() + " has REMOVED all automatic punishment values!", "Automatic punishments will not longer work!", "To reset punishments to their defaults do: ", "/punisher punishments reset", " ");
-                    PunisherPlugin.LOGS.warning(commandSender.getName() + " deleted punishments");
+                    PunisherPlugin.getLOGS().warning(commandSender.getName() + " deleted punishments");
                 } else {
-                    commandSender.sendMessage(new ComponentBuilder(plugin.prefix).append("Usage: /punisher punishments <reset|delete>").color(ChatColor.RED).create());
+                    commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Usage: /punisher punishments <reset|delete>").color(ChatColor.RED).create());
                 }
             } else if (strings[0].equalsIgnoreCase("bans")) {
                 if (strings.length == 1) {
-                    commandSender.sendMessage(new ComponentBuilder(plugin.prefix).append("Usage: /punisher bans reset").color(ChatColor.RED).create());
+                    commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Usage: /punisher bans reset").color(ChatColor.RED).create());
                     return;
                 }
                 if (strings[1].equalsIgnoreCase("reset")) {
@@ -129,11 +126,11 @@ public class AdminCommands extends Command {
                     AdminChat.sendMessage("\n", false);
                     AdminChat.sendMessage(commandSender.getName() + " has reset all bans!", true);
                     AdminChat.sendMessage("\n", false);
-                    PunisherPlugin.LOGS.warning(commandSender.getName() + " reset bans");
+                    PunisherPlugin.getLOGS().warning(commandSender.getName() + " reset bans");
                 }
             } else if (strings[0].equalsIgnoreCase("mutes")) {
                 if (strings.length == 1) {
-                    commandSender.sendMessage(new ComponentBuilder(plugin.prefix).append("Usage: /punisher mutes reset").color(ChatColor.RED).create());
+                    commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Usage: /punisher mutes reset").color(ChatColor.RED).create());
                     return;
                 }
                 if (strings[1].equalsIgnoreCase("reset")) {
@@ -156,22 +153,22 @@ public class AdminCommands extends Command {
                     AdminChat.sendMessage("\n", false);
                     AdminChat.sendMessage(commandSender.getName() + " has reset all mutes!", true);
                     AdminChat.sendMessage("\n", false);
-                    PunisherPlugin.LOGS.warning(commandSender.getName() + " reset mutes");
+                    PunisherPlugin.getLOGS().warning(commandSender.getName() + " reset mutes");
                 }
             } else if (strings[0].equalsIgnoreCase("reload")) {
-                commandSender.sendMessage(new ComponentBuilder(plugin.prefix).append("Reloading plugin. Please wait....").color(ChatColor.RED).create());
+                commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Reloading plugin. Please wait....").color(ChatColor.RED).create());
                 plugin.onDisable();
                 plugin.onEnable();
-                commandSender.sendMessage(new ComponentBuilder(plugin.prefix).append("Plugin Reloaded!").color(ChatColor.RED).create());
+                commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Plugin Reloaded!").color(ChatColor.RED).create());
                 AdminChat.sendMessage(commandSender.getName() + " has reloaded the plugin!", true);
                 workerManager.runWorker(new WorkerManager.Worker(this::reloadRecovery));
-                PunisherPlugin.LOGS.warning(commandSender.getName() + " reloaded the plugin ");
+                PunisherPlugin.getLOGS().warning(commandSender.getName() + " reloaded the plugin ");
             } else if (strings[0].equalsIgnoreCase("help")) {
                 plugin.getProxy().getPluginManager().dispatchCommand(commandSender, "punisherhelp");
             } else if (strings[0].equalsIgnoreCase("reseteverything")) {
                 AdminChat.sendMessage(commandSender.getName() + " has initiated a full reset of everything, please wait....", true);
                 //todo add a reset abort feature
-                PunisherPlugin.LOGS.warning(commandSender.getName() + " has initiated a full reset of everything!");
+                PunisherPlugin.getLOGS().warning(commandSender.getName() + " has initiated a full reset of everything!");
                 AdminChat.sendMessage("Plugin command and event listeners will be unloaded during this process!", true);
                 plugin.getProxy().getPluginManager().unregisterCommands(plugin);
                 plugin.getProxy().getPluginManager().unregisterListeners(plugin);
@@ -188,7 +185,7 @@ public class AdminCommands extends Command {
                         errorHandler.log(pde);
                         errorHandler.alert(pde, commandSender);
                         AdminChat.sendMessages(true, "An error occurred during the reset process, nothing was reset!", "Reloading plugin, please wait...");
-                        PunisherPlugin.LOGS.warning("An error occurred during the reset process, nothing was reset!");
+                        PunisherPlugin.getLOGS().warning("An error occurred during the reset process, nothing was reset!");
                         plugin.onDisable();
                         plugin.onEnable();
                         AdminChat.sendMessage("Plugin reloaded!", true);
@@ -199,32 +196,32 @@ public class AdminCommands extends Command {
                 plugin.onDisable();
                 dbManager.clearCache();
                 AdminChat.sendMessage("Cleared all cached data!", false);
-                PunisherPlugin.punishmentsFile.delete();
+                plugin.saveDefaultPunishments();
                 AdminChat.sendMessage("Reset all punishments!", false);
                 AdminChat.sendMessage("This means automatic punishments will use default values!", false);
-                PunisherPlugin.reputationFile.delete();
-                AdminChat.sendMessage("Reset all reputation scores!", false);
-                PunisherPlugin.playerInfoFile.delete();
-                AdminChat.sendMessage("Reset all stored playerinfo!", false);
-                if (PunisherPlugin.config.getBoolean("DiscordIntegration.Enabled")) {
-                    PunisherPlugin.discordIntegrationFile.delete();
-                    DiscordMain.verifiedUsers.clear();
-                    DiscordMain.userCodes.clear();
-                    AdminChat.sendMessage("Reset all linked discord users!", false);
-                }
+//                PunisherPlugin.reputationFile.delete();
+//                AdminChat.sendMessage("Reset all reputation scores!", false);
+//                PunisherPlugin.playerInfoFile.delete();
+//                AdminChat.sendMessage("Reset all stored playerinfo!", false);
+//                if (plugin.getConfig().getBoolean("DiscordIntegration.Enabled")) {
+//                    PunisherPlugin.discordIntegrationFile.delete();
+//                    DiscordMain.verifiedUsers.clear();
+//                    DiscordMain.userCodes.clear();
+//                    AdminChat.sendMessage("Reset all linked discord users!", false);
+//                }
                 AdminChat.sendMessages(false, " ", "Reloading plugin please wait....", " ");
                 plugin.onEnable();
                 AdminChat.sendMessages(false, "Reloaded the plugin!", "Warning, plugin is in an out of the box state and will need to be configured properly!", "Collecting required info on online players in order to solve errors..");
                 ServerConnect.lastJoinId = 0;
                 workerManager.runWorker(new WorkerManager.Worker(() -> {
                     for (ProxiedPlayer all : ProxyServer.getInstance().getPlayers()) {
-                        PunisherPlugin.reputationConfig.set(all.getUniqueId().toString().replace("-", ""), 5.0);
-                        PunisherPlugin.playerInfoConfig.set(all.getUniqueId().toString().replace("-", "") + ".lastlogin", System.currentTimeMillis());
-                        PunisherPlugin.playerInfoConfig.set(all.getUniqueId().toString().replace("-", "") + ".lastserver", all.getServer().getInfo().getName());
-                        PunisherPlugin.playerInfoConfig.set("lastjoinid", (ServerConnect.lastJoinId + 1));
-                        PunisherPlugin.playerInfoConfig.set(String.valueOf((ServerConnect.lastJoinId + 1)), all.getUniqueId().toString().replace("-", ""));
-                        ServerConnect.lastJoinId++;
-                        PunisherPlugin.saveInfo();
+//                        PunisherPlugin.reputationConfig.set(all.getUniqueId().toString().replace("-", ""), 5.0);
+//                        PunisherPlugin.playerInfoConfig.set(all.getUniqueId().toString().replace("-", "") + ".lastlogin", System.currentTimeMillis());
+//                        PunisherPlugin.playerInfoConfig.set(all.getUniqueId().toString().replace("-", "") + ".lastserver", all.getServer().getInfo().getName());
+//                        PunisherPlugin.playerInfoConfig.set("lastjoinid", (ServerConnect.lastJoinId + 1));
+//                        PunisherPlugin.playerInfoConfig.set(String.valueOf((ServerConnect.lastJoinId + 1)), all.getUniqueId().toString().replace("-", ""));
+//                        ServerConnect.lastJoinId++;
+//                        PunisherPlugin.saveInfo();
                         String fetcheduuid = all.getUniqueId().toString().replace("-", "");
                         String targetName = all.getName();
                         try {
@@ -288,36 +285,36 @@ public class AdminCommands extends Command {
                 }));
                 AdminChat.sendMessages(false, "Required info collected!", " ", "Plugin successfully reset!", " ");
             } else if (strings[0].equalsIgnoreCase("version")) {
-                if (!update) {
-                    commandSender.sendMessage(new ComponentBuilder(plugin.prefix).append("Current Bungeecord Version: " + plugin.getDescription().getVersion()).color(ChatColor.GREEN).create());
-                    commandSender.sendMessage(new ComponentBuilder(plugin.prefix).append("This is the latest version!").color(ChatColor.GREEN).create());
+                if (!PunisherPlugin.isUpdate()) {
+                    commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Current Bungeecord Version: " + plugin.getDescription().getVersion()).color(ChatColor.GREEN).create());
+                    commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("This is the latest version!").color(ChatColor.GREEN).create());
                 } else {
-                    commandSender.sendMessage(new ComponentBuilder(plugin.prefix).append("Current Bungeecord Version: " + plugin.getDescription().getVersion()).color(ChatColor.RED).create());
-                    commandSender.sendMessage(new ComponentBuilder(plugin.prefix).append("Latest version: " + UpdateChecker.getCurrentVersion()).color(ChatColor.RED).create());
+                    commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Current Bungeecord Version: " + plugin.getDescription().getVersion()).color(ChatColor.RED).create());
+                    commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Latest version: " + UpdateChecker.getCurrentVersion()).color(ChatColor.RED).create());
                 }
             } else {
-                commandSender.sendMessage(new ComponentBuilder(plugin.prefix).append("|------------").strikethrough(true).append(plugin.prefix).strikethrough(false).append("------------|").strikethrough(true).create());
-                commandSender.sendMessage(new ComponentBuilder(plugin.prefix).append("/punisher reseteverything - ").color(ChatColor.RED).append("Reset all stored data in the sql data base and on file.").color(ChatColor.WHITE).create());
-                commandSender.sendMessage(new ComponentBuilder(plugin.prefix).append("/punisher help - ").color(ChatColor.RED).append("Help command for the punisher.").color(ChatColor.WHITE).create());
-                commandSender.sendMessage(new ComponentBuilder(plugin.prefix).append("/punisher punishments - ").color(ChatColor.RED).append("Reset or delete punishments used for punishment calculation.").color(ChatColor.WHITE).create());
-                commandSender.sendMessage(new ComponentBuilder(plugin.prefix).append("/punisher bans reset - ").color(ChatColor.RED).append("Reset and delete all bans.").color(ChatColor.WHITE).create());
-                commandSender.sendMessage(new ComponentBuilder(plugin.prefix).append("/punisher mutes reset - ").color(ChatColor.RED).append("Reset and delete all mutes.").color(ChatColor.WHITE).create());
-                commandSender.sendMessage(new ComponentBuilder(plugin.prefix).append("/punisher reload - ").color(ChatColor.RED).append("Reload the config files.").color(ChatColor.WHITE).create());
-                commandSender.sendMessage(new ComponentBuilder(plugin.prefix).append("/punisher version - ").color(ChatColor.RED).append("Get the current version").color(ChatColor.WHITE).create());
-                if (PunisherPlugin.config.getBoolean("DiscordIntegration.Enabled"))
-                    commandSender.sendMessage(new ComponentBuilder(plugin.prefix).append("/discord admin - ").color(ChatColor.RED).append("Admin commands for the discord integration").color(ChatColor.WHITE).create());
+                commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("|------------").strikethrough(true).append(plugin.getPrefix()).strikethrough(false).append("------------|").strikethrough(true).create());
+                commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("/punisher reseteverything - ").color(ChatColor.RED).append("Reset all stored data in the sql data base and on file.").color(ChatColor.WHITE).create());
+                commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("/punisher help - ").color(ChatColor.RED).append("Help command for the punisher.").color(ChatColor.WHITE).create());
+                commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("/punisher punishments - ").color(ChatColor.RED).append("Reset or delete punishments used for punishment calculation.").color(ChatColor.WHITE).create());
+                commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("/punisher bans reset - ").color(ChatColor.RED).append("Reset and delete all bans.").color(ChatColor.WHITE).create());
+                commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("/punisher mutes reset - ").color(ChatColor.RED).append("Reset and delete all mutes.").color(ChatColor.WHITE).create());
+                commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("/punisher reload - ").color(ChatColor.RED).append("Reload the config files.").color(ChatColor.WHITE).create());
+                commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("/punisher version - ").color(ChatColor.RED).append("Get the current version").color(ChatColor.WHITE).create());
+                if (plugin.getConfig().getBoolean("DiscordIntegration.Enabled"))
+                    commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("/discord admin - ").color(ChatColor.RED).append("Admin commands for the discord integration").color(ChatColor.WHITE).create());
             }
         } else {
-            commandSender.sendMessage(new ComponentBuilder(plugin.prefix).append("|------------").strikethrough(true).append(plugin.prefix).strikethrough(false).append("------------|").strikethrough(true).create());
-            commandSender.sendMessage(new ComponentBuilder(plugin.prefix).append("/punisher reseteverything - ").color(ChatColor.RED).append("Reset all stored data in the sql data base and on file.").color(ChatColor.WHITE).create());
-            commandSender.sendMessage(new ComponentBuilder(plugin.prefix).append("/punisher help - ").color(ChatColor.RED).append("Help command for the punisher.").color(ChatColor.WHITE).create());
-            commandSender.sendMessage(new ComponentBuilder(plugin.prefix).append("/punisher punishments - ").color(ChatColor.RED).append("Reset or delete punishments used for punishment calculation.").color(ChatColor.WHITE).create());
-            commandSender.sendMessage(new ComponentBuilder(plugin.prefix).append("/punisher bans reset - ").color(ChatColor.RED).append("Reset and delete all bans.").color(ChatColor.WHITE).create());
-            commandSender.sendMessage(new ComponentBuilder(plugin.prefix).append("/punisher mutes reset - ").color(ChatColor.RED).append("Reset and delete all mutes.").color(ChatColor.WHITE).create());
-            commandSender.sendMessage(new ComponentBuilder(plugin.prefix).append("/punisher reload - ").color(ChatColor.RED).append("Reload the config files.").color(ChatColor.WHITE).create());
-            commandSender.sendMessage(new ComponentBuilder(plugin.prefix).append("/punisher version - ").color(ChatColor.RED).append("Get the current version").color(ChatColor.WHITE).create());
-            if (PunisherPlugin.config.getBoolean("DiscordIntegration.Enabled"))
-                commandSender.sendMessage(new ComponentBuilder(plugin.prefix).append("/discord admin - ").color(ChatColor.RED).append("Admin commands for the discord integration").color(ChatColor.WHITE).create());
+            commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("|------------").strikethrough(true).append(plugin.getPrefix()).strikethrough(false).append("------------|").strikethrough(true).create());
+            commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("/punisher reseteverything - ").color(ChatColor.RED).append("Reset all stored data in the sql data base and on file.").color(ChatColor.WHITE).create());
+            commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("/punisher help - ").color(ChatColor.RED).append("Help command for the punisher.").color(ChatColor.WHITE).create());
+            commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("/punisher punishments - ").color(ChatColor.RED).append("Reset or delete punishments used for punishment calculation.").color(ChatColor.WHITE).create());
+            commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("/punisher bans reset - ").color(ChatColor.RED).append("Reset and delete all bans.").color(ChatColor.WHITE).create());
+            commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("/punisher mutes reset - ").color(ChatColor.RED).append("Reset and delete all mutes.").color(ChatColor.WHITE).create());
+            commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("/punisher reload - ").color(ChatColor.RED).append("Reload the config files.").color(ChatColor.WHITE).create());
+            commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("/punisher version - ").color(ChatColor.RED).append("Get the current version").color(ChatColor.WHITE).create());
+            if (plugin.getConfig().getBoolean("DiscordIntegration.Enabled"))
+                commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("/discord admin - ").color(ChatColor.RED).append("Admin commands for the discord integration").color(ChatColor.WHITE).create());
         }
     }
 
@@ -329,10 +326,10 @@ public class AdminCommands extends Command {
                 String timeLeft = punisher.getTimeLeft(ban);
                 String reason = ban.getMessage();
                 if (ban.isPermanent()) {
-                    String banMessage = PunisherPlugin.config.getString("PermBan Message").replace("%timeleft%", timeLeft).replace("%reason%", reason);
+                    String banMessage = plugin.getConfig().getString("PermBan Message").replace("%timeleft%", timeLeft).replace("%reason%", reason);
                     players.disconnect(new TextComponent(ChatColor.translateAlternateColorCodes('&', banMessage)));
                 } else {
-                    String banMessage = PunisherPlugin.config.getString("TempBan Message").replace("%timeleft%", timeLeft).replace("%reason%", reason);
+                    String banMessage = plugin.getConfig().getString("TempBan Message").replace("%timeleft%", timeLeft).replace("%reason%", reason);
                     players.disconnect(new TextComponent(ChatColor.translateAlternateColorCodes('&', banMessage)));
                 }
             }

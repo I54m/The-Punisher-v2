@@ -1,6 +1,6 @@
 package com.i54mpenguin.punisher.listeners;
 
-import me.fiftyfour.punisher.bungee.PunisherPlugin;
+import com.i54mpenguin.punisher.PunisherPlugin;
 import com.i54mpenguin.punisher.chats.StaffChat;
 import com.i54mpenguin.punisher.handlers.ErrorHandler;
 import com.i54mpenguin.punisher.managers.PunishmentManager;
@@ -31,17 +31,17 @@ public class PlayerChat implements Listener {
                 if (event.isCommand()) {
                     String[] args = event.getMessage().split(" ");
                     List<String> mutedcommands;
-                    mutedcommands = PunisherPlugin.config.getStringList("Muted Commands");
+                    mutedcommands = plugin.getConfig().getStringList("Muted Commands");
                     if (mutedcommands.contains(args[0])) {
                         event.setCancelled(true);
-                        player.sendMessage(new ComponentBuilder(plugin.prefix).append("You may not use that command at this time!").color(ChatColor.RED).create());
+                        player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("You may not use that command at this time!").color(ChatColor.RED).create());
                     } else {
                         event.setCancelled(false);
                     }
                     return;
                 }
                 event.setCancelled(true);
-                player.sendMessage(new ComponentBuilder(plugin.prefix).append("You may not chat at this time!").color(ChatColor.RED).create());
+                player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("You may not chat at this time!").color(ChatColor.RED).create());
             } else {
                 event.setCancelled(false);
             }
@@ -60,21 +60,21 @@ public class PlayerChat implements Listener {
                 }
                 if (System.currentTimeMillis() > mute.getExpiration()) {
                     punishmentManager.remove(mute, null, false, false, false);
-                    player.sendMessage(new ComponentBuilder(plugin.prefix).append("Your Mute has expired!").color(ChatColor.GREEN).create());
-                    PunisherPlugin.LOGS.info(player.getName() + "'s mute expired so they were unmuted");
+                    player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Your Mute has expired!").color(ChatColor.GREEN).create());
+                    PunisherPlugin.getLOGS().info(player.getName() + "'s mute expired so they were unmuted");
                 } else {
                     String timeLeft = punishmentManager.getTimeLeft(mute);
                     if (event.isCommand()) {
                         String[] args = event.getMessage().split(" ");
                         List<String> mutedcommands;
-                        mutedcommands = PunisherPlugin.config.getStringList("Muted Commands");
+                        mutedcommands = plugin.getConfig().getStringList("Muted Commands");
                         if (!mutedcommands.contains(args[0])) {
                             event.setCancelled(true);
                             String muteMessage;
                             if (mute.isPermanent())
-                                muteMessage = PunisherPlugin.config.getString("PermMute Deny Message").replace("%reason%", mute.getMessage()).replace("%timeleft%", timeLeft);
+                                muteMessage = plugin.getConfig().getString("PermMute Deny Message").replace("%reason%", mute.getMessage()).replace("%timeleft%", timeLeft);
                             else
-                                muteMessage = PunisherPlugin.config.getString("TempMute Deny Message").replace("%reason%", mute.getMessage()).replace("%timeleft%", timeLeft);
+                                muteMessage = plugin.getConfig().getString("TempMute Deny Message").replace("%reason%", mute.getMessage()).replace("%timeleft%", timeLeft);
 
                             player.sendMessage(new ComponentBuilder(ChatColor.translateAlternateColorCodes('&', muteMessage)).create());
                         }
@@ -82,13 +82,13 @@ public class PlayerChat implements Listener {
                         event.setCancelled(true);
                         String muteMessage;
                         if (mute.isPermanent())
-                            muteMessage = PunisherPlugin.config.getString("PermMute Deny Message").replace("%reason%", mute.getMessage()).replace("%timeleft%", timeLeft);
+                            muteMessage = plugin.getConfig().getString("PermMute Deny Message").replace("%reason%", mute.getMessage()).replace("%timeleft%", timeLeft);
                         else
-                            muteMessage = PunisherPlugin.config.getString("TempMute Deny Message").replace("%reason%", mute.getMessage()).replace("%timeleft%", timeLeft);
+                            muteMessage = plugin.getConfig().getString("TempMute Deny Message").replace("%reason%", mute.getMessage()).replace("%timeleft%", timeLeft);
                         player.sendMessage(new ComponentBuilder(ChatColor.translateAlternateColorCodes('&', muteMessage)).create());
-                        if (PunisherPlugin.config.getBoolean("SendPlayersMessageToStaffChatOnMuteDeny"))
+                        if (plugin.getConfig().getBoolean("SendPlayersMessageToStaffChatOnMuteDeny"))
                             StaffChat.sendMessage(player.getName() + " Tried to speak but is muted: " + event.getMessage(), true);
-                        else if (PunisherPlugin.config.getBoolean("StaffChatOnMuteDeny"))
+                        else if (plugin.getConfig().getBoolean("StaffChatOnMuteDeny"))
                             StaffChat.sendMessage(player.getName() + " Tried to speak but is muted!", true);
                     }
                 }

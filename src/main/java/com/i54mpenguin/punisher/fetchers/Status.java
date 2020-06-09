@@ -2,7 +2,7 @@ package com.i54mpenguin.punisher.fetchers;
 
 import com.i54mpenguin.punisher.managers.PunishmentManager;
 import com.i54mpenguin.punisher.objects.Punishment;
-import me.fiftyfour.punisher.universal.util.NameFetcher;
+import com.i54mpenguin.punisher.utils.NameFetcher;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ComponentBuilder;

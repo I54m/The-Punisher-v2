@@ -1,6 +1,6 @@
 package com.i54mpenguin.punisher.commands;
 
-import me.fiftyfour.punisher.bungee.PunisherPlugin;
+import com.i54mpenguin.punisher.PunisherPlugin;
 import com.i54mpenguin.punisher.chats.StaffChat;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
@@ -15,7 +15,7 @@ public class KickAllCommand extends Command {
         super("kickall", "punisher.kick.all");
     }
 
-    private PunisherPlugin plugin = PunisherPlugin.getInstance();
+    private final PunisherPlugin plugin = PunisherPlugin.getInstance();
 
     @Override
     public void execute(CommandSender commandSender, String[] strings) {
@@ -34,7 +34,7 @@ public class KickAllCommand extends Command {
                         }
                     }
                 }else{
-                    player.sendMessage(new ComponentBuilder(plugin.prefix).append("You cannot supply a message for a kick all, use -network to kick all players network-wide.").color(ChatColor.RED).create());
+                    player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("You cannot supply a message for a kick all, use -network to kick all players network-wide.").color(ChatColor.RED).create());
                 }
             }else {
                 for (ProxiedPlayer all : ProxyServer.getInstance().getPlayers()) {

@@ -1,11 +1,11 @@
 package com.i54mpenguin.punisher.listeners;
 
-import me.fiftyfour.punisher.bungee.PunisherPlugin;
+import com.i54mpenguin.punisher.PunisherPlugin;
+import com.i54mpenguin.punisher.exceptions.PunishmentsDatabaseException;
 import com.i54mpenguin.punisher.handlers.ErrorHandler;
 import com.i54mpenguin.punisher.managers.DatabaseManager;
 import com.i54mpenguin.punisher.managers.WorkerManager;
-import com.i54mpenguin.punisher.exceptions.PunishmentsDatabaseException;
-import me.fiftyfour.punisher.universal.util.NameFetcher;
+import com.i54mpenguin.punisher.utils.NameFetcher;
 import net.md_5.bungee.api.connection.PendingConnection;
 import net.md_5.bungee.api.event.LoginEvent;
 import net.md_5.bungee.api.plugin.Listener;
@@ -102,8 +102,8 @@ public class PlayerLogin implements Listener {
             }
         }));
 
-        if (!PunisherPlugin.reputationConfig.contains(fetcheduuid))
-            PunisherPlugin.reputationConfig.set(fetcheduuid, 5.0);
+//        if (!PunisherPlugin.reputationConfig.contains(fetcheduuid))
+//            PunisherPlugin.reputationConfig.set(fetcheduuid, 5.0);
 
 
     }

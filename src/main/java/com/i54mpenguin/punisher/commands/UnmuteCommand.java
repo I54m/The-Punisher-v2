@@ -1,12 +1,12 @@
 package com.i54mpenguin.punisher.commands;
 
-import me.fiftyfour.punisher.bungee.PunisherPlugin;
-import com.i54mpenguin.punisher.handlers.ErrorHandler;
-import com.i54mpenguin.punisher.managers.PunishmentManager;
+import com.i54mpenguin.punisher.PunisherPlugin;
 import com.i54mpenguin.punisher.exceptions.DataFecthException;
 import com.i54mpenguin.punisher.exceptions.PunishmentsDatabaseException;
-import me.fiftyfour.punisher.universal.util.NameFetcher;
-import me.fiftyfour.punisher.universal.util.UUIDFetcher;
+import com.i54mpenguin.punisher.handlers.ErrorHandler;
+import com.i54mpenguin.punisher.managers.PunishmentManager;
+import com.i54mpenguin.punisher.utils.NameFetcher;
+import com.i54mpenguin.punisher.utils.UUIDFetcher;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
@@ -34,7 +34,7 @@ public class UnmuteCommand extends Command {
         if (commandSender instanceof ProxiedPlayer) {
             ProxiedPlayer player = (ProxiedPlayer) commandSender;
             if (strings.length == 0) {
-                player.sendMessage(new ComponentBuilder(plugin.prefix).append("Unmute a player").color(ChatColor.RED).append("\nUsage: /unmute <player name>").color(ChatColor.WHITE).create());
+                player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Unmute a player").color(ChatColor.RED).append("\nUsage: /unmute <player name>").color(ChatColor.WHITE).create());
                 return;
             }
             ProxiedPlayer findTarget = ProxyServer.getInstance().getPlayer(strings[0]);
@@ -72,9 +72,9 @@ public class UnmuteCommand extends Command {
                 try {
                     if (punishMnger.isMuted(targetuuid)) {
                         punishMnger.remove(punishMnger.getMute(targetuuid), player, true, false, true);
-                        player.sendMessage(new ComponentBuilder(plugin.prefix).append("Successfully unmuted " + targetname).color(ChatColor.GREEN).create());
+                        player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Successfully unmuted " + targetname).color(ChatColor.GREEN).create());
                     } else {
-                        player.sendMessage(new ComponentBuilder(plugin.prefix).append(targetname + " is not currently muted!").color(ChatColor.RED).create());
+                        player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append(targetname + " is not currently muted!").color(ChatColor.RED).create());
                     }
                 } catch (SQLException e) {
                     try {
@@ -86,11 +86,11 @@ public class UnmuteCommand extends Command {
                     }
                 }
             } else {
-                player.sendMessage(new ComponentBuilder(plugin.prefix).append("That is not a player's name!").color(ChatColor.RED).create());
+                player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("That is not a player's name!").color(ChatColor.RED).create());
             }
         } else {
             if (strings.length == 0) {
-                commandSender.sendMessage(new ComponentBuilder(plugin.prefix).append("Unmute a player").color(ChatColor.RED).append("\nUsage: /unmute <player name>").color(ChatColor.WHITE).create());
+                commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Unmute a player").color(ChatColor.RED).append("\nUsage: /unmute <player name>").color(ChatColor.WHITE).create());
                 return;
             }
             ProxiedPlayer findTarget = ProxyServer.getInstance().getPlayer(strings[0]);
@@ -128,9 +128,9 @@ public class UnmuteCommand extends Command {
                 try {
                     if (punishMnger.isMuted(targetuuid)) {
                         punishMnger.remove(punishMnger.getMute(targetuuid), null, true, false, true);
-                        commandSender.sendMessage(new ComponentBuilder(plugin.prefix).append("Successfully unmuted " + targetname).color(ChatColor.GREEN).create());
+                        commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Successfully unmuted " + targetname).color(ChatColor.GREEN).create());
                     } else {
-                        commandSender.sendMessage(new ComponentBuilder(plugin.prefix).append(targetname + " is not currently muted!").color(ChatColor.RED).create());
+                        commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append(targetname + " is not currently muted!").color(ChatColor.RED).create());
                     }
                 } catch (SQLException e) {
                     try {
@@ -143,7 +143,7 @@ public class UnmuteCommand extends Command {
                     }
                 }
             } else {
-                commandSender.sendMessage(new ComponentBuilder(plugin.prefix).append("That is not a player's name!").color(ChatColor.RED).create());
+                commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("That is not a player's name!").color(ChatColor.RED).create());
             }
         }
     }

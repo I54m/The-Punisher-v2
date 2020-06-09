@@ -1,15 +1,10 @@
 package com.i54mpenguin.punisher.commands;
 
-import me.fiftyfour.punisher.bungee.PunisherPlugin;
-import com.i54mpenguin.punisher.utils.Permissions;
+import com.i54mpenguin.punisher.PunisherPlugin;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.chat.ComponentBuilder;
-import net.md_5.bungee.api.config.ServerInfo;
-import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
-
-import java.util.UUID;
 
 public class StaffCommand extends Command {
     public StaffCommand() {
@@ -24,19 +19,19 @@ public class StaffCommand extends Command {
             
             commandSender.sendMessage(new ComponentBuilder("|------------- ").color(ChatColor.GREEN).strikethrough(true).append("Online Staff Members").color(ChatColor.RED).strikethrough(false)
                     .append(" -------------|").color(ChatColor.GREEN).strikethrough(true).create());
-            for (ServerInfo servers : plugin.staff.keySet()) {
-                commandSender.sendMessage(new ComponentBuilder(servers.getName()).color(ChatColor.RED).create());
-                for (ProxiedPlayer player : plugin.staff.get(servers)) {
-                    UUID uuid = player.getUniqueId();
-                    String prefixText = ChatColor.translateAlternateColorCodes('&', Permissions.getPrefix(uuid));
-                    if (!PunisherPlugin.staffHideConfig.contains(player.getUniqueId().toString()))
-                        commandSender.sendMessage(new ComponentBuilder(prefixText + " ").append(player.getName()).color(ChatColor.RED).create());
-                    else
-                        if (commandSender.hasPermission("punisher.staff"))
-                            commandSender.sendMessage(new ComponentBuilder(prefixText + " ").strikethrough(true).append(player.getName()).strikethrough(true).color(ChatColor.RED)
-                                .append(" - HIDDEN").color(ChatColor.GRAY).strikethrough(false).create());
-                }
-            }
+//            for (ServerInfo servers : plugin.staff.keySet()) {
+//                commandSender.sendMessage(new ComponentBuilder(servers.getName()).color(ChatColor.RED).create());
+//                for (ProxiedPlayer player : plugin.staff.get(servers)) {
+//                    UUID uuid = player.getUniqueId();
+//                    String prefixText = ChatColor.translateAlternateColorCodes('&', Permissions.getPrefix(uuid));
+//                    if (!PunisherPlugin.staffHideConfig.contains(player.getUniqueId().toString()))
+//                        commandSender.sendMessage(new ComponentBuilder(prefixText + " ").append(player.getName()).color(ChatColor.RED).create());
+//                    else
+//                        if (commandSender.hasPermission("punisher.staff"))
+//                            commandSender.sendMessage(new ComponentBuilder(prefixText + " ").strikethrough(true).append(player.getName()).strikethrough(true).color(ChatColor.RED)
+//                                .append(" - HIDDEN").color(ChatColor.GRAY).strikethrough(false).create());
+//                }
+//            }
         commandSender.sendMessage(new ComponentBuilder("|---------------------------------------------|").color(ChatColor.GREEN).strikethrough(true).create());
     }
 }

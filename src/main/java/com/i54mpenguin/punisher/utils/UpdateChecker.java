@@ -27,7 +27,7 @@ public class UpdateChecker {
             return false;
 //        try {
 //            Class.forName("net.md_5.bungee.BungeeCord");
-            PunisherPlugin plugin = PunisherPlugin.getInstance();
+            final PunisherPlugin plugin = PunisherPlugin.getInstance();
             if (!getCurrentVersion().equals(plugin.getDescription().getVersion())) {
                 String[] thisParts = plugin.getDescription().getVersion().split("\\.");
                 String[] thatParts = getCurrentVersion().split("\\.");

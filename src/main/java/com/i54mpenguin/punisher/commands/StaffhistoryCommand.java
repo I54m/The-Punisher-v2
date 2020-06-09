@@ -1,12 +1,12 @@
 package com.i54mpenguin.punisher.commands;
 
-import me.fiftyfour.punisher.bungee.PunisherPlugin;
-import com.i54mpenguin.punisher.handlers.ErrorHandler;
-import com.i54mpenguin.punisher.managers.DatabaseManager;
+import com.i54mpenguin.punisher.PunisherPlugin;
 import com.i54mpenguin.punisher.exceptions.DataFecthException;
 import com.i54mpenguin.punisher.exceptions.PunishmentsDatabaseException;
-import me.fiftyfour.punisher.universal.util.NameFetcher;
-import me.fiftyfour.punisher.universal.util.UUIDFetcher;
+import com.i54mpenguin.punisher.handlers.ErrorHandler;
+import com.i54mpenguin.punisher.managers.DatabaseManager;
+import com.i54mpenguin.punisher.utils.NameFetcher;
+import com.i54mpenguin.punisher.utils.UUIDFetcher;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
@@ -37,7 +37,7 @@ public class StaffhistoryCommand extends Command {
         if (commandSender instanceof ProxiedPlayer) {
             ProxiedPlayer player = (ProxiedPlayer) commandSender;
             if (strings.length == 0) {
-                player.sendMessage(new ComponentBuilder(plugin.prefix).append("View a staff member's punishment history").color(ChatColor.RED).append("\nUsage: /staffhistory <player name> [-c|-r]").color(ChatColor.WHITE).create());
+                player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("View a staff member's punishment history").color(ChatColor.RED).append("\nUsage: /staffhistory <player name> [-c|-r]").color(ChatColor.WHITE).create());
                 return;
             }
             ProxiedPlayer findTarget = ProxyServer.getInstance().getPlayer(strings[0]);
@@ -82,7 +82,7 @@ public class StaffhistoryCommand extends Command {
                         PreparedStatement stmt1 = dbManager.connection.prepareStatement(sql1);
                         stmt1.executeUpdate();
                         stmt1.close();
-                        player.sendMessage(new ComponentBuilder(plugin.prefix).append("All staff history for: " + targetname + " has been cleared!").color(ChatColor.GREEN).create());
+                        player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("All staff history for: " + targetname + " has been cleared!").color(ChatColor.GREEN).create());
                     } catch (SQLException e) {
                         try {
                             throw new PunishmentsDatabaseException("Checking Staff history", targetname, this.getName(), e, "/staffhistory", strings);
@@ -134,7 +134,7 @@ public class StaffhistoryCommand extends Command {
                         if (results.getInt("Manual_Punishments") != 0)
                             player.sendMessage(new ComponentBuilder("Punished Manually: ").color(ChatColor.GREEN).append(String.valueOf(results.getInt("Manual_Punishments"))).color(ChatColor.RED).create());
                     } else {
-                        player.sendMessage(new ComponentBuilder(plugin.prefix).append(targetname + " has not punished anyone yet!").color(ChatColor.RED).create());
+                        player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append(targetname + " has not punished anyone yet!").color(ChatColor.RED).create());
                     }
                     stmt.close();
                     results.close();
@@ -148,7 +148,7 @@ public class StaffhistoryCommand extends Command {
                     }
                 }
             } else {
-                player.sendMessage(new ComponentBuilder(plugin.prefix).append("That is not a player's name").color(ChatColor.RED).create());
+                player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("That is not a player's name").color(ChatColor.RED).create());
             }
         } else {
             commandSender.sendMessage(new TextComponent("You must be a player to use this command!"));

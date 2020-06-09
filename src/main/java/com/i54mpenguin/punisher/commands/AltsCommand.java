@@ -1,13 +1,13 @@
 package com.i54mpenguin.punisher.commands;
 
-import me.fiftyfour.punisher.bungee.PunisherPlugin;
+import com.i54mpenguin.punisher.PunisherPlugin;
+import com.i54mpenguin.punisher.exceptions.DataFecthException;
+import com.i54mpenguin.punisher.exceptions.PunishmentsDatabaseException;
 import com.i54mpenguin.punisher.fetchers.Status;
 import com.i54mpenguin.punisher.handlers.ErrorHandler;
 import com.i54mpenguin.punisher.managers.DatabaseManager;
-import com.i54mpenguin.punisher.exceptions.DataFecthException;
-import com.i54mpenguin.punisher.exceptions.PunishmentsDatabaseException;
-import me.fiftyfour.punisher.universal.util.NameFetcher;
-import me.fiftyfour.punisher.universal.util.UUIDFetcher;
+import com.i54mpenguin.punisher.utils.NameFetcher;
+import com.i54mpenguin.punisher.utils.UUIDFetcher;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
@@ -41,7 +41,7 @@ public class AltsCommand extends Command {
             if (commandSender instanceof ProxiedPlayer) {
                 ProxiedPlayer player = (ProxiedPlayer) commandSender;
                 if (strings.length < 2) {
-                    player.sendMessage(new ComponentBuilder(plugin.prefix).append("Check a players alt or reset their stored ip").color(ChatColor.RED).append("\nUsage: /alts <reset|get> <player>").color(ChatColor.WHITE).create());
+                    player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Check a players alt or reset their stored ip").color(ChatColor.RED).append("\nUsage: /alts <reset|get> <player>").color(ChatColor.WHITE).create());
                     return;
                 }
                 if (!strings[1].contains(".")) {
@@ -73,7 +73,7 @@ public class AltsCommand extends Command {
                         executorService.shutdown();
                     }
                     if (targetuuid == null) {
-                        player.sendMessage(new ComponentBuilder(plugin.prefix).append("That is not a player's name!").color(ChatColor.RED).create());
+                        player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("That is not a player's name!").color(ChatColor.RED).create());
                         return;
                     }
                     targetname = NameFetcher.getName(targetuuid);
@@ -89,8 +89,8 @@ public class AltsCommand extends Command {
                             PreparedStatement stmt1 = dbManager.connection.prepareStatement(sql1);
                             stmt1.executeUpdate();
                             stmt1.close();
-                            player.sendMessage(new ComponentBuilder(plugin.prefix).append(targetname + "'s stored ip address has been reset!").color(ChatColor.RED).create());
-                            PunisherPlugin.LOGS.info(player.getName() + " reset " + targetname + "'s stored ip address");
+                            player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append(targetname + "'s stored ip address has been reset!").color(ChatColor.RED).create());
+                            PunisherPlugin.getLOGS().info(player.getName() + " reset " + targetname + "'s stored ip address");
                             ProxiedPlayer target = ProxyServer.getInstance().getPlayer(targetuuid);
                             if (target != null) {
                                 String sql2 = "INSERT INTO `altlist` (`UUID`, `ip`) VALUES ('" + targetuuid + "', '" + target.getAddress().getHostString() + "');";
@@ -99,7 +99,7 @@ public class AltsCommand extends Command {
                                 stmt2.close();
                             }
                         } else {
-                            player.sendMessage(new ComponentBuilder(plugin.prefix).append("That player has no stored ip address!").color(ChatColor.RED).create());
+                            player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("That player has no stored ip address!").color(ChatColor.RED).create());
                         }
                         stmt.close();
                         results.close();
@@ -128,15 +128,15 @@ public class AltsCommand extends Command {
                             stmt1.close();
                             results1.close();
                             if (altslist.toString().isEmpty()) {
-                                player.sendMessage(new ComponentBuilder(plugin.prefix).append("That player has no connected accounts!").color(ChatColor.RED).create());
+                                player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("That player has no connected accounts!").color(ChatColor.RED).create());
                                 return;
                             }
                             if (player.hasPermission("punisher.alts.ip")) {
-                                player.sendMessage(new ComponentBuilder(plugin.prefix).append("Accounts connected to " + targetname + " on the ip " + ip + ": ").color(ChatColor.RED).create());
+                                player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Accounts connected to " + targetname + " on the ip " + ip + ": ").color(ChatColor.RED).create());
                             } else {
-                                player.sendMessage(new ComponentBuilder(plugin.prefix).append("Accounts connected to " + targetname + ": ").color(ChatColor.RED).create());
+                                player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Accounts connected to " + targetname + ": ").color(ChatColor.RED).create());
                             }
-                            player.sendMessage(new ComponentBuilder(plugin.prefix).append(altslist.toString()).color(ChatColor.RED).create());
+                            player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append(altslist.toString()).color(ChatColor.RED).create());
                             BaseComponent[] status;
                             try {
                                 status = futurestatus.get(500, TimeUnit.MILLISECONDS);
@@ -153,14 +153,14 @@ public class AltsCommand extends Command {
                             }
                             executorService1.shutdown();
                             player.sendMessage(status);
-                            PunisherPlugin.LOGS.info(player.getName() + " looked at " + targetname + "'s connected accounts, at the time of logging they were: " + altslist.toString());
+                            PunisherPlugin.getLOGS().info(player.getName() + " looked at " + targetname + "'s connected accounts, at the time of logging they were: " + altslist.toString());
                         } else {
-                            player.sendMessage(new ComponentBuilder(plugin.prefix).append("That player has no connected accounts!").color(ChatColor.RED).create());
+                            player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("That player has no connected accounts!").color(ChatColor.RED).create());
                         }
                         stmt.close();
                         results.close();
                     } else {
-                        player.sendMessage(new ComponentBuilder(plugin.prefix).append("Check a players alt or reset their stored ip").color(ChatColor.RED).append("\nUsage: /alts <reset|get> <player>").color(ChatColor.WHITE).create());
+                        player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Check a players alt or reset their stored ip").color(ChatColor.RED).append("\nUsage: /alts <reset|get> <player>").color(ChatColor.WHITE).create());
                     }
                 } else {
                     if (strings[1].contains(".") && player.hasPermission("punisher.alts.ip")) {
@@ -176,16 +176,16 @@ public class AltsCommand extends Command {
                         stmt.close();
                         results.close();
                         if (altslist.toString().isEmpty()) {
-                            player.sendMessage(new ComponentBuilder(plugin.prefix).append("That ip is not stored in our database!").color(ChatColor.RED).create());
+                            player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("That ip is not stored in our database!").color(ChatColor.RED).create());
                             return;
                         }
-                        player.sendMessage(new ComponentBuilder(plugin.prefix).append("Accounts connected to the ip: " + ip + ": ").color(ChatColor.RED).create());
-                        player.sendMessage(new ComponentBuilder(plugin.prefix).append(altslist.toString()).color(ChatColor.RED).create());
-                        PunisherPlugin.LOGS.info(player.getName() + " Looked at accounts connected to ip: " + ip + " Accounts connected at time of logging: " + altslist.toString());
+                        player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Accounts connected to the ip: " + ip + ": ").color(ChatColor.RED).create());
+                        player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append(altslist.toString()).color(ChatColor.RED).create());
+                        PunisherPlugin.getLOGS().info(player.getName() + " Looked at accounts connected to ip: " + ip + " Accounts connected at time of logging: " + altslist.toString());
                     } else if (!player.hasPermission("punisher.alts.ip")) {
-                        player.sendMessage(new ComponentBuilder(plugin.prefix).append("You do not have permission to do that!").color(ChatColor.RED).create());
+                        player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("You do not have permission to do that!").color(ChatColor.RED).create());
                     } else {
-                        player.sendMessage(new ComponentBuilder(plugin.prefix).append(strings[1] + " is not an ip or a player's name! (ips must contain the dots and not have a port number)").color(ChatColor.RED).create());
+                        player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append(strings[1] + " is not an ip or a player's name! (ips must contain the dots and not have a port number)").color(ChatColor.RED).create());
                     }
                 }
             } else {

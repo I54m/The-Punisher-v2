@@ -1,6 +1,6 @@
 package com.i54mpenguin.punisher.chats;
 
-import me.fiftyfour.punisher.bungee.PunisherPlugin;
+import com.i54mpenguin.punisher.PunisherPlugin;
 import com.i54mpenguin.punisher.utils.Permissions;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
@@ -32,7 +32,8 @@ public class AdminChat extends Command {
                 player.sendMessage(new ComponentBuilder("Send a message to all admin members").color(ChatColor.RED).append("\nUsage: /adminchat <message>").color(ChatColor.WHITE).create());
                 return;
             }
-            int staff = plugin.staff.get(player.getServer().getInfo()).size();
+            int staff = 0;
+//            plugin.staff.get(player.getServer().getInfo()).size();
             HoverEvent hover = new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(player.getServer().getInfo().getPlayers().size() + " players on this server!").color(ChatColor.RED)
                     .append("\n" + staff + " Staff on this server!").color(ChatColor.RED).create());
             StringBuilder sb = new StringBuilder();

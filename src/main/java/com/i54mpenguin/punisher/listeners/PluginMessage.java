@@ -1,14 +1,14 @@
 package com.i54mpenguin.punisher.listeners;
 
-import me.fiftyfour.punisher.bungee.PunisherPlugin;
+import com.i54mpenguin.punisher.PunisherPlugin;
 import com.i54mpenguin.punisher.chats.StaffChat;
+import com.i54mpenguin.punisher.exceptions.PunishmentCalculationException;
+import com.i54mpenguin.punisher.exceptions.PunishmentIssueException;
 import com.i54mpenguin.punisher.handlers.ErrorHandler;
 import com.i54mpenguin.punisher.managers.PunishmentManager;
 import com.i54mpenguin.punisher.managers.ReputationManager;
 import com.i54mpenguin.punisher.managers.WorkerManager;
 import com.i54mpenguin.punisher.objects.Punishment;
-import com.i54mpenguin.punisher.exceptions.PunishmentCalculationException;
-import com.i54mpenguin.punisher.exceptions.PunishmentIssueException;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.config.ServerInfo;
@@ -75,7 +75,7 @@ public class PluginMessage implements Listener {
                     case "punish": {
                         ProxiedPlayer punisher = (ProxiedPlayer) sender;
                         if (!allowGui){
-                            punisher.sendMessage(new ComponentBuilder(plugin.prefix).append("The Punisher Gui is currently not functioning correctly please inform an admin+ asap!!").color(ChatColor.RED).create());
+                            punisher.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("The Punisher Gui is currently not functioning correctly please inform an admin+ asap!!").color(ChatColor.RED).create());
                             return;
                         }
                         uuid = in.readUTF().replace("-", "");
@@ -117,7 +117,7 @@ public class PluginMessage implements Listener {
                                     allowGui = false;
                                 }
                             }));
-                            punisher.sendMessage(new ComponentBuilder(plugin.prefix).append("Punishing " + name + " for: " + message + "...").color(ChatColor.GREEN).create());
+                            punisher.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Punishing " + name + " for: " + message + "...").color(ChatColor.GREEN).create());
                         } catch (SQLException sqle) {
                             try {
                                 throw new PunishmentCalculationException("Automatic punishment was unable to issue due to an sql exception", "Initialize required feilds for punishment", sqle);
@@ -164,7 +164,7 @@ public class PluginMessage implements Listener {
                     player.getServer().sendData("punisher:minor", bytestream.toByteArray());
                 } else if (action.equals("log")) {
                     Level level = Level.parse(in.readUTF());
-                    PunisherPlugin.LOGS.log(level, in.readUTF());
+                    PunisherPlugin.getLOGS().log(level, in.readUTF());
                 }
             } catch (IOException ioe) {
                 ioe.printStackTrace();

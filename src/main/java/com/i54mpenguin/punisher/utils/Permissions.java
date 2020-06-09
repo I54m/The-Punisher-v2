@@ -1,18 +1,15 @@
 package com.i54mpenguin.punisher.utils;
 
-import com.i54mpenguin.punisher.bukkit.PunisherBukkit;
-import me.fiftyfour.punisher.bungee.PunisherPlugin;
+import com.i54mpenguin.punisher.PunisherPlugin;
 import com.i54mpenguin.punisher.chats.StaffChat;
-import com.i54mpenguin.punisher.handlers.ErrorHandler;
 import com.i54mpenguin.punisher.exceptions.DataFecthException;
-import me.fiftyfour.punisher.universal.util.UUIDFetcher;
+import com.i54mpenguin.punisher.handlers.ErrorHandler;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.cacheddata.CachedPermissionData;
 import net.luckperms.api.context.ContextManager;
 import net.luckperms.api.model.user.User;
 import net.luckperms.api.query.QueryOptions;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
-import org.bukkit.entity.Player;
 
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -25,18 +22,18 @@ public class Permissions {
     private static LuckPerms LUCKPERMS_API;
 
     public static void init(){
-        try {
-            Class.forName("org.bukkit.Bukkit");
-            //bukkit
-            LUCKPERMS_API = PunisherBukkit.getInstance().luckPermsHook.getApi();
-        } catch (ClassNotFoundException cnfe){
+//        try {
+//            Class.forName("org.bukkit.Bukkit");
+//            //bukkit
+//            LUCKPERMS_API = PunisherBukkit.getInstance().luckPermsHook.getApi();
+//        } catch (ClassNotFoundException cnfe){
             //bungeecord
-            LUCKPERMS_API = PunisherPlugin.getInstance().luckPermsHook.getApi();
-        }
+            LUCKPERMS_API = PunisherPlugin.getInstance().getLuckPermsHook().getApi();
+//        }
     }
 
     public static boolean higher(ProxiedPlayer player, String targetuuid) throws IllegalArgumentException {
-        User user = LUCKPERMS_API.getUserManager().getUser(me.fiftyfour.punisher.universal.util.UUIDFetcher.formatUUID(targetuuid));
+        User user = LUCKPERMS_API.getUserManager().getUser(UUIDFetcher.formatUUID(targetuuid));
         if (user == null) {
             UserFetcher userFetcher = new UserFetcher();
             UUID formattedUUID = UUIDFetcher.formatUUID(targetuuid);
@@ -73,32 +70,32 @@ public class Permissions {
         return playerlevel > targetlevel;
     }
 
-    public static boolean higher(Player player, User user) throws IllegalArgumentException {
-        if (user == null) throw new IllegalArgumentException("User cannot be null!!");
-        ContextManager cm = LUCKPERMS_API.getContextManager();
-        QueryOptions queryOptions = cm.getQueryOptions(user).orElse(cm.getStaticQueryOptions());
-        CachedPermissionData permissionData = user.getCachedData().getPermissionData(queryOptions);
-        int playerlevel = 0;
-        int targetlevel = 0;
-        for (int i = 0; i <= 3; i++){
-            if (player.hasPermission("punisher.punish.level." + i))
-                playerlevel = i;
-            if (permissionData.checkPermission("punisher.punish.level." + i).asBoolean())
-                targetlevel = i;
-        }
-        if (player.hasPermission("punisher.bypass") && playerlevel <= targetlevel)
-            return true;
-        return playerlevel > targetlevel;
-    }
-
-    public static int getPermissionLvl(Player player){
-        int playerlevel = 0;
-        for (int i = 0; i <= 3; i++) {
-            if (player.hasPermission("punisher.punish.level." + i))
-                playerlevel = i;
-        }
-        return playerlevel;
-    }
+//    public static boolean higher(Player player, User user) throws IllegalArgumentException {
+//        if (user == null) throw new IllegalArgumentException("User cannot be null!!");
+//        ContextManager cm = LUCKPERMS_API.getContextManager();
+//        QueryOptions queryOptions = cm.getQueryOptions(user).orElse(cm.getStaticQueryOptions());
+//        CachedPermissionData permissionData = user.getCachedData().getPermissionData(queryOptions);
+//        int playerlevel = 0;
+//        int targetlevel = 0;
+//        for (int i = 0; i <= 3; i++){
+//            if (player.hasPermission("punisher.punish.level." + i))
+//                playerlevel = i;
+//            if (permissionData.checkPermission("punisher.punish.level." + i).asBoolean())
+//                targetlevel = i;
+//        }
+//        if (player.hasPermission("punisher.bypass") && playerlevel <= targetlevel)
+//            return true;
+//        return playerlevel > targetlevel;
+//    }
+//
+//    public static int getPermissionLvl(Player player){
+//        int playerlevel = 0;
+//        for (int i = 0; i <= 3; i++) {
+//            if (player.hasPermission("punisher.punish.level." + i))
+//                playerlevel = i;
+//        }
+//        return playerlevel;
+//    }
 
     public static int getPermissionLvl(ProxiedPlayer player){
         int playerlevel = 0;

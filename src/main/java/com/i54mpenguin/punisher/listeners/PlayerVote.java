@@ -1,11 +1,11 @@
 package com.i54mpenguin.punisher.listeners;
 
-import com.vexsoftware.votifier.bungee.events.VotifierEvent;
-import me.fiftyfour.punisher.bungee.PunisherPlugin;
+import com.i54mpenguin.punisher.PunisherPlugin;
+import com.i54mpenguin.punisher.exceptions.DataFecthException;
 import com.i54mpenguin.punisher.handlers.ErrorHandler;
 import com.i54mpenguin.punisher.managers.ReputationManager;
-import com.i54mpenguin.punisher.exceptions.DataFecthException;
-import me.fiftyfour.punisher.universal.util.UUIDFetcher;
+import com.i54mpenguin.punisher.utils.UUIDFetcher;
+import com.vexsoftware.votifier.bungee.events.VotifierEvent;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.ComponentBuilder;
@@ -30,15 +30,15 @@ public class PlayerVote implements Listener {
         String username = vote.getUsername();
         ProxiedPlayer player = ProxyServer.getInstance().getPlayer(username);
         if (player != null){
-            ReputationManager.addRep(username, player.getUniqueId().toString().replace("-", ""), PunisherPlugin.config.getDouble("Voting.amountOfRepToAdd"));
-            player.sendMessage(new ComponentBuilder(plugin.prefix).append("Thanks for Voting, " + PunisherPlugin.config.getDouble("Voting.amountOfRepToAdd") + " Reputation added!").color(ChatColor.GREEN).create());
+            ReputationManager.addRep(username, player.getUniqueId().toString().replace("-", ""), plugin.getConfig().getDouble("Voting.amountOfRepToAdd"));
+            player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Thanks for Voting, " + plugin.getConfig().getDouble("Voting.amountOfRepToAdd") + " Reputation added!").color(ChatColor.GREEN).create());
         }else{
             UUIDFetcher uuidFetcher = new UUIDFetcher();
             uuidFetcher.fetch(username);
             ExecutorService executorService = Executors.newSingleThreadExecutor();
             Future<String> future = executorService.submit(uuidFetcher);
             try {
-                ReputationManager.addRep(username, future.get(1, TimeUnit.SECONDS), PunisherPlugin.config.getDouble("Voting.amountOfRepToAdd"));
+                ReputationManager.addRep(username, future.get(1, TimeUnit.SECONDS), plugin.getConfig().getDouble("Voting.amountOfRepToAdd"));
             } catch (Exception e) {
                 try {
                     throw new DataFecthException("UUID Required for next step", username, "UUID", PlayerVote.class.getName(), e);
