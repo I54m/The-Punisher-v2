@@ -17,9 +17,8 @@ public class NameFetcher {
         if (uuid.equalsIgnoreCase("console"))
             return "CONSOLE";
         uuid = uuid.replace("-", "");
-        if (NAMES.containsKey(uuid)) {
+        if (NAMES.containsKey(uuid))
             return NAMES.get(uuid);
-        }
         String output = callURL("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid);
         StringBuilder result = new StringBuilder();
         int i = 0;
