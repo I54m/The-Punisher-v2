@@ -44,7 +44,7 @@ class PunishmentTest {
     void setIssueDate() {
         Punishment punishment = new Punishment(0, Punishment.Type.ALL, Punishment.Reason.Custom, null, ((long) 4.73e+11 + System.currentTimeMillis()), "N/A", "N/A", "N/A", "N/A", Punishment.Status.Active, null);
         punishment.setIssueDate();
-        assertEquals(punishment.getIssueDate(), DateTimeFormatter.ofPattern("dd/MMM/yy HH:mm").format(LocalDateTime.now()));
+        assertEquals(DateTimeFormatter.ofPattern("dd/MMM/yy HH:mm").format(LocalDateTime.now()), punishment.getIssueDate());
     }
 
     @Test
