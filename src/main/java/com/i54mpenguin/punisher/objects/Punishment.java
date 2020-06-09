@@ -115,7 +115,7 @@ public class Punishment {
      * @param status The current status of the punishment eg: removed, issued, pending, etc.
      * @param removerUUID The UUID (with the dashes removed) of the person that removed the punishment, If the punishment has not yet been removed then this is null.
      */
-    public Punishment(@NotNull Integer id, @NotNull Type type, @NotNull Reason reason, @NotNull String issueDate, @Nullable Long expiration, @NotNull String targetUUID, @NotNull String targetName, @NotNull String punisherUUID, @Nullable String message, @NotNull Status status, @Nullable String removerUUID) {
+    public Punishment(@NotNull Integer id, @NotNull Type type, @NotNull Reason reason, @Nullable String issueDate, @Nullable Long expiration, @NotNull String targetUUID, @Nullable String targetName, @Nullable String punisherUUID, @Nullable String message, @NotNull Status status, @Nullable String removerUUID) {
         this.id = id;
         this.type = type;
         this.reason = reason;
@@ -290,7 +290,7 @@ public class Punishment {
      * @return true if the punishment has a message else false.
      */
     public boolean hasMessage() {
-        return !this.message.isEmpty();
+        return !(this.message == null || this.message.isEmpty());
     }
 
     /**
