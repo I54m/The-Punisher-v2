@@ -66,14 +66,14 @@ public class PunisherPlugin extends Plugin {
 
     /*
      * Config variables
-     *  TODO: 8/06/2020 add new files (gui.yml) and remove things that may be stored in a database (reputation, playerinfo, discordintegration, cooldowns, staffhide)
+     *  TODO: 8/06/2020 implement new gui configs
      */
+//    private File levelZeroGUIFile, levelOneGUIFile, levelTwoGUIFile, levelThreeGUIFile, confirmationGUIFile, historyGUIFile;
     private File configFile, punishmentsFile;
-    //private static File cooldownsFile, staffHideFile;
-//    public static File reputationFile, playerInfoFile, discordIntegrationFile;
     @Getter
-    private static Configuration punishmentsConfig, config;
-            //reputationConfig, staffHideConfig, playerInfoConfig, cooldownsConfig;
+    private Configuration punishments, config;
+//    @Getter
+//    private Configuration levelZeroGUI, levelOneGUI, levelTwoGUI, levelThreeGUI, confirmationGUI, historyGUI;
 
     /*
      * Logging system variables
@@ -83,9 +83,11 @@ public class PunisherPlugin extends Plugin {
     @Getter
     private static final Logger LOGS = Logger.getLogger("Punisher Logs");
 
+    /*
+     * Miscellaneous variables
+     */
     @Getter // TODO: 8/06/2020 only send prefix in messages that will show in chat
     private String prefix = ChatColor.GRAY + "[" + ChatColor.RED + "Punisher" + ChatColor.GRAY + "] " + ChatColor.RESET;
-
     @Getter
     private LuckPermsHook luckPermsHook;
     @Getter
@@ -217,6 +219,7 @@ public class PunisherPlugin extends Plugin {
                 isUpdate = false;
             }
 
+            // TODO: 9/06/2020 implement rep on vote and discord bot
 //            //check if rep on vote should be enabled
 //            if ((getProxy().getPluginManager().getPlugin("NuVotifier") != null || getProxy().getPluginManager().getPlugin("Votifier") != null) && config.getBoolean("Voting.addRepOnVote")) {
 //                getLogger().info(prefix + ChatColor.GREEN + "Enabled Rep on Vote feature!");
@@ -353,14 +356,10 @@ public class PunisherPlugin extends Plugin {
      * This method loads all the config files and creates them if they don't exist.
      * @throws Exception If the config files could not be loaded.
      */
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     public void loadConfigs() throws Exception {
         punishmentsFile = new File(getDataFolder(), "punishments.yml");
         configFile = new File(getDataFolder(), "config.yml");
-//        staffHideFile = new File(getDataFolder(), "/data/staffhide.yml");
-//        reputationFile = new File(getDataFolder(), "/data/reputation.yml");
-//        cooldownsFile = new File(getDataFolder(), "/data/cooldowns.yml");
-//        playerInfoFile = new File(getDataFolder(), "/data/playerinfo.yml");
-//        discordIntegrationFile = new File(getDataFolder(), "/data/discordintegration.yml");
         File logsDir = new File(getDataFolder() + "/logs/");
         File playerDataDir = new File(getDataFolder() + "/playerdata/");
         if (!getDataFolder().exists())
@@ -369,8 +368,7 @@ public class PunisherPlugin extends Plugin {
             logsDir.mkdir();
         if (!playerDataDir.exists())
             playerDataDir.mkdir();
-
-
+        //todo start player data manager here
         logsHandler = new FileHandler(getDataFolder() + "/logs/latest.log");
         logsHandler.setFormatter(new Formatter() {
             @Override
@@ -404,42 +402,20 @@ public class PunisherPlugin extends Plugin {
             configFile.createNewFile();
             saveDefaultConfig();
         }
-//        if (!cooldownsFile.exists())
-//            cooldownsFile.createNewFile();
-//        if (!reputationFile.exists())
-//            reputationFile.createNewFile();
-//        if (!playerInfoFile.exists())
-//            playerInfoFile.createNewFile();
-//        if (!discordIntegrationFile.exists())
-//            discordIntegrationFile.createNewFile();
-//        if (!staffHideFile.exists())
-//            staffHideFile.createNewFile();
         try {
-            punishmentsConfig = ConfigurationProvider.getProvider(YamlConfiguration.class).load(punishmentsFile);
+            punishments = ConfigurationProvider.getProvider(YamlConfiguration.class).load(punishmentsFile);
         } catch (YAMLException YAMLE) {
-            getLogger().severe(prefix + ChatColor.RED + "Error: Could not load punishments config!");
-            getLogger().severe(prefix + ChatColor.RED + "Error message: " + YAMLE.getMessage());
+            getLogger().severe(ChatColor.RED + "Error: Could not load punishments config!");
+            getLogger().severe(ChatColor.RED + "Error message: " + YAMLE.getMessage());
             throw new Exception("Could not load punishments config!", YAMLE);
         }
         try {
             config = ConfigurationProvider.getProvider(YamlConfiguration.class).load(configFile);
         } catch (YAMLException YAMLE) {
-            getLogger().severe(prefix + ChatColor.RED + "Error: Could not load main config!");
-            getLogger().severe(prefix + ChatColor.RED + "Error message: " + YAMLE.getMessage());
+            getLogger().severe(ChatColor.RED + "Error: Could not load main config!");
+            getLogger().severe(ChatColor.RED + "Error message: " + YAMLE.getMessage());
             throw new Exception("Could not load main config!", YAMLE);
         }
-//        try {
-//            cooldownsConfig = ConfigurationProvider.getProvider(YamlConfiguration.class).load(cooldownsFile);
-//            playerInfoConfig = ConfigurationProvider.getProvider(YamlConfiguration.class).load(playerInfoFile);
-//            staffHideConfig = ConfigurationProvider.getProvider(YamlConfiguration.class).load(staffHideFile);
-//            reputationConfig = ConfigurationProvider.getProvider(YamlConfiguration.class).load(reputationFile);
-//        } catch (YAMLException YAMLE) {
-//            getLogger().severe(prefix + ChatColor.RED + "Error: Could not load data config files!");
-//            getLogger().severe(prefix + ChatColor.RED + "These configs are not meant to be altered!");
-//            getLogger().severe(prefix + ChatColor.RED + "If you have not altered them this may be a bug!");
-//            getLogger().severe(prefix + ChatColor.RED + "Error message: " + YAMLE.getMessage());
-//            throw new Exception("Could not load data config files!", YAMLE);
-//        }
     }
 
     /**
@@ -447,44 +423,22 @@ public class PunisherPlugin extends Plugin {
      */
     public void saveConfig() {
         try {
-            ConfigurationProvider.getProvider(YamlConfiguration.class).save(punishmentsConfig, punishmentsFile);
             ConfigurationProvider.getProvider(YamlConfiguration.class).save(config, configFile);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-//    public static void saveRep() {
-//        try {
-//            ConfigurationProvider.getProvider(YamlConfiguration.class).save(reputationConfig, reputationFile);
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//    }
-//
-//    public static void saveInfo() {
-//        try {
-//            ConfigurationProvider.getProvider(YamlConfiguration.class).save(playerInfoConfig, playerInfoFile);
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//    }
-//
-//    public static void saveCooldowns() {
-//        try {
-//            ConfigurationProvider.getProvider(YamlConfiguration.class).save(cooldownsConfig, cooldownsFile);
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//    }
-//
-//    public static void saveStaffHide() {
-//        try {
-//            ConfigurationProvider.getProvider(YamlConfiguration.class).save(staffHideConfig, staffHideFile);
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//    }
+    /**
+     * This method saves the punishments config file.
+     */
+    public void savePunishments() {
+        try {
+            ConfigurationProvider.getProvider(YamlConfiguration.class).save(punishments, punishmentsFile);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     /**
      * This method saves the default punishments to the punishments config file when it is first created.
