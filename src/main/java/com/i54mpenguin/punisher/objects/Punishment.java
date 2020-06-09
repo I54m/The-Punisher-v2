@@ -158,6 +158,7 @@ public class Punishment {
      * @return true if the punishment is 10 or more years long, false if it is less than 10 years.
      */
     public boolean isPermanent() {
+        if (getStatus() != Status.Active) return false;
         long millis;
         millis = expiration - System.currentTimeMillis();
         int yearsleft = (int) (millis / 3.154e+10);
@@ -322,7 +323,9 @@ public class Punishment {
     /**
      * This will set the issue dat of the punishment to the current date & time in the local timezone.
      * This can only be set once and will throw an error and make no change if you try to set it again.
-     * See {@link #alert()} for more info on what happens when you set it twice.
+     * When you set it twice this method will throw a {@link PunishmentIssueException} telling you that
+     * you cannot set the issue date more than once. To make sure that things still run smoothly it will
+     * return the current issue date and not interrupt anything.
      * @return The punishment itself with the updated issue date so that it can continue to be used.
      */
     public Punishment setIssueDate() {
@@ -330,11 +333,6 @@ public class Punishment {
         return this;
     }
 
-    /**
-     * This method will throw a {@link PunishmentIssueException} telling you that you cannot set the issue date more than once.
-     * To make sure that things still run smoothly it will return the current issue date and not interrupt anything.
-     * @return the currently set issue date.
-     */
     private String alert() {
         try {
             throw new PunishmentIssueException("Issue Date cannot be set more than once!", this);
@@ -357,6 +355,7 @@ public class Punishment {
     /**
      * @param expiration The {@link System#currentTimeMillis()} plus the amount of time in milliseconds that the punishment should be.
      * @return The punishment itself with the updated info so that it can continue to be used.
+     * @see System#currentTimeMillis()
      */
     public Punishment setExpiration(long expiration) {
         this.expiration = expiration;
@@ -391,21 +390,23 @@ public class Punishment {
     }
 
     /**
-     * @return The formatted date that the punishment was issued by the punisher.
+     * @return The formatted date that the punishment was issued by the punisher returns "N/A" if not set.
      */
-    public String getIssueDate() {
-        return issueDate == null ? "N/A" : issueDate;
-    }
+    public String getIssueDate() {return issueDate == null ? "N/A" : issueDate;}
 
     /**
      * @return A hover event that can be used in a {@link ComponentBuilder} for the bungeecord chat api.
+     * @see ComponentBuilder
+     * @see net.md_5.bungee.api.chat.BaseComponent
+     * @see net.md_5.bungee.api.chat.TextComponent
      */
-    public HoverEvent getHoverEvent() {
-        return new HoverEvent(HoverEvent.Action.SHOW_TEXT, getHoverText().create());
-    }
+    public HoverEvent getHoverEvent() {return new HoverEvent(HoverEvent.Action.SHOW_TEXT, getHoverText().create());}
 
     /**
      * @return Information about the punishment formatted nicely that can be used in {@link #getHoverEvent()}.
+     * @see ComponentBuilder
+     * @see net.md_5.bungee.api.chat.BaseComponent
+     * @see net.md_5.bungee.api.chat.TextComponent
      */
     public ComponentBuilder getHoverText() {
         PunishmentManager punishmentManager = PunishmentManager.getINSTANCE();
