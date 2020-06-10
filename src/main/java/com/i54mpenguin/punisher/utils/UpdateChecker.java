@@ -1,7 +1,6 @@
 package com.i54mpenguin.punisher.utils;
 
 import com.google.gson.Gson;
-import com.i54mpenguin.punisher.PunisherPlugin;
 import lombok.Getter;
 
 import java.io.BufferedReader;
@@ -15,14 +14,11 @@ public class UpdateChecker {
 
     private static final Update UPDATE = callURL();
 
-    public static boolean check() throws Exception{
+    public static boolean check(final String currentVersion) {
         if (getCurrentVersion() == null)
             return false;
-//        try {
-//            Class.forName("net.md_5.bungee.BungeeCord");
-            final PunisherPlugin plugin = PunisherPlugin.getInstance();
-            if (!getCurrentVersion().equals(plugin.getDescription().getVersion())) {
-                String[] thisParts = plugin.getDescription().getVersion().split("\\.");
+            if (!getCurrentVersion().equals(currentVersion)) {
+                String[] thisParts = currentVersion.split("\\.");
                 String[] thatParts = getCurrentVersion().split("\\.");
                 int length = Math.max(thisParts.length, thatParts.length);
                 for (int i = 0; i < length; i++) {
@@ -32,40 +28,21 @@ public class UpdateChecker {
                             Integer.parseInt(thatParts[i]) : 0;
                     if (thisPart < thatPart)
                         return true;
-                    if (thisPart > thatPart) {
-                        throw new Exception("Your version number is newer than the version on the website, either you have a dev version or the website api has not been updated!");
-                    }
+                    if (thisPart > thatPart)
+                        return false;
                 }
             }
             return false;
-//        } catch (ClassNotFoundException CNFE){
-//            PunisherBukkit plugin = PunisherBukkit.getInstance();
-//            if (!getCurrentVersion().equals(plugin.getDescription().getVersion())) {
-//                String[] thisParts = plugin.getDescription().getVersion().split("\\.");
-//                String[] thatParts = getCurrentVersion().split("\\.");
-//                int length = Math.max(thisParts.length, thatParts.length);
-//                for (int i = 0; i < length; i++) {
-//                    int thisPart = i < thisParts.length ?
-//                            Integer.parseInt(thisParts[i]) : 0;
-//                    int thatPart = i < thatParts.length ?
-//                            Integer.parseInt(thatParts[i]) : 0;
-//                    if (thisPart < thatPart)
-//                        return true;
-//                    if (thisPart > thatPart) {
-//                        throw new Exception("Your version number is newer than the version on the website, either you have a dev version or the website api has not been updated!");
-//                    }
-//                }
-//                return false;
-//            }else return false;
-//        }
     }
 
     public static String getCurrentVersion(){
+        assert UPDATE != null;
         if (UPDATE.getCurrentVersionNumber().equals("null")) return null;
         return UPDATE.getCurrentVersionNumber();
     }
 
     public static String getRealeaseDate(){
+        assert UPDATE != null;
         if (UPDATE.getLastUpdate().equals("null")) return null;
         return UPDATE.getLastUpdate();
     }
@@ -73,25 +50,22 @@ public class UpdateChecker {
     protected static Update callURL() {
         StringBuilder sb = new StringBuilder();
         URLConnection urlConn;
-        InputStreamReader in = null;
         try {
             urlConn = new URL("https://api.54mpenguin.com/the-punisher/version/").openConnection();
             urlConn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.95 Safari/537.11");
-            urlConn.connect();
-            urlConn.setReadTimeout(6000);
+            urlConn.setReadTimeout(5000);
             if (urlConn.getInputStream() != null) {
-                in = new InputStreamReader(urlConn.getInputStream(), Charset.defaultCharset());
+                InputStreamReader in = new InputStreamReader(urlConn.getInputStream(), Charset.defaultCharset());
                 BufferedReader bufferedReader = new BufferedReader(in);
-                if (bufferedReader != null) {
+                if (bufferedReader.ready()) {
                     int cp;
                     while ((cp = bufferedReader.read()) != -1) {
                         sb.append((char) cp);
                     }
                     bufferedReader.close();
                 }
-            }
-            if (in != null)
                 in.close();
+            }
         } catch (IOException ioe) {
             ioe.printStackTrace();
             return null;

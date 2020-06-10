@@ -55,24 +55,20 @@ public class UUIDFetcher implements Callable<String> {
         if (UUID_CACHE.containsKey(name.toLowerCase()))
             return UUID_CACHE.get(name.toLowerCase());
         StringBuilder sb = new StringBuilder();
-        URLConnection urlConn;
-        InputStreamReader in = null;
-        URL url = new URL("https://api.mojang.com/users/profiles/minecraft/" + this.name);
-        urlConn = url.openConnection();
-        if (urlConn != null) urlConn.setReadTimeout(5000);
-        if (urlConn != null && urlConn.getInputStream() != null) {
-            in = new InputStreamReader(urlConn.getInputStream(), Charset.defaultCharset());
+        URLConnection urlConn = new URL("https://api.mojang.com/users/profiles/minecraft/" + this.name).openConnection();
+        urlConn.setReadTimeout(5000);
+        if (urlConn.getInputStream() != null) {
+            InputStreamReader in = new InputStreamReader(urlConn.getInputStream(), Charset.defaultCharset());
             BufferedReader bufferedReader = new BufferedReader(in);
-            if (bufferedReader != null) {
+            if (bufferedReader.ready()) {
                 int cp;
                 while ((cp = bufferedReader.read()) != -1) {
                     sb.append((char) cp);
                 }
                 bufferedReader.close();
             }
-        }
-        if (in != null)
             in.close();
+        }
         if (sb.toString().isEmpty() || sb.toString().length() < 7) return null;
         Gson g = new Gson();
         Profile profile;

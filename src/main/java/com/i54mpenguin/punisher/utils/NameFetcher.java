@@ -33,25 +33,21 @@ public class NameFetcher {
 
     protected static String callURL(String URL) {
         StringBuilder sb = new StringBuilder();
-        URLConnection urlConn;
-        InputStreamReader in = null;
         try {
-            URL url = new URL(URL);
-            urlConn = url.openConnection();
-            if (urlConn != null) urlConn.setReadTimeout(6000);
-            if (urlConn != null && urlConn.getInputStream() != null) {
-                in = new InputStreamReader(urlConn.getInputStream(), Charset.defaultCharset());
+            URLConnection urlConn = new URL(URL).openConnection();
+            urlConn.setReadTimeout(6000);
+            if (urlConn.getInputStream() != null) {
+                InputStreamReader in = new InputStreamReader(urlConn.getInputStream(), Charset.defaultCharset());
                 BufferedReader bufferedReader = new BufferedReader(in);
-                if (bufferedReader != null) {
+                if (bufferedReader.ready()) {
                     int cp;
                     while ((cp = bufferedReader.read()) != -1) {
                         sb.append((char) cp);
                     }
                     bufferedReader.close();
                 }
-            }
-            if (in != null)
                 in.close();
+            }
         } catch (IOException e) {
             //ignore error
         } catch (Exception e) {
