@@ -1,6 +1,8 @@
 package com.i54mpenguin.punisher.utils;
 
 
+import com.google.gson.Gson;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -20,34 +22,15 @@ public class NameFetcher {
         if (NAMES.containsKey(uuid))
             return NAMES.get(uuid);
         String output = callURL("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid);
-        StringBuilder result = new StringBuilder();
-        int i = 0;
-        while (i < 200) {
-            if (output.length() == 0)
-                return NAMES.getOrDefault(uuid, null);
-            if ((String.valueOf(output.charAt(i)).equalsIgnoreCase("n"))
-                    && (String.valueOf(output.charAt(i + 1)).equalsIgnoreCase("a"))
-                    && (String.valueOf(output.charAt(i + 2)).equalsIgnoreCase("m"))
-                    && (String.valueOf(output.charAt(i + 3)).equalsIgnoreCase("e"))) {
-                int k = i + 7;
-                while (k < 100) {
-                    if (!String.valueOf(output.charAt(k)).equalsIgnoreCase("\"")) {
-                        result.append(output.charAt(k));
-                    } else {
-                        break;
-                    }
-                    k++;
-                }
-                break;
-            }
-            i++;
-        }
-        new UUIDFetcher().storeUUID(uuid, result.toString());
-        NAMES.put(uuid, result.toString());
-        return result.toString();
+        Gson g = new Gson();
+        Profile profile;
+        profile = g.fromJson(output.substring(0, output.indexOf(",\n  \"properties\""))+ "}", Profile.class);
+        new UUIDFetcher().storeUUID(uuid, profile.getName());
+        NAMES.put(uuid, profile.getName());
+        return profile.getName();
     }
 
-    private static String callURL(String URL) {
+    protected static String callURL(String URL) {
         StringBuilder sb = new StringBuilder();
         URLConnection urlConn;
         InputStreamReader in = null;
@@ -92,4 +75,23 @@ public class NameFetcher {
     public static boolean hasNameStored(String uuid) {
         return NAMES.containsKey(uuid);
     }
+
+    protected static class Profile {
+        private final String name, id;
+
+        public Profile(String name, String id) {
+            this.name = name;
+            this.id = id;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getUuid() {
+            return id;
+        }
+    }
+
+
 }
