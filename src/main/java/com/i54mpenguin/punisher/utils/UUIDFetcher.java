@@ -51,10 +51,8 @@ public class UUIDFetcher implements Callable<String> {
     public String call() throws Exception {
         if (name.equalsIgnoreCase("console"))
             return "CONSOLE";
-        if (UUID_CACHE.containsKey(name.toLowerCase())) {
-            System.out.println("fetching UUID from cache....");// TODO: 19/02/2020 remove once tested
+        if (UUID_CACHE.containsKey(name.toLowerCase()))
             return UUID_CACHE.get(name.toLowerCase());
-        }
         StringBuilder sb = new StringBuilder();
         URLConnection urlConn;
         InputStreamReader in = null;
