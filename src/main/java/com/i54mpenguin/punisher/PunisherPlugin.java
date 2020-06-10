@@ -195,7 +195,7 @@ public class PunisherPlugin extends Plugin {
                     if (UpdateChecker.getCurrentVersion() == null) {
                         getLogger().info(prefix + ChatColor.GREEN + "Could not check for update!");
                         isUpdate = false;
-                    } else if (UpdateChecker.check()) {
+                    } else if (UpdateChecker.check("${project.version}")) {
                         getLogger().warning(prefix + ChatColor.RED + "Update checker found an update, current version: " + this.getDescription().getVersion() + " latest version: " + UpdateChecker.getCurrentVersion());
                         getLogger().warning(prefix + ChatColor.RED + "This update was released on: " + UpdateChecker.getRealeaseDate());
                         getLogger().warning(prefix + ChatColor.RED + "This may fix some bugs and enhance features.");
