@@ -2,6 +2,7 @@ package com.i54mpenguin.punisher.utils;
 
 
 import com.google.gson.Gson;
+import lombok.Getter;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -77,19 +78,12 @@ public class NameFetcher {
     }
 
     protected static class Profile {
+        @Getter
         private final String name, id;
 
         public Profile(String name, String id) {
             this.name = name;
             this.id = id;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public String getUuid() {
-            return id;
         }
     }
 

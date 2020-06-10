@@ -1,6 +1,7 @@
 package com.i54mpenguin.punisher.utils;
 
 import com.google.gson.Gson;
+import lombok.Getter;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -77,9 +78,9 @@ public class UUIDFetcher implements Callable<String> {
         Profile profile;
         profile = g.fromJson(sb.toString(), Profile.class);
 
-        NameFetcher.storeName(profile.getUuid(), profile.getName());
-        UUID_CACHE.put(name.toLowerCase(), profile.getUuid());
-        return profile.getUuid();
+        NameFetcher.storeName(profile.getId(), profile.getName());
+        UUID_CACHE.put(name.toLowerCase(), profile.getId());
+        return profile.getId();
     }
 
     public void storeUUID(String uuid, String name) {
@@ -88,19 +89,12 @@ public class UUIDFetcher implements Callable<String> {
     }
 
     private static class Profile {
+        @Getter
         private final String name, id;
 
         public Profile(String name, String id) {
             this.name = name;
             this.id = id;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public String getUuid() {
-            return id;
         }
     }
 }
