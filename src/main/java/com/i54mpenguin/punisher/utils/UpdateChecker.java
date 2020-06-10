@@ -1,6 +1,8 @@
 package com.i54mpenguin.punisher.utils;
 
+import com.google.gson.Gson;
 import com.i54mpenguin.punisher.PunisherPlugin;
+import lombok.Getter;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -11,16 +13,7 @@ import java.nio.charset.Charset;
 
 public class UpdateChecker {
 
-    private static final String versionString = callURL();
-
-    public static String getCurrentVersion(){
-        StringBuilder result = new StringBuilder();
-        readData(result, "current-version-number");
-        if (result.toString().equals("null")){
-            return null;
-        }else
-        return result.toString();
-    }
+    private static final Update UPDATE = callURL();
 
     public static boolean check() throws Exception{
         if (getCurrentVersion() == null)
@@ -67,37 +60,17 @@ public class UpdateChecker {
 //        }
     }
 
+    public static String getCurrentVersion(){
+        if (UPDATE.getCurrentVersionNumber().equals("null")) return null;
+        return UPDATE.getCurrentVersionNumber();
+    }
+
     public static String getRealeaseDate(){
-        StringBuilder result = new StringBuilder();
-        readData(result, "last-update");
-        if (result.toString().equals("null")){
-            return null;
-        }else
-        return result.toString();
+        if (UPDATE.getLastUpdate().equals("null")) return null;
+        return UPDATE.getLastUpdate();
     }
 
-    private static void readData(StringBuilder result, String lookingFor) {
-        String lookFor = lookingFor + ":\"";
-        if (UpdateChecker.versionString == null) {
-            result.append("null");
-            return;
-        }
-        int i = UpdateChecker.versionString.indexOf(lookFor) + lookFor.length();
-        while (i < 200) {
-            if (UpdateChecker.versionString.length() == 0) {
-                result.append("null");
-                break;
-            }
-            if (!String.valueOf(UpdateChecker.versionString.charAt(i)).equalsIgnoreCase("\"")) {
-                result.append(String.valueOf(UpdateChecker.versionString.charAt(i)));
-            } else {
-                break;
-            }
-            i++;
-        }
-    }
-
-    private static String callURL() {
+    protected static Update callURL() {
         StringBuilder sb = new StringBuilder();
         URLConnection urlConn;
         InputStreamReader in = null;
@@ -105,7 +78,7 @@ public class UpdateChecker {
             urlConn = new URL("https://api.54mpenguin.com/the-punisher/version/").openConnection();
             urlConn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.95 Safari/537.11");
             urlConn.connect();
-            urlConn.setReadTimeout(60 * 1000);
+            urlConn.setReadTimeout(6000);
             if (urlConn.getInputStream() != null) {
                 in = new InputStreamReader(urlConn.getInputStream(), Charset.defaultCharset());
                 BufferedReader bufferedReader = new BufferedReader(in);
@@ -125,6 +98,21 @@ public class UpdateChecker {
         }catch(Exception e) {
             e.printStackTrace();
         }
-        return sb.toString();
+        if (!sb.toString().isEmpty()) {
+            Gson g = new Gson();
+            Update update;
+            update = g.fromJson(sb.toString(), Update.class);
+            return update;
+        }else return new Update("null", "null");
+    }
+
+    protected static class Update {
+        @Getter
+        private final String currentVersionNumber, lastUpdate;
+
+        public Update(String currentVersionNumber, String lastUpdate) {
+            this.currentVersionNumber = currentVersionNumber;
+            this.lastUpdate = lastUpdate;
+        }
     }
 }
