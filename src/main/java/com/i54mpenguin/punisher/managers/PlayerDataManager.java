@@ -1,43 +1,189 @@
 package com.i54mpenguin.punisher.managers;
 
 import com.i54mpenguin.punisher.PunisherPlugin;
+import com.i54mpenguin.punisher.exceptions.ManagerNotStartedException;
+import com.i54mpenguin.punisher.handlers.ErrorHandler;
+import lombok.AccessLevel;
 import lombok.Getter;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
+import net.md_5.bungee.api.event.PlayerDisconnectEvent;
+import net.md_5.bungee.api.event.PreLoginEvent;
+import net.md_5.bungee.api.event.ServerConnectEvent;
+import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.config.Configuration;
 import net.md_5.bungee.config.ConfigurationProvider;
 import net.md_5.bungee.config.YamlConfiguration;
+import net.md_5.bungee.event.EventHandler;
+import net.md_5.bungee.event.EventPriority;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 /**
- * The PlayerDataManager handles all player data requests and data fetching
+ * The PlayerDataManager handles all player data files and caches the required ones
  */
-public class PlayerDataManager {
+@SuppressWarnings("ResultOfMethodCallIgnored")
+public class PlayerDataManager implements Listener {
 
     /**
      * Private manager instance with a getter method.
      */
     @Getter
     private static final PlayerDataManager INSTANCE = new PlayerDataManager();
-
     /**
      * Main plugin instance.
      */
     private final PunisherPlugin plugin = PunisherPlugin.getInstance();
-
     /**
      * Cache to keep all loaded player data configuration files.
      */
     private final Map<UUID, Configuration> playerDataCache = new HashMap<>();
+    /**
+     * The Main Data File to store joinids -> uuid conversion and other things needed globally.
+     */
+    private final File mainDataFile = new File(plugin.getDataFolder() + "/playerdata/", "MainData.yml");
+    /**
+     * Whether the manager is started or not,
+     * true if the manager should be locked and no operations allowed, else false.
+     */
+    private boolean locked = true;
+    /**
+     * The join id of the last person that joined the server for the first time.
+     */
+    private int lastJoinId = 0;
+    /**
+     * The Main Data Config to store joinids -> uuid conversion and other things needed globally.
+     */
+    @Getter(AccessLevel.PUBLIC)
+    private Configuration mainDataConfig;
 
     /**
      * Private manager constructor
      */
-    private PlayerDataManager() {}
+    private PlayerDataManager() {
+    }
+
+    /**
+     * Whether the manager is started or not.
+     *
+     * @return true if the manager should be locked and no operations allowed, else false.
+     */
+    public boolean isStarted() {
+        return !locked;
+    }
+
+    /**
+     * Used to start the PlayerDataManager and register it's listeners.
+     */
+    public void start() {
+        try {
+            if (!locked)
+                throw new Exception("Player Data Manager Already Started!");
+        } catch (Exception e) {
+            // TODO: 11/06/2020 need to handle this error
+            e.printStackTrace();
+            return;
+        }
+        try {
+            boolean newFile = false;
+            if (!mainDataFile.exists()) {
+                mainDataFile.createNewFile();
+                newFile = true;
+            }
+            mainDataConfig = ConfigurationProvider.getProvider(YamlConfiguration.class).load(mainDataFile);
+            if (newFile) mainDataConfig.set("lastJoinID", 0);
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
+        plugin.getProxy().getPluginManager().registerListener(plugin, this);
+        locked = false;
+    }
+
+    /**
+     * Used to stop the PlayerDataManager and register it's listeners.
+     */
+    public void stop() {
+        try {
+            if (locked)
+                throw new Exception("Player Data Manager Already Stopped!");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return;
+        }
+        saveMainDataConfig();
+        plugin.getProxy().getPluginManager().unregisterListener(this);
+        locked = true;
+    }
+
+    /**
+     * Used to save the main data config to file.
+     */
+    private void saveMainDataConfig() {
+        try {
+            ConfigurationProvider.getProvider(YamlConfiguration.class).save(mainDataConfig, mainDataFile);
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
+    }
+
+    /**
+     * This is the event listener to load playerdata when a player joins, it uses {@link WorkerManager}
+     * to run it on a separate thread so that the player's login isn't slowed down.
+     *
+     * @param e the LoginEvent.
+     * @see WorkerManager
+     * @see com.i54mpenguin.punisher.managers.WorkerManager.Worker
+     */
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onPlayerLogin(final PreLoginEvent e) {
+        WorkerManager.getINSTANCE().runWorker(new WorkerManager.Worker(() -> loadPlayerData(e.getConnection().getUniqueId())));
+    }
+
+    /**
+     * This is the event listener to set last login details, it uses {@link WorkerManager}
+     * to run it on a separate thread so that the player's login isn't slowed down.
+     *
+     * @param e the ServerConnectEvent
+     * @see WorkerManager
+     * @see com.i54mpenguin.punisher.managers.WorkerManager.Worker
+     */
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onServerConnect(final ServerConnectEvent e){
+        WorkerManager.getINSTANCE().runWorker(new WorkerManager.Worker(() -> {
+            ProxiedPlayer player = e.getPlayer();
+            Configuration playerData = getPlayerData(player);
+            if (e.getReason().equals(ServerConnectEvent.Reason.JOIN_PROXY)) {
+                playerData.set("lastLogin", System.currentTimeMillis());
+                if (e.getTarget() != null)
+                    playerData.set("lastServer", e.getTarget().getName());
+                savePlayerData(player.getUniqueId());
+            } else if (e.getTarget() != null) {
+                playerData.set("lastServer", e.getTarget().getName());
+                savePlayerData(player.getUniqueId());
+            }
+        }));
+    }
+
+    /**
+     * This is the event listener to remove playerdata from the cache when they leave and set the last logout details,
+     * it uses {@link WorkerManager} to run it on a separate thread so that the player's disconnect isn't slowed down.
+     *
+     * @param e the DisconnectEvent.
+     * @see WorkerManager
+     * @see com.i54mpenguin.punisher.managers.WorkerManager.Worker
+     */
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onPlayerLogout(final PlayerDisconnectEvent e) {
+        WorkerManager.getINSTANCE().runWorker(new WorkerManager.Worker(() -> {
+            UUID uuid = e.getPlayer().getUniqueId();
+            getPlayerData(uuid).set("lastLogout", System.currentTimeMillis());
+            savePlayerData(uuid);
+            playerDataCache.remove(uuid);
+        }));
+    }
 
     /**
      * Fetch the player's data configuration file.
@@ -46,6 +192,13 @@ public class PlayerDataManager {
      * @return a configuration file of the stored data
      */
     public Configuration getPlayerData(ProxiedPlayer player) {
+        try {
+            if (locked)
+                throw new ManagerNotStartedException(this.getClass());
+        } catch (ManagerNotStartedException mnse) {
+            ErrorHandler.getINSTANCE().log(mnse);
+            return null;
+        }
         return getPlayerData(player.getUniqueId());
     }
 
@@ -57,6 +210,13 @@ public class PlayerDataManager {
      * @return a configuration file of the stored data
      */
     public Configuration getPlayerData(UUID uuid) {
+        try {
+            if (locked)
+                throw new ManagerNotStartedException(this.getClass());
+        } catch (ManagerNotStartedException mnse) {
+            ErrorHandler.getINSTANCE().log(mnse);
+            return null;
+        }
         if (isPlayerDataLoaded(uuid))
             return playerDataCache.get(uuid);
         else
@@ -65,17 +225,30 @@ public class PlayerDataManager {
 
     /**
      * Load player's data configuration file from their uuid into the cache.
-     * Use {@link #getPlayerData(UUID)} to get a player's data as this does not check the cache.
+     * Use {@link #getPlayerData(UUID)} to get a player's data.
      *
      * @param uuid the uuid of the player to load the data for
      * @return a configuration file of the stored data
      */
     public Configuration loadPlayerData(UUID uuid) {
         try {
+            if (locked)
+                throw new ManagerNotStartedException(this.getClass());
+        } catch (ManagerNotStartedException mnse) {
+            ErrorHandler.getINSTANCE().log(mnse);
+            return null;
+        }
+        try {
+            boolean newPlayer = false;
+            if (isPlayerDataLoaded(uuid)) return getPlayerData(uuid);
             File dataFile = new File(plugin.getDataFolder() + "/playerdata/", uuid.toString() + ".yml");
-            if (!dataFile.exists())
+            if (!dataFile.exists()) {
                 dataFile.createNewFile();
+                newPlayer = true;
+            }
             Configuration playerConfig = ConfigurationProvider.getProvider(YamlConfiguration.class).load(dataFile);
+            if (newPlayer)
+                saveDefaultData(playerConfig, dataFile, uuid);
             playerDataCache.put(uuid, playerConfig);
             return playerConfig;
         } catch (IOException ioe) {
@@ -84,12 +257,35 @@ public class PlayerDataManager {
         }
     }
 
+    private void saveDefaultData(Configuration config, File dataFile, UUID uuid) throws IOException {
+        config.set("Reputation", 5.0);
+        Date date = new Date();
+        date.setTime(System.currentTimeMillis());
+        DateFormat df = new SimpleDateFormat("dd MMM yyyy, hh:mm (Z)");
+        df.setTimeZone(TimeZone.getDefault());
+        config.set("firstJoin", df.format(date));
+        config.set("joinId", (lastJoinId + 1));
+        config.set("lastLogin", System.currentTimeMillis());
+        mainDataConfig.set("lastJoinID", (lastJoinId + 1));
+        mainDataConfig.set(String.valueOf((lastJoinId + 1)), uuid.toString());
+        saveMainDataConfig();
+        lastJoinId++;
+        ConfigurationProvider.getProvider(YamlConfiguration.class).save(config, dataFile);
+    }
+
     /**
      * Save player's data configuration file
      *
      * @param uuid uuid of the player to get the data file of
      */
     public void savePlayerData(UUID uuid) {
+        try {
+            if (locked)
+                throw new ManagerNotStartedException(this.getClass());
+        } catch (ManagerNotStartedException mnse) {
+            ErrorHandler.getINSTANCE().log(mnse);
+            return;
+        }
         try {
             if (!isPlayerDataLoaded(uuid)) return;
             File dataFile = new File(plugin.getDataFolder() + "/playerdata/", uuid.toString() + ".yml");
@@ -108,6 +304,13 @@ public class PlayerDataManager {
      * @return true if the player's data config is loaded in the cache, false if the player's data config is not loaded in the cache
      */
     public boolean isPlayerDataLoaded(UUID uuid) {
+        try {
+            if (locked)
+                throw new ManagerNotStartedException(this.getClass());
+        } catch (ManagerNotStartedException mnse) {
+            ErrorHandler.getINSTANCE().log(mnse);
+            return false;
+        }
         return playerDataCache.containsKey(uuid);
     }
 }
