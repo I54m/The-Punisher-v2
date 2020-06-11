@@ -72,6 +72,13 @@ public class DatabaseManager {
     }
 
     public void stop() {
+//        try {
+//            if (locked)
+//                throw new ManagerNotStartedException(this.getClass());
+//        } catch (ManagerNotStartedException mnse) {
+//            ErrorHandler.getINSTANCE().log(mnse);
+//            return;
+//        }
         try {
             if (cacheTask != null)
                 cacheTask.cancel();

@@ -1,6 +1,8 @@
 package com.i54mpenguin.punisher.managers;
 
 import com.i54mpenguin.punisher.PunisherPlugin;
+import com.i54mpenguin.punisher.exceptions.ManagerNotStartedException;
+import com.i54mpenguin.punisher.handlers.ErrorHandler;
 import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
 
@@ -18,11 +20,12 @@ public class WorkerManager {
     private WorkerManager() {
     }
 
-    public void start() {
+    public synchronized void start() {
         try {
             if (!locked)
                 throw new Exception("Worker Manager Already started!");
         } catch (Exception e) {
+            // TODO: 11/06/2020 need to handle this error
             e.printStackTrace();
             return;
         }
@@ -38,9 +41,9 @@ public class WorkerManager {
     public synchronized void stop() {
         try {
             if (locked)
-                throw new Exception("Worker Manager Already stopped!");
-        } catch (Exception e) {
-            e.printStackTrace();
+                throw new ManagerNotStartedException(this.getClass());
+        } catch (ManagerNotStartedException mnse) {
+            ErrorHandler.getINSTANCE().log(mnse);
             return;
         }
         locked = true;
@@ -66,9 +69,9 @@ public class WorkerManager {
     public synchronized void runWorker(Worker worker) {
         try {
             if (locked)
-                throw new Exception("Error: Worker Manager has not yet started!");
-        } catch (Exception e) {
-            e.printStackTrace();
+                throw new ManagerNotStartedException(this.getClass());
+        } catch (ManagerNotStartedException mnse) {
+            ErrorHandler.getINSTANCE().log(mnse);
             return;
         }
         worker.setName("The-Punisher - Worker Thread #" + (workers.isEmpty() ? 1 : workers.size() + 1));
@@ -79,7 +82,7 @@ public class WorkerManager {
     private synchronized void finishedWorker(Worker worker) {
         if (worker.getStatus() == Worker.Status.FINISHED)
             workers.remove(worker);
-        if (locked)
+        if (locked && workers.isEmpty())
             mainThread.notifyAll();
     }
 
