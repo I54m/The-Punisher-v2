@@ -2,8 +2,8 @@ package com.i54mpenguin.punisher.exceptions;
 
 public class DataFecthException extends Exception {
 
-    private String reason, user, requestedInfo, causingClass;
-    private Throwable cause;
+    private final String reason, user, requestedInfo, causingClass;
+    private final Throwable cause;
 
     public DataFecthException(String reason, String user, String requestedInfo, String causingClass, Throwable cause){
         super(cause);
