@@ -9,6 +9,7 @@ import com.i54mpenguin.punisher.chats.StaffChat;
 import com.i54mpenguin.punisher.commands.*;
 import com.i54mpenguin.punisher.listeners.*;
 import com.i54mpenguin.punisher.managers.DatabaseManager;
+import com.i54mpenguin.punisher.managers.PlayerDataManager;
 import com.i54mpenguin.punisher.managers.PunishmentManager;
 import com.i54mpenguin.punisher.managers.WorkerManager;
 import com.i54mpenguin.punisher.objects.gui.ConfirmationGUI;
@@ -63,6 +64,7 @@ public class PunisherPlugin extends Plugin {
     private final PunishmentManager punManager = PunishmentManager.getINSTANCE();
     private final DatabaseManager dbManager = DatabaseManager.getINSTANCE();
     private final WorkerManager workerManager = WorkerManager.getINSTANCE();
+    private final PlayerDataManager playerDataManager = PlayerDataManager.getINSTANCE();
 
     /*
      * Config variables
@@ -234,10 +236,14 @@ public class PunisherPlugin extends Plugin {
 //            if (config.getBoolean("DiscordIntegration.Enabled"))
 //                DiscordMain.startBot();
 
+            //start player data manager
+            getLogger().info(prefix + ChatColor.GREEN + "Starting Player Data Manager...");
+            playerDataManager.start();
             //start database manager
             getLogger().info(prefix + ChatColor.GREEN + "Starting Database Manager...");
             dbManager.start();
             //start worker manager
+            //this should be started last so that other managers don't start doing operations with workers when the plugin has not fully loaded
             getLogger().info(prefix + ChatColor.GREEN + "Starting Worker Manager...");
             workerManager.start();
 
@@ -271,6 +277,8 @@ public class PunisherPlugin extends Plugin {
             getProxy().getPluginManager().unregisterCommands(this);
             if (workerManager.isStarted())
                 workerManager.stop();
+            if (playerDataManager.isStarted())
+                playerDataManager.stop();
             dbManager.stop();
 //            DiscordMain.shutdown();
             File latestLogs = new File(getDataFolder() + "/logs/latest.log");
