@@ -20,7 +20,5 @@ public class PlayerDisconnect implements Listener {
 //            server.remove(player);
 //            plugin.staff.put(player.getServer().getInfo(), server);
 //        }
-//        PunisherPlugin.playerInfoConfig.set(player.getUniqueId().toString().replace("-", "") + ".lastlogout", System.currentTimeMillis());
-//        PunisherPlugin.saveInfo();
     }
 }

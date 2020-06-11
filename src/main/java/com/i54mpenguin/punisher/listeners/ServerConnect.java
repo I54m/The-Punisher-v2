@@ -32,30 +32,5 @@ public class ServerConnect implements Listener {
                 player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("This may fix some bugs and enhance features, You will also no longer receive support for this version!").color(ChatColor.RED).create());
             }
         }
-//        if (PunisherPlugin.playerInfoConfig.contains(player.getUniqueId().toString().replace("-", ""))) {
-//            if (event.getReason().equals(ServerConnectEvent.Reason.JOIN_PROXY)) {
-//                PunisherPlugin.playerInfoConfig.set(player.getUniqueId().toString().replace("-", "") + ".lastlogin", System.currentTimeMillis());
-//                if (event.getTarget() != null)
-//                    PunisherPlugin.playerInfoConfig.set(player.getUniqueId().toString().replace("-", "") + ".lastserver", event.getTarget().getName());
-//                PunisherPlugin.saveInfo();
-//            } else if (event.getTarget() != null) {
-//                PunisherPlugin.playerInfoConfig.set(player.getUniqueId().toString().replace("-", "") + ".lastserver", event.getTarget().getName());
-//                PunisherPlugin.saveInfo();
-//            }
-//        }else{
-//            Date date = new Date();
-//            date.setTime(System.currentTimeMillis());
-//            DateFormat df = new SimpleDateFormat("dd MMM yyyy, hh:mm (Z)");
-//            df.setTimeZone(TimeZone.getDefault());
-//            PunisherPlugin.playerInfoConfig.set(player.getUniqueId().toString().replace("-", "") + ".firstjoin", df.format(date));
-//            PunisherPlugin.playerInfoConfig.set(player.getUniqueId().toString().replace("-", "") + ".joinid", (lastJoinId + 1));
-//            PunisherPlugin.playerInfoConfig.set("lastjoinid", (lastJoinId + 1));
-//            PunisherPlugin.playerInfoConfig.set(String.valueOf((lastJoinId + 1)), player.getUniqueId().toString().replace("-", ""));
-//            lastJoinId++;
-//            PunisherPlugin.playerInfoConfig.set(player.getUniqueId().toString().replace("-", "") + ".lastlogin", System.currentTimeMillis());
-//            if (event.getTarget() != null)
-//                PunisherPlugin.playerInfoConfig.set(player.getUniqueId().toString().replace("-", "") + ".lastserver", event.getTarget().getName());
-//            PunisherPlugin.saveInfo();
-//        }
     }
 }

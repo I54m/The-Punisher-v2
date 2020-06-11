@@ -101,10 +101,5 @@ public class PlayerLogin implements Listener {
                 }
             }
         }));
-
-//        if (!PunisherPlugin.reputationConfig.contains(fetcheduuid))
-//            PunisherPlugin.reputationConfig.set(fetcheduuid, 5.0);
-
-
     }
 }
