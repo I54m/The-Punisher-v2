@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.TreeMap;
 import java.util.UUID;
 
-public interface StorageManger {
+public interface StorageManager {
 
     void start() throws Exception;
     void stop();
