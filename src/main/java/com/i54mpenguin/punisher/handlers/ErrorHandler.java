@@ -30,7 +30,7 @@ public class ErrorHandler {
         if (previousException != null && e.getMessage().equals(previousException.getMessage())) {
             logToFile(e);
             return;
-        }else
+        } else
             previousException = e;
         logToFile(e);
         plugin.getLogger().warning(" ");
