@@ -3,6 +3,12 @@ Configversion: ${project.version}
 #DO NOT TOUCH THIS IT WILL MAKE A NEW CONFIG!!
 #This config is for the main config options, if you want to edit the automatic punishments go to punishments.yml
 
+#how should ips, punishments, alts, history & staff history be stored?
+#FLAT_FILE: stores the data in the <plugin folder>/data/ folder in yml files. This is mainly used for debugging and setting up the plugin and shouldn't be used in production servers.
+#SQLITE: stores the data in an sqlite database file. This is mainly used for people who don't have a mysql database and want to store data locally - this doesn't work with multiple bungeecord networks
+#MY_SQL: stores the data in a mysql database. This is mainly used for people who have access to a mysql database and don't want to store data locally.
+Storage-Type: FLAT_FILE
+
 #MYSql settings
 MySQL:
   #host use 127.0.0.1 or localhost for localhost
