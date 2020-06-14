@@ -8,7 +8,7 @@ import com.i54mpenguin.punisher.chats.AdminChat;
 import com.i54mpenguin.punisher.chats.StaffChat;
 import com.i54mpenguin.punisher.commands.*;
 import com.i54mpenguin.punisher.listeners.*;
-import com.i54mpenguin.punisher.managers.DatabaseManager;
+import com.i54mpenguin.punisher.managers.storage.DatabaseManager;
 import com.i54mpenguin.punisher.managers.PlayerDataManager;
 import com.i54mpenguin.punisher.managers.PunishmentManager;
 import com.i54mpenguin.punisher.managers.WorkerManager;

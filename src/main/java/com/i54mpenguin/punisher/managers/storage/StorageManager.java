@@ -1,4 +1,4 @@
-package com.i54mpenguin.punisher.managers;
+package com.i54mpenguin.punisher.managers.storage;
 
 import com.i54mpenguin.punisher.objects.Punishment;
 import org.jetbrains.annotations.NotNull;

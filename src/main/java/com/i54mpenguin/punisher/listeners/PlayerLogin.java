@@ -3,7 +3,7 @@ package com.i54mpenguin.punisher.listeners;
 import com.i54mpenguin.punisher.PunisherPlugin;
 import com.i54mpenguin.punisher.exceptions.PunishmentsDatabaseException;
 import com.i54mpenguin.punisher.handlers.ErrorHandler;
-import com.i54mpenguin.punisher.managers.DatabaseManager;
+import com.i54mpenguin.punisher.managers.storage.DatabaseManager;
 import com.i54mpenguin.punisher.managers.WorkerManager;
 import com.i54mpenguin.punisher.utils.NameFetcher;
 import net.md_5.bungee.api.connection.PendingConnection;

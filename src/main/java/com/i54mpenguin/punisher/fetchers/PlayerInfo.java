@@ -4,7 +4,7 @@ import com.i54mpenguin.punisher.PunisherPlugin;
 import com.i54mpenguin.punisher.chats.StaffChat;
 import com.i54mpenguin.punisher.exceptions.DataFecthException;
 import com.i54mpenguin.punisher.handlers.ErrorHandler;
-import com.i54mpenguin.punisher.managers.DatabaseManager;
+import com.i54mpenguin.punisher.managers.storage.DatabaseManager;
 import com.i54mpenguin.punisher.utils.NameFetcher;
 import com.i54mpenguin.punisher.utils.Permissions;
 import com.i54mpenguin.punisher.utils.UUIDFetcher;

@@ -1,8 +1,10 @@
-package com.i54mpenguin.punisher.managers;
+package com.i54mpenguin.punisher.managers.storage;
 
 import com.i54mpenguin.punisher.PunisherPlugin;
 import com.i54mpenguin.punisher.exceptions.PunishmentsDatabaseException;
 import com.i54mpenguin.punisher.handlers.ErrorHandler;
+import com.i54mpenguin.punisher.managers.PunishmentManager;
+import com.i54mpenguin.punisher.managers.WorkerManager;
 import com.i54mpenguin.punisher.objects.Punishment;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.Getter;

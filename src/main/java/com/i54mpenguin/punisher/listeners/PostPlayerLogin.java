@@ -5,7 +5,7 @@ import com.i54mpenguin.punisher.chats.StaffChat;
 import com.i54mpenguin.punisher.exceptions.PunishmentIssueException;
 import com.i54mpenguin.punisher.exceptions.PunishmentsDatabaseException;
 import com.i54mpenguin.punisher.handlers.ErrorHandler;
-import com.i54mpenguin.punisher.managers.DatabaseManager;
+import com.i54mpenguin.punisher.managers.storage.DatabaseManager;
 import com.i54mpenguin.punisher.managers.PunishmentManager;
 import com.i54mpenguin.punisher.managers.WorkerManager;
 import com.i54mpenguin.punisher.objects.Punishment;
