@@ -37,8 +37,8 @@ public class DatabaseManager {
     private DatabaseManager() {
     }
 
-    TreeMap<Integer, Punishment> PunishmentCache = new TreeMap<>();
-    Map<String, ArrayList<Integer>> ActivePunishmentCache = new HashMap<>();//although this can support more than 2 active punishments at once we only allow 1 mute and 1 ban at once
+    public TreeMap<Integer, Punishment> PunishmentCache = new TreeMap<>();
+    public Map<String, ArrayList<Integer>> ActivePunishmentCache = new HashMap<>();//although this can support more than 2 active punishments at once we only allow 1 mute and 1 ban at once
     ScheduledTask cacheTask;
 
     public String database;
@@ -392,7 +392,7 @@ public class DatabaseManager {
         }
     }
 
-    void DumpNew() throws PunishmentsDatabaseException {
+    public void DumpNew() throws PunishmentsDatabaseException {
         try {
             TreeMap<Integer, Punishment> PunishmentCache = new TreeMap<>(this.PunishmentCache);//to avoid concurrent modification exception if we happen to clear cache while looping over it (unlikely but could still happen)
             String sqlpunishment = "SELECT * FROM `punishments`;";
