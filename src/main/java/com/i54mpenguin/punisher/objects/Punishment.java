@@ -14,6 +14,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.UUID;
 
 @ToString
 public class Punishment {
@@ -44,20 +45,20 @@ public class Punishment {
     @Getter
     private long expiration;
     /**
-     * The UUID (with the dashes removed) of the person to be punished.
+     * The UUID of the person to be punished.
      */
     @Getter
-    private final String targetUUID;
+    private final UUID targetUUID;
     /**
      * The name (with capitalization) of the person to be punished.
      */
     @Getter
     private String targetName;
     /**
-     * The UUID (with the dashes removed) of the person that issued the punishment.
+     * The UUID of the person that issued the punishment.
      */
     @Getter
-    private String punisherUUID;
+    private UUID punisherUUID;
     /**
      * The message that the target will see as the reason.
      */
@@ -69,24 +70,23 @@ public class Punishment {
     @Getter
     private Status status;
     /**
-     * The UUID (with the dashes removed) of the person that removed the punishment,
+     * The UUID of the person that removed the punishment,
      * If the punishment has not yet been removed then this is null.
      */
     @Getter
-    private String removerUUID;
+    private UUID removerUUID;
 
     /**
      * This is the constructor that all new punishments should use as it will generate a new id for it.
-     *
      * @param type The type of punishment that this is.
      * @param reason The reason for this punishment.
      * @param expiration The date in milliseconds that this punishment expires (not required for warns or kicks).
-     * @param targetUUID The UUID (with the dashes removed) or the person to be punished.
+     * @param targetUUID The UUID of the person to be punished.
      * @param targetName The name (with capitalization) of the person to be punished.
-     * @param punisherUUID The UUID (with the dashes removed) of the person that issued the punishment.
+     * @param punisherUUID The UUID of the person that issued the punishment.
      * @param message The message that the target will see as the reason.
      */
-    public Punishment(@NotNull Type type, @NotNull Reason reason, @Nullable Long expiration, @NotNull String targetUUID, @NotNull String targetName, @NotNull String punisherUUID, @Nullable String message) {
+    public Punishment(@NotNull Type type, @NotNull Reason reason, @Nullable Long expiration, UUID targetUUID, @NotNull String targetName, UUID punisherUUID, @Nullable String message) {
         PunishmentManager punmgr = PunishmentManager.getINSTANCE();
         this.id = punmgr.getNextid();
         this.type = type;
@@ -103,19 +103,18 @@ public class Punishment {
 
     /**
      * This constructor is used to reconstruct punishments when we want to put them into the cache.
-     *
      * @param id The Id of the punishment, this is unique to each punishment.
      * @param type The type of punishment that this is.
      * @param reason The reason for this punishment.
      * @param expiration The date in milliseconds that this punishment expires (not required for warns or kicks).
-     * @param targetUUID The UUID (with the dashes removed) or the person to be punished.
+     * @param targetUUID The UUID of the person to be punished.
      * @param targetName The name (with capitalization) of the person to be punished.
-     * @param punisherUUID The UUID (with the dashes removed) of the person that issued the punishment.
+     * @param punisherUUID The UUID of the person that issued the punishment.
      * @param message The message that the target will see as the reason.
      * @param status The current status of the punishment eg: removed, issued, pending, etc.
-     * @param removerUUID The UUID (with the dashes removed) of the person that removed the punishment, If the punishment has not yet been removed then this is null.
+     * @param removerUUID The UUID of the person that removed the punishment, If the punishment has not yet been removed then this is null.
      */
-    public Punishment(@NotNull Integer id, @NotNull Type type, @NotNull Reason reason, @Nullable String issueDate, @Nullable Long expiration, @NotNull String targetUUID, @Nullable String targetName, @Nullable String punisherUUID, @Nullable String message, @NotNull Status status, @Nullable String removerUUID) {
+    public Punishment(@NotNull Integer id, @NotNull Type type, @NotNull Reason reason, @Nullable String issueDate, @Nullable Long expiration, UUID targetUUID, @Nullable String targetName, UUID punisherUUID, @Nullable String message, @NotNull Status status, UUID removerUUID) {
         this.id = id;
         this.type = type;
         this.reason = reason;
@@ -148,7 +147,7 @@ public class Punishment {
      * The reason we are issuing the punishment for.
      */
     @Deprecated
-    public enum Reason { // TODO: 8/06/2020 remove as this need to be configurable
+    public enum Reason { // TODO: 8/06/2020 remove as this needs to be configurable
         Minor_Chat_Offence, Major_Chat_Offence, DDoS_DoX_Threats, Inappropriate_Link, Scamming, X_Raying, AutoClicker, Fly_Speed_Hacking, Disallowed_Mods, Malicious_PvP_Hacks, Server_Advertisement,
         Greifing, Exploiting, Tpa_Trapping, Impersonation, Other_Minor_Offence, Other_Major_Offence, Other_Offence, Custom
     }
@@ -307,7 +306,7 @@ public class Punishment {
 
         //punisher uuid check
         if (punisherUUID == null)
-            punisherUUID = "CONSOLE";
+            punisherUUID = UUID.fromString("0-0-0-0-0");
 
         //expiration check
         if (isWarn() || isKick() || isTest())
@@ -344,10 +343,10 @@ public class Punishment {
     }
 
     /**
-     * @param punisherUUID The UUID of the punisher (with the dashes removed) that is issuing the punishment.
+     * @param punisherUUID The UUID of the punisher that is issuing the punishment.
      * @return The punishment itself with the updated info so that it can continue to be used.
      */
-    public Punishment setPunisherUUID(@NotNull String punisherUUID) {
+    public Punishment setPunisherUUID(UUID punisherUUID) {
         this.punisherUUID = punisherUUID;
         return this;
     }
@@ -381,10 +380,10 @@ public class Punishment {
     }
 
     /**
-     * @param removerUUID the UUID (with the dashes removed) of the player that removed the punishment
+     * @param removerUUID the UUID of the player that removed the punishment
      * @return The punishment itself with the updated info so that it can continue to be used.
      */
-    public Punishment setRemoverUUID(@Nullable String removerUUID) {
+    public Punishment setRemoverUUID(UUID removerUUID) {
         this.removerUUID = removerUUID;
         return this;
     }
@@ -435,10 +434,4 @@ public class Punishment {
         }
         return text;
     }
-
-//    @Override
-//    public String toString() {
-//        return "{ID = '" + id + "', Type = '" + type.toString() + "', Reason = '" + reason.toString() + "', issueDate = '" + issueDate + "', expiration = '" + expiration + "', targetUUID = '" + targetUUID +
-//                "', TargetName = '" + targetName + "', PunisherUUID = '" + punisherUUID + "', message = '" + message + "', Status = '" + status.toString() + "', removerUUID = '" + removerUUID + "'}";
-//    }
 }

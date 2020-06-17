@@ -11,13 +11,18 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
 import java.util.HashMap;
+import java.util.UUID;
 
 public class NameFetcher {
 
     private static final HashMap<String, String> NAMES = new HashMap<>();
 
+    public static String getName(UUID uuid){
+        return getName(uuid.toString());
+    }
+
     public static String getName(String uuid) {
-        if (uuid.equalsIgnoreCase("console"))
+        if (uuid.equalsIgnoreCase("console") || uuid.equals("0-0-0-0-0"))
             return "CONSOLE";
         uuid = uuid.replace("-", "");
         if (NAMES.containsKey(uuid))
@@ -26,7 +31,7 @@ public class NameFetcher {
         Gson g = new Gson();
         Profile profile;
         profile = g.fromJson(output.substring(0, output.indexOf(",\n  \"properties\""))+ "}", Profile.class);
-        new UUIDFetcher().storeUUID(uuid, profile.getName());
+        new UUIDFetcher().storeUUID(UUIDFetcher.formatUUID(uuid), profile.getName());
         NAMES.put(uuid, profile.getName());
         return profile.getName();
     }
@@ -56,13 +61,12 @@ public class NameFetcher {
         return sb.toString();
     }
 
-    public static void updateStoredName(String uuid, String name) {
+    public static void updateStoredName(UUID uuid, String name) {
         storeName(uuid, name);
     }
 
-    public static void storeName(String uuid, String name) {
-        uuid = uuid.replace("-", "");
-        NAMES.put(uuid, name);
+    public static void storeName(UUID uuid, String name) {
+        NAMES.put(uuid.toString().replace("-", ""), name);
     }
 
     public static String getStoredName(String uuid) {

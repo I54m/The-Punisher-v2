@@ -12,9 +12,9 @@ import java.util.HashMap;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 
-public class UUIDFetcher implements Callable<String> {
+public class UUIDFetcher implements Callable<UUID> {
 
-    private static final HashMap<String, String> UUID_CACHE = new HashMap<>();
+    private static final HashMap<String, UUID> UUID_CACHE = new HashMap<>();
     private String name;
 
     public static UUID formatUUID(String uuid) {
@@ -30,9 +30,9 @@ public class UUIDFetcher implements Callable<String> {
         return UUID.fromString(sb.toString());
     }
 
-    public static void updateStoredUUID(String name, String uuid) {
+    public static void updateStoredUUID(String name, UUID uuid) {
         for (String storedName : UUID_CACHE.keySet()) {
-            String StoredUUID = UUID_CACHE.get(storedName);
+            UUID StoredUUID = UUID_CACHE.get(storedName);
             if (uuid.equals(StoredUUID)) {
                 if (!name.toLowerCase().equals(storedName)) {
                     UUID_CACHE.remove(storedName);
@@ -49,9 +49,9 @@ public class UUIDFetcher implements Callable<String> {
     }
 
     @Override
-    public String call() throws Exception {
+    public UUID call() throws Exception {
         if (name.equalsIgnoreCase("console"))
-            return "CONSOLE";
+            return UUID.fromString("0-0-0-0-0");
         if (UUID_CACHE.containsKey(name.toLowerCase()))
             return UUID_CACHE.get(name.toLowerCase());
         StringBuilder sb = new StringBuilder();
@@ -79,18 +79,19 @@ public class UUIDFetcher implements Callable<String> {
         return profile.getId();
     }
 
-    public void storeUUID(String uuid, String name) {
-        uuid = uuid.replace("-", "");
+    public void storeUUID(UUID uuid, String name) {
         UUID_CACHE.put(name.toLowerCase(), uuid);
     }
 
     private static class Profile {
         @Getter
-        private final String name, id;
+        private final String name;
+        @Getter
+        private final UUID id;
 
         public Profile(String name, String id) {
             this.name = name;
-            this.id = id;
+            this.id = formatUUID(id);
         }
     }
 }
