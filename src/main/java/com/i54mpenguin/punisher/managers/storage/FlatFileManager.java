@@ -26,7 +26,9 @@ public class FlatFileManager implements StorageManager {
 
     private Configuration mainDataConfig;
 
-    ScheduledTask cacheTask = null;
+    private ScheduledTask cacheTask = null;
+
+    private int lastPunishmentId = 0;
 
     private boolean locked = true;
 
@@ -81,8 +83,11 @@ public class FlatFileManager implements StorageManager {
         if (!mainDataFile.exists())
             mainDataFile.createNewFile();
         mainDataConfig = YamlConfiguration.getProvider(YamlConfiguration.class).load(mainDataFile);
-        mainDataConfig.set("lastPunishmentId", 0);
-        saveMainDataConfig();
+        if (mainDataFile.length() <= 0) {
+            mainDataConfig.set("lastPunishmentId", 0);
+            saveMainDataConfig();
+        }
+        lastPunishmentId = mainDataConfig.getInt("lastPunishmentId");
     }
 
     @Override
@@ -114,81 +119,174 @@ public class FlatFileManager implements StorageManager {
 
     @Override
     public void cache() throws PunishmentsDatabaseException {
+        if (locked) {
+            ErrorHandler.getINSTANCE().log(new ManagerNotStartedException(this.getClass()));
+            return;
+        }
 
     }
 
     @Override
     public void dumpNew() throws PunishmentsDatabaseException {
-
+        if (locked) {
+            ErrorHandler.getINSTANCE().log(new ManagerNotStartedException(this.getClass()));
+            return;
+        }
+        TreeMap<Integer, Punishment> PunishmentCache = new TreeMap<>(this.PunishmentCache);//to avoid concurrent modification exception if we happen to clear cache while looping over it (unlikely but could still happen)
+        ArrayList<Integer> exsistingIDs = new ArrayList<>();
+        for (int i = 0; i < lastPunishmentId; i ++) {
+            File file = new File(plugin.getDataFolder() + "/data/punishments/", i + ".yml");
+            if (file.exists()) exsistingIDs.add(i);
+        }
+        PunishmentCache.values().removeIf((value) -> !exsistingIDs.contains(value.getId()));
+        for (Punishment punishment : PunishmentCache.values()) {
+                try {
+                    updatePunishment(punishment);
+                } catch (Exception e) {
+                    throw new PunishmentsDatabaseException("Dumping Punishment: " + punishment.toString(), "CONSOLE", this.getClass().getName(), e);
+                }
+        }
     }
 
     @Override
     public void updatePunishment(@NotNull Punishment punishment) throws PunishmentsDatabaseException {
+        if (locked) {
+            ErrorHandler.getINSTANCE().log(new ManagerNotStartedException(this.getClass()));
+            return;
+        }
+        try {
+            File file = new File(plugin.getDataFolder() + "/data/punishments/", punishment.getId() + ".yml");
+            if (!file.exists())
+                file.createNewFile();
+            Configuration config = YamlConfiguration.getProvider(YamlConfiguration.class).load(file);
+            config.set("id", punishment.getId());
+            config.set("type", punishment.getType().toString());
+            config.set("reason", punishment.getReason());
+            config.set("issueDate", punishment.getIssueDate());
+            config.set("expiration", punishment.getExpiration());
+            config.set("targetUUID", punishment.getTargetUUID().toString());
+            config.set("targetName", punishment.getTargetName());
+            config.set("punisherUUID", punishment.getPunisherUUID());
+            config.set("message", punishment.getMessage());
+            config.set("status", punishment.getStatus());
+            config.set("removerUUID", punishment.getRemoverUUID());
+            YamlConfiguration.getProvider(YamlConfiguration.class).save(config, file);
+        } catch (Exception e) {
+            throw new PunishmentsDatabaseException("Updating Punishment: " + punishment.toString(), "CONSOLE", this.getClass().getName(), e);
+        }
 
     }
 
     @Override
     public void createHistory(@NotNull UUID uuid) throws PunishmentsDatabaseException {
+        if (locked) {
+            ErrorHandler.getINSTANCE().log(new ManagerNotStartedException(this.getClass()));
+            return;
+        }
 
     }
 
     @Override
     public void createStaffHistory(@NotNull UUID uuid) throws PunishmentsDatabaseException {
+        if (locked) {
+            ErrorHandler.getINSTANCE().log(new ManagerNotStartedException(this.getClass()));
+            return;
+        }
 
     }
 
     @Override
     public void incrementHistory(@NotNull Punishment punishment) throws PunishmentsDatabaseException {
+        if (locked) {
+            ErrorHandler.getINSTANCE().log(new ManagerNotStartedException(this.getClass()));
+            return;
+        }
 
     }
 
     @Override
     public void incrementStaffHistory(@NotNull Punishment punishment) throws PunishmentsDatabaseException {
+        if (locked) {
+            ErrorHandler.getINSTANCE().log(new ManagerNotStartedException(this.getClass()));
+            return;
+        }
 
     }
 
     @Override
     public void loadUser(@NotNull UUID uuid) throws PunishmentsDatabaseException {
+        if (locked) {
+            ErrorHandler.getINSTANCE().log(new ManagerNotStartedException(this.getClass()));
+            return;
+        }
 
     }
 
     @Override
     public int getOffences(@NotNull UUID targetUUID, @NotNull String reason) throws PunishmentsDatabaseException {
+        if (locked) {
+            ErrorHandler.getINSTANCE().log(new ManagerNotStartedException(this.getClass()));
+            return 0;
+        }
         return 0;
     }
 
     @Override
     public TreeMap<Integer, Punishment> getHistory(UUID uuid) throws PunishmentsDatabaseException {
+        if (locked) {
+            ErrorHandler.getINSTANCE().log(new ManagerNotStartedException(this.getClass()));
+            return null;
+        }
         return null;
     }
 
     @Override
     public TreeMap<Integer, Punishment> getStaffHistory(UUID uuid) throws PunishmentsDatabaseException {
+        if (locked) {
+            ErrorHandler.getINSTANCE().log(new ManagerNotStartedException(this.getClass()));
+            return null;
+        }
         return null;
     }
 
     @Override
     public ArrayList<UUID> getAlts(UUID uuid) throws PunishmentsDatabaseException {
+        if (locked) {
+            ErrorHandler.getINSTANCE().log(new ManagerNotStartedException(this.getClass()));
+            return null;
+        }
         return null;
     }
 
     @Override
     public TreeMap<Long, String> getIpHist(UUID uuid) throws PunishmentsDatabaseException {
+        if (locked) {
+            ErrorHandler.getINSTANCE().log(new ManagerNotStartedException(this.getClass()));
+            return null;
+        }
         return null;
     }
 
     @Override
     public void updateAlts(UUID uuid, String ip) throws PunishmentsDatabaseException {
+        if (locked) {
+            ErrorHandler.getINSTANCE().log(new ManagerNotStartedException(this.getClass()));
+            return;
+        }
 
     }
 
     @Override
     public void updateIpHist(UUID uuid, String ip) throws PunishmentsDatabaseException {
+        if (locked) {
+            ErrorHandler.getINSTANCE().log(new ManagerNotStartedException(this.getClass()));
+            return;
+        }
 
     }
 
     private void saveMainDataConfig() {
-        try{
+        try {
           YamlConfiguration.getProvider(YamlConfiguration.class).save(mainDataConfig, new File(plugin.getDataFolder() + "/data/", "mainData.yml"));
         } catch (IOException ioe){
             ioe.printStackTrace();
