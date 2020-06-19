@@ -5,6 +5,7 @@ import com.i54mpenguin.punisher.exceptions.PunishmentsDatabaseException;
 import com.i54mpenguin.punisher.handlers.ErrorHandler;
 import com.i54mpenguin.punisher.managers.PunishmentManager;
 import com.i54mpenguin.punisher.managers.WorkerManager;
+import com.i54mpenguin.punisher.objects.ActivePunishments;
 import com.i54mpenguin.punisher.objects.Punishment;
 import org.jetbrains.annotations.NotNull;
 
@@ -12,31 +13,32 @@ import java.util.*;
 
 public interface StorageManager {
 
-    PunisherPlugin plugin = PunisherPlugin.getInstance();
-    PunishmentManager punishmentManager = PunishmentManager.getINSTANCE();
-    WorkerManager workerManager = WorkerManager.getINSTANCE();
-    ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
-    TreeMap<Integer, Punishment> PunishmentCache = new TreeMap<>();
-    Map<String, ArrayList<Integer>> ActivePunishmentCache = new HashMap<>();//although this can support more than 2 active punishments at once we only allow 1 mute and 1 ban at once
+    PunisherPlugin PLUGIN = PunisherPlugin.getInstance();
+    PunishmentManager PUNISHMENT_MANAGER = PunishmentManager.getINSTANCE();
+    WorkerManager WORKER_MANAGER = WorkerManager.getINSTANCE();
+    ErrorHandler ERROR_HANDLER = ErrorHandler.getINSTANCE();
+    TreeMap<Integer, Punishment> PUNISHMENT_CACHE = new TreeMap<>();
+    Map<UUID, ActivePunishments> ACTIVE_PUNISHMENT_CACHE = new HashMap<>();
+    Map<String, Integer> PUNISHMENT_REASONS = new HashMap<>();
 
     void start() throws Exception;
     void stop();
 
     void setupStorage() throws Exception;
+
     void startCaching();
     default void clearCache() {
-        ActivePunishmentCache.clear();
-        PunishmentCache.clear();
+        ACTIVE_PUNISHMENT_CACHE.clear();
+        PUNISHMENT_CACHE.clear();
     }
-
     default void resetCache() {
         try {
             dumpNew();
             clearCache();
             cache();
         } catch (PunishmentsDatabaseException pde) {
-            errorHandler.log(pde);
-            errorHandler.adminChatAlert(pde, plugin.getProxy().getConsole());
+            ERROR_HANDLER.log(pde);
+            ERROR_HANDLER.adminChatAlert(pde, PLUGIN.getProxy().getConsole());
         }
     }
     void cache() throws PunishmentsDatabaseException;
