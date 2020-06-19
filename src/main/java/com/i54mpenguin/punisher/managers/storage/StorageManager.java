@@ -54,12 +54,12 @@ public interface StorageManager {
     void loadUser(@NotNull UUID uuid) throws PunishmentsDatabaseException;
 
     int getOffences(@NotNull UUID targetUUID, @NotNull String reason) throws PunishmentsDatabaseException;
-    TreeMap<Integer, Punishment> getHistory(UUID uuid) throws PunishmentsDatabaseException;
-    TreeMap<Integer, Punishment> getStaffHistory(UUID uuid) throws PunishmentsDatabaseException;
-    ArrayList<UUID> getAlts(UUID uuid) throws PunishmentsDatabaseException;
-    TreeMap<Long, String> getIpHist(UUID uuid) throws PunishmentsDatabaseException;
+    TreeMap<Integer, Punishment> getHistory(@NotNull UUID uuid) throws PunishmentsDatabaseException;
+    TreeMap<Integer, Punishment> getStaffHistory(@NotNull UUID uuid) throws PunishmentsDatabaseException;
+    ArrayList<UUID> getAlts(@NotNull UUID uuid) throws PunishmentsDatabaseException;
+    TreeMap<Long, String> getIpHist(@NotNull UUID uuid) throws PunishmentsDatabaseException;
 
-    void updateAlts(UUID uuid, String ip) throws PunishmentsDatabaseException;
-    void updateIpHist(UUID uuid, String ip) throws PunishmentsDatabaseException;
+    void updateAlts(@NotNull UUID uuid, @NotNull String ip) throws PunishmentsDatabaseException;
+    void updateIpHist(@NotNull UUID uuid, @NotNull  String ip) throws PunishmentsDatabaseException;
 
 }
