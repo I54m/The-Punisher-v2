@@ -32,9 +32,8 @@ public class Punishment {
     /**
      *
      */// TODO: 9/06/2020 to be removed in favor of custom reasons
-    @Deprecated
     @Getter
-    private final Reason reason;
+    private final String reason;
     /**
      * The date the punishment was originally issued by the punisher.
      */
@@ -86,7 +85,7 @@ public class Punishment {
      * @param punisherUUID The UUID of the person that issued the punishment.
      * @param message The message that the target will see as the reason.
      */
-    public Punishment(@NotNull Type type, @NotNull Reason reason, @Nullable Long expiration, UUID targetUUID, @NotNull String targetName, UUID punisherUUID, @Nullable String message) {
+    public Punishment(@NotNull Type type, @NotNull String reason, @Nullable Long expiration, UUID targetUUID, @NotNull String targetName, UUID punisherUUID, @Nullable String message) {
         PunishmentManager punmgr = PunishmentManager.getINSTANCE();
         this.id = punmgr.getNextid();
         this.type = type;
@@ -114,7 +113,7 @@ public class Punishment {
      * @param status The current status of the punishment eg: removed, issued, pending, etc.
      * @param removerUUID The UUID of the person that removed the punishment, If the punishment has not yet been removed then this is null.
      */
-    public Punishment(@NotNull Integer id, @NotNull Type type, @NotNull Reason reason, @Nullable String issueDate, @Nullable Long expiration, UUID targetUUID, @Nullable String targetName, UUID punisherUUID, @Nullable String message, @NotNull Status status, UUID removerUUID) {
+    public Punishment(@NotNull Integer id, @NotNull Type type, @NotNull String reason, @Nullable String issueDate, @Nullable Long expiration, UUID targetUUID, @Nullable String targetName, UUID punisherUUID, @Nullable String message, @NotNull Status status, UUID removerUUID) {
         this.id = id;
         this.type = type;
         this.reason = reason;
@@ -146,11 +145,11 @@ public class Punishment {
     /**
      * The reason we are issuing the punishment for.
      */
-    @Deprecated
-    public enum Reason { // TODO: 8/06/2020 remove as this needs to be configurable
-        Minor_Chat_Offence, Major_Chat_Offence, DDoS_DoX_Threats, Inappropriate_Link, Scamming, X_Raying, AutoClicker, Fly_Speed_Hacking, Disallowed_Mods, Malicious_PvP_Hacks, Server_Advertisement,
-        Greifing, Exploiting, Tpa_Trapping, Impersonation, Other_Minor_Offence, Other_Major_Offence, Other_Offence, Custom
-    }
+//    @Deprecated
+//    public enum Reason { // TODO: 8/06/2020 remove as this needs to be configurable
+//        Minor_Chat_Offence, Major_Chat_Offence, DDoS_DoX_Threats, Inappropriate_Link, Scamming, X_Raying, AutoClicker, Fly_Speed_Hacking, Disallowed_Mods, Malicious_PvP_Hacks, Server_Advertisement,
+//        Greifing, Exploiting, Tpa_Trapping, Impersonation, Other_Minor_Offence, Other_Major_Offence, Other_Offence, Custom
+//    }
 
     /**
      * A punishment is considered permanent if it is 10 or more years.
@@ -168,7 +167,7 @@ public class Punishment {
      * @return true if the punishment was issued manually else false.
      */
     public boolean isManual() {
-        return reason.toString().contains("Other") || reason == Reason.Custom;
+        return reason.contains("Other");
     }
 
     /**
@@ -182,7 +181,7 @@ public class Punishment {
      * @return true if the punishment is a permanent ban that was made by console and contains the message "Overly Toxic", these are the main signs of a reputation ban.
      */
     public boolean isRepBan() {
-        return isBan() && punisherUUID.equals("CONSOLE") && isCustom() && isPermanent() && message.contains("Overly Toxic");
+        return isBan() && punisherUUID.equals("CONSOLE") && isPermanent() && message.contains("Overly Toxic");
     }
 
     /**
@@ -214,12 +213,12 @@ public class Punishment {
         return this.type == Type.ALL;
     }
 
-    /**
-     * @return true if the reason is custom else false.
-     */
-    public boolean isCustom() {
-        return this.reason == Reason.Custom;
-    }
+//    /**
+//     * @return true if the reason is custom else false.
+//     */
+//    public boolean isCustom() {
+//        return this.reason == Reason.Custom;
+//    }
 
     /**
      * If the punishment is pending it means it has been issued by the punisher
@@ -314,9 +313,9 @@ public class Punishment {
         else if ((isBan() || isMute()) && !hasExpiration())
             expiration = (long) 3.154e+12 + System.currentTimeMillis();
 
-        //message check
-        if (isCustom() && !hasMessage())
-            message = "No Reason Given";
+//        //message check
+//        if (isCustom() && !hasMessage())
+//            message = "No Reason Given";
     }
 
     /**
