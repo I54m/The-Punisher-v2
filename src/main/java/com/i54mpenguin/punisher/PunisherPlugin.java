@@ -4,6 +4,7 @@ import com.i54mpenguin.protocol.api.injector.NettyPipelineInjector;
 import com.i54mpenguin.protocol.api.listener.PlayerListener;
 import com.i54mpenguin.protocol.inventory.InventoryModule;
 import com.i54mpenguin.protocol.items.ItemsModule;
+import com.i54mpenguin.protocol.world.WorldModule;
 import com.i54mpenguin.punisher.chats.AdminChat;
 import com.i54mpenguin.punisher.chats.StaffChat;
 import com.i54mpenguin.punisher.commands.*;
@@ -301,6 +302,7 @@ public class PunisherPlugin extends Plugin {
         ProxyServer.getInstance().getPluginManager().registerListener(this, new PlayerListener(this));
         ItemsModule.initModule();
         InventoryModule.initModule();
+        WorldModule.initModule();
     }
 
     /**

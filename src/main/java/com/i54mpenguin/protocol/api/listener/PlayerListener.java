@@ -6,6 +6,7 @@ import com.i54mpenguin.protocol.api.netty.OutboundTrafficHandler;
 import com.i54mpenguin.protocol.api.protocol.Stream;
 import com.i54mpenguin.protocol.api.util.ReflectionUtil;
 import com.i54mpenguin.protocol.items.InventoryManager;
+import com.i54mpenguin.protocol.world.WorldModule;
 import com.i54mpenguin.punisher.PunisherPlugin;
 import net.md_5.bungee.api.event.PlayerDisconnectEvent;
 import net.md_5.bungee.api.event.PreLoginEvent;
@@ -51,6 +52,7 @@ public class PlayerListener implements Listener {
     @EventHandler
     public void onQuit(final PlayerDisconnectEvent e) {
         InventoryManager.unmap(e.getPlayer().getUniqueId());
+        WorldModule.uncache(e.getPlayer().getUniqueId());
 //        ProtocolAPI.getTrafficManager().uncache(e.getPlayer().getName());
     }
 
