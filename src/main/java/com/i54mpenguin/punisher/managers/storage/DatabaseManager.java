@@ -18,10 +18,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public class DatabaseManager {
@@ -194,15 +191,14 @@ public class DatabaseManager {
             throw new Exception("Failed to setup mysql!", e);
         }
     }
-
-    public int getOffences(String targetuuid, Punishment.Reason reason) throws SQLException {
+    public int getOffences(String targetuuid, String reason) throws SQLException {
         String sql = "SELECT * FROM `history` WHERE UUID='" + targetuuid + "'";
         PreparedStatement stmt = connection.prepareStatement(sql);
         ResultSet results = stmt.executeQuery();
         int punishmentno;
         if (results.next())
-            if (reason == Punishment.Reason.Custom) punishmentno = results.getInt("Manual_Punishments");
-            else punishmentno = results.getInt(reason.toString());
+            if (reason.equals("Custom")) punishmentno = results.getInt("Manual_Punishments");
+            else punishmentno = results.getInt(reason);
         else punishmentno = 0;
         stmt.close();
         results.close();
@@ -307,9 +303,9 @@ public class DatabaseManager {
         ResultSet resultspunishment = stmtpunishment.executeQuery();
         while (resultspunishment.next()) {
             Punishment punishment = new Punishment(resultspunishment.getInt("id"), Punishment.Type.valueOf(resultspunishment.getString("type")),
-                    Punishment.Reason.valueOf(resultspunishment.getString("reason")), resultspunishment.getString("issueDate"), resultspunishment.getLong("expiration"),
-                    resultspunishment.getString("targetUUID"), resultspunishment.getString("targetName"), resultspunishment.getString("punisherUUID"),
-                    resultspunishment.getString("message"), Punishment.Status.valueOf(resultspunishment.getString("status")), resultspunishment.getString("removerUUID"));
+                    resultspunishment.getString("reason"), resultspunishment.getString("issueDate"), resultspunishment.getLong("expiration"),
+                    UUID.fromString(resultspunishment.getString("targetUUID")), resultspunishment.getString("targetName"), UUID.fromString(resultspunishment.getString("punisherUUID")),
+                    resultspunishment.getString("message"), Punishment.Status.valueOf(resultspunishment.getString("status")), UUID.fromString(resultspunishment.getString("removerUUID")));
             String message = punishment.getMessage();
             if (message.contains("%sinquo%"))
                 message = message.replaceAll("%sinquo%", "'");
@@ -321,12 +317,12 @@ public class DatabaseManager {
             if (!PunishmentCache.containsValue(punishment))
                 PunishmentCache.put(resultspunishment.getInt("id"), punishment);
             if (punishment.isActive()) {
-                if (!punishmentManager.hasActivePunishment(punishment.getTargetUUID())) {
+                if (!punishmentManager.hasActivePunishment(punishment.getTargetUUID().toString())) {
                     ArrayList<Integer> activePunishments = new ArrayList<>();
                     activePunishments.add(punishment.getId());
-                    ActivePunishmentCache.put(punishment.getTargetUUID(), activePunishments);
+                    ActivePunishmentCache.put(punishment.getTargetUUID().toString(), activePunishments);
                 } else
-                    ActivePunishmentCache.get(punishment.getTargetUUID()).add(punishment.getId());
+                    ActivePunishmentCache.get(punishment.getTargetUUID().toString()).add(punishment.getId());
             }
             //if (punishment.isPending())
             //  PendingPunishments.put(punishment.getTargetUUID(), punishment.getId());
