@@ -311,14 +311,17 @@ public class FlatFileManager implements StorageManager {
             return;
         }
         try {
-            loadPunishmentsFromFile(new File(historyDir, uuid.toString() + ".yml"));
-            loadPunishmentsFromFile(new File(staffHistoryDir, uuid.toString() + ".yml"));
+            loadPunishmentsFromFile(new File(historyDir, uuid.toString() + ".yml"), false);
+            loadPunishmentsFromFile(new File(staffHistoryDir, uuid.toString() + ".yml"), false);
+            for (UUID alts : getAlts(uuid)) {
+                loadPunishmentsFromFile(new File(historyDir, alts.toString() + ".yml"), true);
+            }
         } catch (Exception e) {
             throw new PunishmentsDatabaseException("Loading User: " + uuid.toString(), "CONSOLE", this.getClass().getName(), e);
         }
     }
 
-    private void loadPunishmentsFromFile(File file) throws Exception {
+    private void loadPunishmentsFromFile(File file, boolean onlyLoadActive) throws Exception {
         if (locked) {
             ErrorHandler.getINSTANCE().log(new ManagerNotStartedException(this.getClass()));
             return;
@@ -327,7 +330,8 @@ public class FlatFileManager implements StorageManager {
         Configuration config = yamlProvider.load(file);
         for (int punishmentIds : config.getIntList("Punishments")) {
             Punishment punishment = getPunishmentFromId(punishmentIds);
-            PUNISHMENT_CACHE.put(punishmentIds, punishment);
+            if (!onlyLoadActive)
+                PUNISHMENT_CACHE.put(punishmentIds, punishment);
             if (punishment.isActive()) {
                 UUID targetUUID = punishment.getTargetUUID();
                 ActivePunishments punishments;
@@ -352,6 +356,7 @@ public class FlatFileManager implements StorageManager {
     @Override
     public Punishment getPunishmentFromId(int id) throws PunishmentsDatabaseException {
         try {
+            if (PUNISHMENT_CACHE.containsKey(id)) return PUNISHMENT_CACHE.get(id);
             File punishmentFile = new File(punishmentsDir, id + ".yml");
             Configuration punishmentsConfig = yamlProvider.load(punishmentFile);
             return new Punishment(
@@ -377,7 +382,7 @@ public class FlatFileManager implements StorageManager {
             ErrorHandler.getINSTANCE().log(new ManagerNotStartedException(this.getClass()));
             return 0;
         }
-        if (!PUNISHMENT_REASONS.containsKey(reason)) return 0;
+        if (!PUNISHMENT_REASONS.containsKey(reason)) throw new IllegalArgumentException(reason + " is not a defined reason!!");
         try {
             File file = new File(historyDir, targetUUID.toString() + ".yml");
             if (!file.exists())
