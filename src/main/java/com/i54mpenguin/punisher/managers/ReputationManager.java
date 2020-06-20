@@ -9,6 +9,7 @@ import java.sql.SQLException;
 import java.util.concurrent.TimeUnit;
 
 public class ReputationManager {
+    // TODO: 20/06/2020 make a proper non static manager and possibly redo entire manager
     private static final PunisherPlugin plugin = PunisherPlugin.getInstance();
     private static final PunishmentManager punishMnger = PunishmentManager.getINSTANCE();
 
