@@ -8,6 +8,7 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
 import java.util.concurrent.Callable;
@@ -42,6 +43,15 @@ public class UUIDFetcher implements Callable<UUID> {
             }
         }
         UUID_CACHE.put(name.toLowerCase(), uuid);
+    }
+
+    public static ArrayList<UUID> convertStringArray(ArrayList<String> strings) {
+        ArrayList<UUID> uuids = new ArrayList<>();
+        for (String string : strings) {
+            if (!string.contains("-")) uuids.add(formatUUID(string));
+            else uuids.add(UUID.fromString(string));
+        }
+        return uuids;
     }
 
     public void fetch(String name) {
