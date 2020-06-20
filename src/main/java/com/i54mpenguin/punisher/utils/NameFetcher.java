@@ -26,7 +26,7 @@ public class NameFetcher {
             return "CONSOLE";
         if (NAMES.containsKey(uuid))
             return NAMES.get(uuid);
-        String output = callURL("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid);
+        String output = callURL("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid.toString().replace("-", ""));
         Gson g = new Gson();
         Profile profile;
         profile = g.fromJson(output.substring(0, output.indexOf(",\n  \"properties\""))+ "}", Profile.class);
