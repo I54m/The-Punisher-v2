@@ -15,23 +15,22 @@ import java.util.UUID;
 
 public class NameFetcher {
 
-    private static final HashMap<String, String> NAMES = new HashMap<>();
+    private static final HashMap<UUID, String> NAMES = new HashMap<>();
 
-    public static String getName(UUID uuid){
-        return getName(uuid.toString());
+    public static String getName(String uuid){
+        return getName(UUID.fromString(uuid));
     }
 
-    public static String getName(String uuid) {
-        if (uuid.equalsIgnoreCase("console") || uuid.equals("0-0-0-0-0"))
+    public static String getName(UUID uuid) {
+        if (uuid.equals(UUID.fromString("0-0-0-0-0")))
             return "CONSOLE";
-        uuid = uuid.replace("-", "");
         if (NAMES.containsKey(uuid))
             return NAMES.get(uuid);
         String output = callURL("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid);
         Gson g = new Gson();
         Profile profile;
         profile = g.fromJson(output.substring(0, output.indexOf(",\n  \"properties\""))+ "}", Profile.class);
-        new UUIDFetcher().storeUUID(UUIDFetcher.formatUUID(uuid), profile.getName());
+        new UUIDFetcher().storeUUID(uuid, profile.getName());
         NAMES.put(uuid, profile.getName());
         return profile.getName();
     }
@@ -66,14 +65,14 @@ public class NameFetcher {
     }
 
     public static void storeName(UUID uuid, String name) {
-        NAMES.put(uuid.toString().replace("-", ""), name);
+        NAMES.put(uuid, name);
     }
 
-    public static String getStoredName(String uuid) {
+    public static String getStoredName(UUID uuid) {
         return NAMES.get(uuid);
     }
 
-    public static boolean hasNameStored(String uuid) {
+    public static boolean hasNameStored(UUID uuid) {
         return NAMES.containsKey(uuid);
     }
 
