@@ -1,8 +1,10 @@
 package com.i54mpenguin.punisher.objects;
 
+import com.i54mpenguin.punisher.PunisherPlugin;
 import com.i54mpenguin.punisher.exceptions.PunishmentIssueException;
 import com.i54mpenguin.punisher.handlers.ErrorHandler;
 import com.i54mpenguin.punisher.managers.PunishmentManager;
+import com.i54mpenguin.punisher.managers.storage.StorageManager;
 import com.i54mpenguin.punisher.utils.NameFetcher;
 import lombok.Getter;
 import lombok.ToString;
@@ -30,8 +32,8 @@ public class Punishment {
     @Getter
     private final Type type;
     /**
-     *
-     */// TODO: 9/06/2020 to be removed in favor of custom reasons
+     * The Reason we are punishing the player for.
+     */
     @Getter
     private final String reason;
     /**
@@ -86,8 +88,8 @@ public class Punishment {
      * @param message The message that the target will see as the reason.
      */
     public Punishment(@NotNull Type type, @NotNull String reason, @Nullable Long expiration, UUID targetUUID, @NotNull String targetName, UUID punisherUUID, @Nullable String message) {
-        PunishmentManager punmgr = PunishmentManager.getINSTANCE();
-        this.id = punmgr.getNextid();
+        StorageManager storageManager = PunisherPlugin.getInstance().getStorageManager();
+        this.id = storageManager.getNextID();
         this.type = type;
         this.reason = reason;
         this.expiration = expiration == null ? 0 : expiration;
@@ -97,7 +99,7 @@ public class Punishment {
         this.message = message;
 
         this.status = Status.Created;
-        punmgr.NewPunishment(this);
+        storageManager.NewPunishment(this);
     }
 
     /**
@@ -142,7 +144,7 @@ public class Punishment {
         Created, Pending, Active, Issued, Overridden, Expired, Removed
     }
 
-    /**
+    /*
      * The reason we are issuing the punishment for.
      */
 //    @Deprecated
@@ -181,7 +183,7 @@ public class Punishment {
      * @return true if the punishment is a permanent ban that was made by console and contains the message "Overly Toxic", these are the main signs of a reputation ban.
      */
     public boolean isRepBan() {
-        return isBan() && punisherUUID.equals("CONSOLE") && isPermanent() && message.contains("Overly Toxic");
+        return isBan() && punisherUUID.equals(UUID.fromString("0-0-0-0-0")) && isPermanent() && message.contains("Overly Toxic");
     }
 
     /**
@@ -313,13 +315,13 @@ public class Punishment {
         else if ((isBan() || isMute()) && !hasExpiration())
             expiration = (long) 3.154e+12 + System.currentTimeMillis();
 
-//        //message check
-//        if (isCustom() && !hasMessage())
-//            message = "No Reason Given";
+        //message check
+        if (!hasMessage())
+            message = "No Reason Given";
     }
 
     /**
-     * This will set the issue dat of the punishment to the current date & time in the local timezone.
+     * This will set the issue date of the punishment to the current date & time in the local timezone.
      * This can only be set once and will throw an error and make no change if you try to set it again.
      * When you set it twice this method will throw a {@link PunishmentIssueException} telling you that
      * you cannot set the issue date more than once. To make sure that things still run smoothly it will
@@ -412,7 +414,7 @@ public class Punishment {
                 .append("\nId: ").color(ChatColor.RED).append("#" + id).color(ChatColor.WHITE)
                 .append("\nPunished By: ").color(ChatColor.RED).append(NameFetcher.getName(punisherUUID)).color(ChatColor.WHITE)
                 .append("\nDate: ").color(ChatColor.RED).append(getIssueDate()).color(ChatColor.WHITE)
-                .append("\nReason: ").color(ChatColor.RED).append(reason.toString().replace("_", " ")).color(ChatColor.WHITE);
+                .append("\nReason: ").color(ChatColor.RED).append(reason).color(ChatColor.WHITE);
 
         if (isBan() || isMute()) {
             String timeLeftRaw = punishmentManager.getTimeLeftRaw(this);
@@ -426,10 +428,7 @@ public class Punishment {
         if (hasMessage())
             text.append("\nMessage: ").color(ChatColor.RED).append(message).color(ChatColor.WHITE);
         if (!isActive() && removerUUID != null) {
-            if (removerUUID.equals("CONSOLE"))
-                text.append("\nRemoved by: ").color(ChatColor.RED).append("CONSOLE").color(ChatColor.WHITE);
-            else
-                text.append("\nRemoved by: ").color(ChatColor.RED).append(NameFetcher.getName(removerUUID)).color(ChatColor.WHITE);
+            text.append("\nRemoved by: ").color(ChatColor.RED).append(NameFetcher.getName(removerUUID)).color(ChatColor.WHITE);
         }
         return text;
     }
