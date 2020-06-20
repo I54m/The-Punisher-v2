@@ -9,10 +9,12 @@ import com.i54mpenguin.punisher.chats.AdminChat;
 import com.i54mpenguin.punisher.chats.StaffChat;
 import com.i54mpenguin.punisher.commands.*;
 import com.i54mpenguin.punisher.listeners.*;
-import com.i54mpenguin.punisher.managers.storage.DatabaseManager;
 import com.i54mpenguin.punisher.managers.PlayerDataManager;
 import com.i54mpenguin.punisher.managers.PunishmentManager;
 import com.i54mpenguin.punisher.managers.WorkerManager;
+import com.i54mpenguin.punisher.managers.storage.DatabaseManager;
+import com.i54mpenguin.punisher.managers.storage.FlatFileManager;
+import com.i54mpenguin.punisher.managers.storage.StorageManager;
 import com.i54mpenguin.punisher.objects.gui.ConfirmationGUI;
 import com.i54mpenguin.punisher.objects.gui.punishgui.LevelOne;
 import com.i54mpenguin.punisher.objects.gui.punishgui.LevelThree;
@@ -66,6 +68,8 @@ public class PunisherPlugin extends Plugin {
     private final DatabaseManager dbManager = DatabaseManager.getINSTANCE();
     private final WorkerManager workerManager = WorkerManager.getINSTANCE();
     private final PlayerDataManager playerDataManager = PlayerDataManager.getINSTANCE();
+    @Getter(AccessLevel.PUBLIC)
+    private StorageManager storageManager;
 
     /*
      * Config variables
@@ -237,12 +241,33 @@ public class PunisherPlugin extends Plugin {
 //            if (config.getBoolean("DiscordIntegration.Enabled"))
 //                DiscordMain.startBot();
 
-            //start player data manager
+            //start selected storage manager, this must be started first to allow other managers to save and load data correctly
+            getLogger().info(prefix + ChatColor.GREEN + "Starting Storage Manager...");
+            switch (config.getString("Storage-Type").toUpperCase()){
+                case "FLAT_FILE": {
+                    storageManager = FlatFileManager.getINSTANCE();
+                    break;
+                }
+                case "SQLITE": {
+                    //sqlite storage manager
+                    break;
+                }
+                case "MY_SQL": {
+                    //mysql storage manager
+                    break;
+                }
+                default: {
+                    throw new IllegalArgumentException(config.getString("Storage-Type") + " is not a supported storage type, choices are: FLAT_FILE, SQLITE or MY_SQL!");
+                }
+            }
+            storageManager.start();
+            //start player data manager, this must be started next as the punishment manager and reputation manager both rely on data from this
             getLogger().info(prefix + ChatColor.GREEN + "Starting Player Data Manager...");
             playerDataManager.start();
-            //start database manager
-            getLogger().info(prefix + ChatColor.GREEN + "Starting Database Manager...");
-            dbManager.start();
+            //start reputation manager
+            //repmanager.start();
+            //start punishment manager
+            //punManager.start();
             //start worker manager
             //this should be started last so that other managers don't start doing operations with workers when the plugin has not fully loaded
             getLogger().info(prefix + ChatColor.GREEN + "Starting Worker Manager...");
@@ -280,7 +305,7 @@ public class PunisherPlugin extends Plugin {
                 workerManager.stop();
             if (playerDataManager.isStarted())
                 playerDataManager.stop();
-            dbManager.stop();
+            storageManager.stop();
 //            DiscordMain.shutdown();
             File latestLogs = new File(getDataFolder() + "/logs/latest.log");
             if (latestLogs.length() != 0) {
