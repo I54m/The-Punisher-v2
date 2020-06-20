@@ -25,10 +25,7 @@ import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 public class PunishmentManager {
 
@@ -41,7 +38,7 @@ public class PunishmentManager {
     private static final PunishmentManager INSTANCE = new PunishmentManager();
     private PunishmentManager() {}
 
-    private final ArrayList<String> locked = new ArrayList<>();
+    private final ArrayList<UUID> locked = new ArrayList<>();
     private final Map<String, Integer> PendingPunishments = new HashMap<>();
 
     // TODO: 16/03/2020 maybe add a start and stop method here so we don't end up doing punishments when other managers are stopped
@@ -103,7 +100,7 @@ public class PunishmentManager {
             }
         }
 
-        if (locked.contains(targetuuid)) {
+        if (isLocked(targetuuid)) {
             if (player != null)
                 player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Punishing " + targetname + " is currently locked! Please try again later!").color(ChatColor.RED).create());
             return;
@@ -676,12 +673,12 @@ public class PunishmentManager {
         return null;
     }
 
-    public void lock(String targetuuid) {
-        if (!locked.contains(targetuuid))
+    public void lock(UUID targetuuid) {
+        if (!isLocked(targetuuid))
             locked.add(targetuuid);
     }
 
-    public void unlock(String targetuuid) {
+    public void unlock(UUID targetuuid) {
         locked.remove(targetuuid);
     }
 
@@ -755,24 +752,14 @@ public class PunishmentManager {
             return "Expires in: " + timeLeftRaw;
     }
 
-    public int getNextid() {
-        return dbManager.PunishmentCache.isEmpty() ? 1 : dbManager.PunishmentCache.size() + 1;
+    public boolean isLocked(UUID targetUUID) {
+        return locked.contains(targetUUID);
     }
 
-    public void NewPunishment(@NotNull Punishment punishment) {
-        String message = punishment.getMessage();
-        if (message.contains("%sinquo%"))
-            message = message.replaceAll("%sinquo%", "'");
-        if (message.contains("%dubquo%"))
-            message = message.replaceAll("%dubquo%", "\"");
-        if (message.contains("%bcktck%"))
-            message = message.replaceAll("%bcktck%", "`");
-        punishment.setMessage(message);
-        if (locked.contains(punishment.getTargetUUID()))
-            punishment.setStatus(Punishment.Status.Overridden);
-        if (!dbManager.PunishmentCache.containsKey(punishment.getId()) && !locked.contains(punishment.getTargetUUID()))
-            dbManager.PunishmentCache.put(punishment.getId(), punishment);
+    @Nullable
+    public Punishment override(@NotNull Punishment punishment1, @NotNull Punishment punishment2) {
+        if (punishment1.getType() != punishment2.getType()) return null;
+        if (Permissions.higher(punishment1.getPunisherUUID(), punishment2.getPunisherUUID())) return punishment1;
+        else return punishment2;
     }
-
-
 }
