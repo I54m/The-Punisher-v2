@@ -21,50 +21,20 @@ public class Permissions {
 
     private static LuckPerms LUCKPERMS_API;
 
-    public static void init(){
+    public static void init() {
 //        try {
 //            Class.forName("org.bukkit.Bukkit");
 //            //bukkit
 //            LUCKPERMS_API = PunisherBukkit.getInstance().luckPermsHook.getApi();
 //        } catch (ClassNotFoundException cnfe){
-            //bungeecord
-            LUCKPERMS_API = PunisherPlugin.getInstance().getLuckPermsHook().getApi();
+        //bungeecord
+        LUCKPERMS_API = PunisherPlugin.getInstance().getLuckPermsHook().getApi();
 //        }
     }
 
-    public static boolean higher(ProxiedPlayer player, String targetuuid) throws IllegalArgumentException {
-        User user = LUCKPERMS_API.getUserManager().getUser(UUIDFetcher.formatUUID(targetuuid));
-        if (user == null) {
-            UserFetcher userFetcher = new UserFetcher();
-            UUID formattedUUID = UUIDFetcher.formatUUID(targetuuid);
-            userFetcher.setUuid(formattedUUID);
-            ExecutorService executorService = Executors.newSingleThreadExecutor();
-            Future<User> userFuture = executorService.submit(userFetcher);
-            try {
-                user = userFuture.get(500, TimeUnit.MILLISECONDS);
-            }catch (Exception e){
-                try {
-                    throw new DataFecthException("User instance required for punishment level checking", player.getName(), "User Instance", Permissions.class.getName(), e);
-                }catch (DataFecthException dfe){
-                    ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
-                    errorHandler.log(dfe);
-                }
-                user = null;
-            }
-            executorService.shutdown();
-            if(user == null) throw new IllegalArgumentException("User instance cannot be null!!");
-        }
-        ContextManager cm = LUCKPERMS_API.getContextManager();
-        QueryOptions queryOptions = cm.getQueryOptions(user).orElse(cm.getStaticQueryOptions());
-        CachedPermissionData permissionData = user.getCachedData().getPermissionData(queryOptions);
-        int playerlevel = 0;
-        int targetlevel = 0;
-        for (int i = 0; i <= 3; i++){
-            if (player.hasPermission("punisher.punish.level." + i))
-                playerlevel = i;
-            if (permissionData.checkPermission("punisher.punish.level." + i).asBoolean())
-                targetlevel = i;
-        }
+    public static boolean higher(ProxiedPlayer player, UUID targetuuid) throws IllegalArgumentException {
+        int playerlevel = getPermissionLvl(player);
+        int targetlevel = getPermissionLvl(getUser(targetuuid));
         if (player.hasPermission("punisher.bypass") && playerlevel <= targetlevel)
             return true;
         return playerlevel > targetlevel;
@@ -97,7 +67,7 @@ public class Permissions {
 //        return playerlevel;
 //    }
 
-    public static int getPermissionLvl(ProxiedPlayer player){
+    public static int getPermissionLvl(ProxiedPlayer player) {
         int playerlevel = 0;
         for (int i = 0; i <= 3; i++) {
             if (player.hasPermission("punisher.punish.level." + i))
@@ -106,8 +76,19 @@ public class Permissions {
         return playerlevel;
     }
 
+    public static int getPermissionLvl(User user) {
+        ContextManager cm = LUCKPERMS_API.getContextManager();
+        QueryOptions queryOptions = cm.getQueryOptions(user).orElse(cm.getStaticQueryOptions());
+        CachedPermissionData permissionData = user.getCachedData().getPermissionData(queryOptions);
+        int playerlevel = 0;
+        for (int i = 0; i <= 3; i++) {
+            if (permissionData.checkPermission("punisher.punish.level." + i).asBoolean())
+                playerlevel = i;
+        }
+        return playerlevel;
+    }
 
-    public static String getPrefix(UUID targetUUID){
+    public static String getPrefix(UUID targetUUID) {
         User user = LUCKPERMS_API.getUserManager().getUser(targetUUID);
         if (user == null) {
             UserFetcher userFetcher = new UserFetcher();
@@ -116,10 +97,10 @@ public class Permissions {
             Future<User> userFuture = executorService.submit(userFetcher);
             try {
                 user = userFuture.get(500, TimeUnit.MILLISECONDS);
-            }catch (Exception e){
+            } catch (Exception e) {
                 try {
                     throw new DataFecthException("User prefix required for chat message to avoid issues the prefix was set to \"\"", targetUUID.toString(), "User Instance", StaffChat.class.getName(), e);
-                }catch (DataFecthException dfe){
+                } catch (DataFecthException dfe) {
                     ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
                     errorHandler.log(dfe);
                 }
@@ -131,12 +112,48 @@ public class Permissions {
     }
 
 
-    public static String getPrefix(User user){
+    public static String getPrefix(User user) {
         if (user != null) {
             ContextManager cm = LUCKPERMS_API.getContextManager();
             QueryOptions queryOptions = cm.getQueryOptions(user).orElse(cm.getStaticQueryOptions());
             return user.getCachedData().getMetaData(queryOptions).getPrefix() == null ? "" : user.getCachedData().getMetaData(queryOptions).getPrefix();
-        }else
+        } else
             return "";
+    }
+
+    public static boolean higher(UUID player1UUID, UUID player2UUID) {
+        User user1 = getUser(player1UUID);
+        ContextManager cm = LUCKPERMS_API.getContextManager();
+        QueryOptions queryOptions1 = cm.getQueryOptions(user1).orElse(cm.getStaticQueryOptions());
+        CachedPermissionData permissionData1 = user1.getCachedData().getPermissionData(queryOptions1);
+        int player1level = getPermissionLvl(user1);
+        int player2level = getPermissionLvl(getUser(player2UUID));
+        if (permissionData1.checkPermission("punisher.bypass").asBoolean() && player1level <= player2level)
+            return true;
+        return player1level > player2level;
+    }
+
+    public static User getUser(UUID uuid) {
+        User user = LUCKPERMS_API.getUserManager().getUser(uuid);
+        if (user == null) {
+            UserFetcher userFetcher = new UserFetcher();
+            userFetcher.setUuid(uuid);
+            ExecutorService executorService = Executors.newSingleThreadExecutor();
+            Future<User> userFuture = executorService.submit(userFetcher);
+            try {
+                user = userFuture.get(500, TimeUnit.MILLISECONDS);
+            } catch (Exception e) {
+                try {
+                    throw new DataFecthException("User instance required for punishment level checking", uuid.toString(), "User Instance", Permissions.class.getName(), e);
+                } catch (DataFecthException dfe) {
+                    ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
+                    errorHandler.log(dfe);
+                }
+                user = null;
+            }
+            executorService.shutdown();
+            if (user == null) throw new IllegalArgumentException("User instance cannot be null!!");
+        }
+        return user;
     }
 }
