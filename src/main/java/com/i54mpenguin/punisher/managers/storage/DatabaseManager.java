@@ -21,6 +21,7 @@ import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+@Deprecated
 public class DatabaseManager {
 
     private final PunisherPlugin plugin = PunisherPlugin.getInstance();
@@ -29,6 +30,7 @@ public class DatabaseManager {
     private final ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
 
     @Getter
+    @Deprecated
     private static final DatabaseManager INSTANCE = new DatabaseManager();
 
     private DatabaseManager() {
