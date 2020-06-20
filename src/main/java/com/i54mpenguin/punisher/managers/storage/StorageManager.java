@@ -43,6 +43,9 @@ public interface StorageManager {
     }
     void cache() throws PunishmentsDatabaseException;
     void dumpNew() throws PunishmentsDatabaseException;
+
+    void NewPunishment(@NotNull Punishment punishment);
+
     void updatePunishment(@NotNull Punishment punishment) throws PunishmentsDatabaseException;
 
     void createHistory(@NotNull UUID uuid) throws PunishmentsDatabaseException;
@@ -53,6 +56,8 @@ public interface StorageManager {
 
     void loadUser(@NotNull UUID uuid) throws PunishmentsDatabaseException;
 
+    Punishment getPunishmentFromId(int id) throws PunishmentsDatabaseException;
+
     int getOffences(@NotNull UUID targetUUID, @NotNull String reason) throws PunishmentsDatabaseException;
     TreeMap<Integer, Punishment> getHistory(@NotNull UUID uuid) throws PunishmentsDatabaseException;
     TreeMap<Integer, Punishment> getStaffHistory(@NotNull UUID uuid) throws PunishmentsDatabaseException;
@@ -62,4 +67,5 @@ public interface StorageManager {
     void updateAlts(@NotNull UUID uuid, @NotNull String ip) throws PunishmentsDatabaseException;
     void updateIpHist(@NotNull UUID uuid, @NotNull  String ip) throws PunishmentsDatabaseException;
 
+    int getNextID();
 }
