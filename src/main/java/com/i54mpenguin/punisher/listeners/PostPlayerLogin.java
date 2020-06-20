@@ -58,9 +58,9 @@ public class PostPlayerLogin implements Listener {
 
         workerManager.runWorker(new WorkerManager.Worker(() ->{
            //if stored name in namefetcher does not equal target name then recache the name
-            if (!NameFetcher.hasNameStored(fetcheduuid) || !NameFetcher.getStoredName(fetcheduuid).equals(targetName))
-                NameFetcher.storeName(fetcheduuid, targetName);
-            UUIDFetcher.updateStoredUUID(targetName, fetcheduuid);
+            if (!NameFetcher.hasNameStored(uuid) || !NameFetcher.getStoredName(uuid).equals(targetName))
+                NameFetcher.storeName(uuid, targetName);
+            UUIDFetcher.updateStoredUUID(targetName, uuid);
         }));
 
         try {
