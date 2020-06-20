@@ -261,6 +261,7 @@ public class PunisherPlugin extends Plugin {
                 }
             }
             storageManager.start();
+            storageManager.startCaching();
             //start player data manager, this must be started next as the punishment manager and reputation manager both rely on data from this
             getLogger().info(prefix + ChatColor.GREEN + "Starting Player Data Manager...");
             playerDataManager.start();
