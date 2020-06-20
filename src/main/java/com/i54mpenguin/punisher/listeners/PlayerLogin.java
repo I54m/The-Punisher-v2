@@ -46,6 +46,7 @@ public class PlayerLogin implements Listener {
                 PreparedStatement stmtip = dbManager.connection.prepareStatement(sqlip);
                 ResultSet resultsip = stmtip.executeQuery();
                 if (resultsip.next()) {
+                    //if their ip is not the old one then update all users with that ip to the new ip
                     if (!resultsip.getString("ip").equals(connection.getAddress().getAddress().getHostAddress())) {
                         String oldip = resultsip.getString("ip");
                         String sqlipadd = "UPDATE `altlist` SET `ip`='" + connection.getAddress().getAddress().getHostAddress() + "' WHERE `ip`='" + oldip + "' ;";
