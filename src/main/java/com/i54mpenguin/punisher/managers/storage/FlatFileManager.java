@@ -6,11 +6,13 @@ import com.i54mpenguin.punisher.handlers.ErrorHandler;
 import com.i54mpenguin.punisher.managers.WorkerManager;
 import com.i54mpenguin.punisher.objects.ActivePunishments;
 import com.i54mpenguin.punisher.objects.Punishment;
+import com.i54mpenguin.punisher.utils.UUIDFetcher;
 import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.scheduler.ScheduledTask;
 import net.md_5.bungee.config.Configuration;
+import net.md_5.bungee.config.ConfigurationProvider;
 import net.md_5.bungee.config.YamlConfiguration;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,6 +34,7 @@ public class FlatFileManager implements StorageManager {
     private final File staffHistoryDir = new File(PLUGIN.getDataFolder() + "/data/staffhistory/");
     private final File iphistDir = new File(PLUGIN.getDataFolder() + "/data/iphist/");
     private final File altsDir = new File(PLUGIN.getDataFolder() + "/data/alts/");
+    private final ConfigurationProvider yamlProvider = YamlConfiguration.getProvider(YamlConfiguration.class);
     private Configuration mainDataConfig;
 
     private ScheduledTask cacheTask = null;
@@ -49,13 +52,14 @@ public class FlatFileManager implements StorageManager {
 
     @Override
     public void start() throws Exception {
-        locked = false;
         setupStorage();
+        locked = false;
     }
 
     @Override
     public void stop() {
         locked = true;
+        cacheTask.cancel();
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
@@ -85,7 +89,7 @@ public class FlatFileManager implements StorageManager {
         File mainDataFile = new File(dataDir, "mainData.yml");
         if (!mainDataFile.exists())
             mainDataFile.createNewFile();
-        mainDataConfig = YamlConfiguration.getProvider(YamlConfiguration.class).load(mainDataFile);
+        mainDataConfig = yamlProvider.load(mainDataFile);
         if (mainDataFile.length() <= 0) {
             mainDataConfig.set("lastPunishmentId", 0);
             saveMainDataConfig();
@@ -159,6 +163,36 @@ public class FlatFileManager implements StorageManager {
     }
 
     @Override
+    public int getNextID() {
+        lastPunishmentId++;
+        mainDataConfig.set("lastPunishmentId", lastPunishmentId);
+        saveMainDataConfig();
+        return lastPunishmentId;
+    }
+
+    @Override
+    public void NewPunishment(@NotNull Punishment punishment) {
+        String message = punishment.getMessage();
+        if (message.contains("%sinquo%"))
+            message = message.replaceAll("%sinquo%", "'");
+        if (message.contains("%dubquo%"))
+            message = message.replaceAll("%dubquo%", "\"");
+        if (message.contains("%bcktck%"))
+            message = message.replaceAll("%bcktck%", "`");
+        punishment.setMessage(message);
+        if (PUNISHMENT_MANAGER.isLocked(punishment.getTargetUUID()))
+            punishment.setStatus(Punishment.Status.Overridden);
+        if (!PUNISHMENT_CACHE.containsKey(punishment.getId()))
+            PUNISHMENT_CACHE.put(punishment.getId(), punishment);
+        try {
+            updatePunishment(punishment);
+        } catch (PunishmentsDatabaseException pde) {
+            ERROR_HANDLER.log(pde);
+            ERROR_HANDLER.adminChatAlert(pde, PLUGIN.getProxy().getConsole());
+        }
+    }
+
+    @Override
     public void updatePunishment(@NotNull Punishment punishment) throws PunishmentsDatabaseException {
         if (locked) {
             ErrorHandler.getINSTANCE().log(new ManagerNotStartedException(this.getClass()));
@@ -168,7 +202,7 @@ public class FlatFileManager implements StorageManager {
             File file = new File(punishmentsDir, punishment.getId() + ".yml");
             if (!file.exists())
                 file.createNewFile();
-            Configuration config = YamlConfiguration.getProvider(YamlConfiguration.class).load(file);
+            Configuration config = yamlProvider.load(file);
             config.set("id", punishment.getId());
             config.set("type", punishment.getType().toString());
             config.set("reason", punishment.getReason());
@@ -180,7 +214,7 @@ public class FlatFileManager implements StorageManager {
             config.set("message", punishment.getMessage());
             config.set("status", punishment.getStatus());
             config.set("removerUUID", punishment.getRemoverUUID());
-            YamlConfiguration.getProvider(YamlConfiguration.class).save(config, file);
+            yamlProvider.save(config, file);
         } catch (Exception e) {
             throw new PunishmentsDatabaseException("Updating Punishment: " + punishment.toString(), "CONSOLE", this.getClass().getName(), e);
         }
@@ -197,12 +231,12 @@ public class FlatFileManager implements StorageManager {
             File file = new File(historyDir, uuid.toString() + ".yml");
             if (file.exists()) return;
             file.createNewFile();
-            Configuration config = YamlConfiguration.getProvider(YamlConfiguration.class).load(file);
+            Configuration config = yamlProvider.load(file);
             for (String reason : PUNISHMENT_REASONS.keySet()) {
                 config.set(reason, 0);
             }
             config.set("Punishments", new ArrayList<Integer>());
-            YamlConfiguration.getProvider(YamlConfiguration.class).save(config, file);
+            yamlProvider.save(config, file);
         } catch (Exception e) {
             throw new PunishmentsDatabaseException("Creating History for: " + uuid.toString(), "CONSOLE", this.getClass().getName(), e);
         }
@@ -218,12 +252,12 @@ public class FlatFileManager implements StorageManager {
             File file = new File(staffHistoryDir, uuid.toString() + ".yml");
             if (file.exists()) return;
             file.createNewFile();
-            Configuration config = YamlConfiguration.getProvider(YamlConfiguration.class).load(file);
+            Configuration config = yamlProvider.load(file);
             for (String reason : PUNISHMENT_REASONS.keySet()) {
                 config.set(reason, 0);
             }
             config.set("Punishments", new ArrayList<Integer>());
-            YamlConfiguration.getProvider(YamlConfiguration.class).save(config, file);
+            yamlProvider.save(config, file);
         } catch (Exception e) {
             throw new PunishmentsDatabaseException("Creating Staff History for: " + uuid.toString(), "CONSOLE", this.getClass().getName(), e);
         }
@@ -239,13 +273,13 @@ public class FlatFileManager implements StorageManager {
             File file = new File(historyDir, punishment.getTargetUUID().toString() + ".yml");
             if (!file.exists())
                 createHistory(punishment.getTargetUUID());
-            Configuration config = YamlConfiguration.getProvider(YamlConfiguration.class).load(file);
+            Configuration config = yamlProvider.load(file);
             int incremented = config.getInt(punishment.getReason(), 0) + 1;
             if (incremented > PUNISHMENT_REASONS.get(punishment.getReason()))
                 incremented = PUNISHMENT_REASONS.get(punishment.getReason());
             config.set(punishment.getReason(), incremented);
             config.set("Punishments", config.getIntList("Punishments").add(punishment.getId()));
-            YamlConfiguration.getProvider(YamlConfiguration.class).save(config, file);
+            yamlProvider.save(config, file);
         } catch (Exception e) {
             throw new PunishmentsDatabaseException("Incrementing Staff History for: " + punishment.getTargetUUID().toString(), "CONSOLE", this.getClass().getName(), e);
         }
@@ -261,10 +295,10 @@ public class FlatFileManager implements StorageManager {
             File file = new File(staffHistoryDir, punishment.getPunisherUUID().toString() + ".yml");
             if (!file.exists())
                 createStaffHistory(punishment.getPunisherUUID());
-            Configuration config = YamlConfiguration.getProvider(YamlConfiguration.class).load(file);
+            Configuration config = yamlProvider.load(file);
             config.set(punishment.getReason(), (config.getInt(punishment.getReason(), 0) + 1));
             config.set("Punishments", config.getIntList("Punishments").add(punishment.getId()));
-            YamlConfiguration.getProvider(YamlConfiguration.class).save(config, file);
+            yamlProvider.save(config, file);
         } catch (Exception e) {
             throw new PunishmentsDatabaseException("Incrementing Staff History for: " + punishment.getPunisherUUID().toString(), "CONSOLE", this.getClass().getName(), e);
         }
@@ -285,12 +319,42 @@ public class FlatFileManager implements StorageManager {
     }
 
     private void loadPunishmentsFromFile(File file) throws Exception {
+        if (locked) {
+            ErrorHandler.getINSTANCE().log(new ManagerNotStartedException(this.getClass()));
+            return;
+        }
         if (!file.exists()) return;
-        Configuration config = YamlConfiguration.getProvider(YamlConfiguration.class).load(file);
+        Configuration config = yamlProvider.load(file);
         for (int punishmentIds : config.getIntList("Punishments")) {
-            File punishmentFile = new File(punishmentsDir, punishmentIds + ".yml");
-            Configuration punishmentsConfig = YamlConfiguration.getProvider(YamlConfiguration.class).load(punishmentFile);
-            Punishment punishment = new Punishment(
+            Punishment punishment = getPunishmentFromId(punishmentIds);
+            PUNISHMENT_CACHE.put(punishmentIds, punishment);
+            if (punishment.isActive()) {
+                UUID targetUUID = punishment.getTargetUUID();
+                ActivePunishments punishments;
+                if (ACTIVE_PUNISHMENT_CACHE.get(targetUUID) == null)
+                    punishments = new ActivePunishments();
+                else
+                    punishments = ACTIVE_PUNISHMENT_CACHE.get(targetUUID);
+
+                if (punishment.isBan() && !punishments.banActive())
+                    punishments.setBan(punishment);
+                else if (punishment.isBan() && punishments.banActive())
+                    punishments.setBan(PUNISHMENT_MANAGER.override(punishment, punishments.getBan()));
+                if (punishment.isMute() && !punishments.muteActive())
+                    punishments.setMute(punishment);
+                else if (punishment.isMute() && punishments.muteActive())
+                    punishments.setMute(PUNISHMENT_MANAGER.override(punishment, punishments.getMute()));
+                ACTIVE_PUNISHMENT_CACHE.put(targetUUID, punishments);
+            }
+        }
+    }
+
+    @Override
+    public Punishment getPunishmentFromId(int id) throws PunishmentsDatabaseException {
+        try {
+            File punishmentFile = new File(punishmentsDir, id + ".yml");
+            Configuration punishmentsConfig = yamlProvider.load(punishmentFile);
+            return new Punishment(
                     punishmentsConfig.getInt("id"),
                     Punishment.Type.valueOf(punishmentsConfig.getString("type")),
                     punishmentsConfig.getString("reason"),
@@ -302,22 +366,8 @@ public class FlatFileManager implements StorageManager {
                     punishmentsConfig.getString("message"),
                     Punishment.Status.valueOf(punishmentsConfig.getString("status")),
                     punishmentsConfig.getString("removerUUID") != null ? UUID.fromString(punishmentsConfig.getString("removerUUID")) : null);
-            PUNISHMENT_CACHE.put(punishmentIds, punishment);
-            if (punishment.isActive()) {
-                UUID targetUUID = punishment.getTargetUUID();
-                ActivePunishments punishments;
-                if (ACTIVE_PUNISHMENT_CACHE.get(targetUUID) == null)
-                    punishments = new ActivePunishments();
-                else
-                    punishments = ACTIVE_PUNISHMENT_CACHE.get(targetUUID);
-
-                if (punishment.getType() == Punishment.Type.BAN && !punishments.banActive())
-                    punishments.setBan(punishment);
-                else if (punishment.getType() == Punishment.Type.MUTE && !punishments.muteActive())
-                    punishments.setMute(punishment);
-
-                ACTIVE_PUNISHMENT_CACHE.put(targetUUID, punishments);
-            }
+        } catch (Exception e) {
+            throw new PunishmentsDatabaseException("Getting punishment from id: " + id, "CONSOLE", this.getClass().getName(), e);
         }
     }
 
@@ -327,7 +377,16 @@ public class FlatFileManager implements StorageManager {
             ErrorHandler.getINSTANCE().log(new ManagerNotStartedException(this.getClass()));
             return 0;
         }
-        return 0;
+        if (!PUNISHMENT_REASONS.containsKey(reason)) return 0;
+        try {
+            File file = new File(historyDir, targetUUID.toString() + ".yml");
+            if (!file.exists())
+                createHistory(targetUUID);
+            Configuration config = yamlProvider.load(file);
+            return config.getInt(reason, 0);
+        } catch (Exception e){
+            throw new PunishmentsDatabaseException("Getting offences on user: " + targetUUID, "CONSOLE", this.getClass().getName(), e);
+        }
     }
 
     @Override
@@ -336,7 +395,17 @@ public class FlatFileManager implements StorageManager {
             ErrorHandler.getINSTANCE().log(new ManagerNotStartedException(this.getClass()));
             return null;
         }
-        return null;
+        try {
+            File file = new File(historyDir, uuid.toString() + ".yml");
+            Configuration config = yamlProvider.load(file);
+            TreeMap<Integer, Punishment> punishments = new TreeMap<>();
+            for (int id : config.getIntList("Punishments")){
+                punishments.put(id, getPunishmentFromId(id));
+            }
+            return punishments;
+        } catch (Exception e) {
+            throw new PunishmentsDatabaseException("Getting history on user: " + uuid.toString(), "CONSOLE", this.getClass().getName(), e);
+        }
     }
 
     @Override
@@ -345,7 +414,17 @@ public class FlatFileManager implements StorageManager {
             ErrorHandler.getINSTANCE().log(new ManagerNotStartedException(this.getClass()));
             return null;
         }
-        return null;
+        try {
+            File file = new File(staffHistoryDir, uuid.toString() + ".yml");
+            Configuration config = yamlProvider.load(file);
+            TreeMap<Integer, Punishment> punishments = new TreeMap<>();
+            for (int id : config.getIntList("Punishments")){
+                punishments.put(id, getPunishmentFromId(id));
+            }
+            return punishments;
+        } catch (Exception e) {
+            throw new PunishmentsDatabaseException("Getting staff history on user: " + uuid.toString(), "CONSOLE", this.getClass().getName(), e);
+        }
     }
 
     @Override
@@ -354,7 +433,18 @@ public class FlatFileManager implements StorageManager {
             ErrorHandler.getINSTANCE().log(new ManagerNotStartedException(this.getClass()));
             return null;
         }
-        return null;
+        try {
+            File file = new File(altsDir, uuid.toString() + ".yml");
+            if (!file.exists()) return new ArrayList<>();
+            Configuration config = yamlProvider.load(file);
+            String ip = config.getString("ip");
+            file = new File(altsDir, ip + ".yml");
+            config = yamlProvider.load(file);
+            ArrayList<String> alts = new ArrayList<>(config.getStringList("alts"));
+            return UUIDFetcher.convertStringArray(alts);
+        } catch (Exception e) {
+            throw new PunishmentsDatabaseException("Getting alts on user: " + uuid.toString(), "CONSOLE", this.getClass().getName(), e);
+        }
     }
 
     @Override
@@ -363,16 +453,73 @@ public class FlatFileManager implements StorageManager {
             ErrorHandler.getINSTANCE().log(new ManagerNotStartedException(this.getClass()));
             return null;
         }
-        return null;
+        try {
+            File file = new File(iphistDir, uuid.toString() + ".yml");
+            if (!file.exists()) return new TreeMap<>();
+            Configuration config = yamlProvider.load(file).getSection("iphist");
+            TreeMap<Long, String> iphist = new TreeMap<>();
+            for (String key : config.getKeys()){
+                iphist.put(Long.parseLong(key), config.getString(key));
+            }
+            return iphist;
+        } catch (Exception e) {
+            throw new PunishmentsDatabaseException("Getting iphist on user: " + uuid.toString(), "CONSOLE", this.getClass().getName(), e);
+        }
     }
 
+    private final ArrayList<String> updatingIps = new ArrayList<>();
     @Override
-    public void updateAlts(@NotNull UUID uuid, @NotNull String ip) throws PunishmentsDatabaseException {
+    public void updateAlts(@NotNull final UUID uuid, @NotNull final String ip) throws PunishmentsDatabaseException {
         if (locked) {
             ErrorHandler.getINSTANCE().log(new ManagerNotStartedException(this.getClass()));
             return;
         }
+        try {
+            //get old ip
+            File file = new File(altsDir, uuid.toString() + ".yml");
+            Configuration config = yamlProvider.load(file);
 
+            //if they have an old ip then remove them from being associated with that ip and update alts for all users associated with that ip if not already updating that ip
+            String oldip = config.getString("ip");
+            if (oldip != null) {
+                File oldipFile = new File(altsDir, oldip + ".yml");
+                Configuration oldipConfig = yamlProvider.load(oldipFile);
+                final ArrayList<String> oldalts = new ArrayList<>(oldipConfig.getStringList("alts"));
+                oldalts.remove(uuid.toString());
+                oldipConfig.set("alts", oldalts);
+                yamlProvider.save(oldipConfig, oldipFile);
+                if (!updatingIps.contains(ip)) {
+                    updatingIps.add(ip);
+                    WORKER_MANAGER.runWorker(new WorkerManager.Worker(() -> {
+                        for (UUID oldalt : UUIDFetcher.convertStringArray(oldalts)) {
+                            try {
+                                updateAlts(oldalt, ip);
+                            } catch (PunishmentsDatabaseException pde) {
+                                ERROR_HANDLER.log(pde);
+                            }
+                        }
+                        updatingIps.remove(ip);
+                    }));
+                }
+            }
+
+            //set new ip in their data file
+            if (!file.exists()) file.createNewFile();
+            config = yamlProvider.load(file);
+            config.set("ip", ip);
+            yamlProvider.save(config, file);
+
+            //add them to the list of accounts associated with the new ip
+            file = new File(altsDir, ip + ".yml");
+            if (!file.exists()) file.createNewFile();
+            config = yamlProvider.load(file);
+            ArrayList<String> alts = new ArrayList<>(config.getStringList("alts"));
+            alts.add(uuid.toString());
+            config.set("alts", alts);
+            yamlProvider.save(config, file);
+        } catch (Exception e) {
+            throw new PunishmentsDatabaseException("Updating alts on user: " + uuid.toString(), "CONSOLE", this.getClass().getName(), e);
+        }
     }
 
     @Override
@@ -381,12 +528,20 @@ public class FlatFileManager implements StorageManager {
             ErrorHandler.getINSTANCE().log(new ManagerNotStartedException(this.getClass()));
             return;
         }
-
+        try {
+            File file = new File(iphistDir, uuid.toString() + ".yml");
+            if (!file.exists()) file.createNewFile();
+            Configuration config = yamlProvider.load(file);
+            config.set("iphist." + System.currentTimeMillis(), ip);
+            yamlProvider.save(config, file);
+        } catch (Exception e) {
+            throw new PunishmentsDatabaseException("Updating iphist on user: " + uuid.toString(), "CONSOLE", this.getClass().getName(), e);
+        }
     }
 
     private void saveMainDataConfig() {
         try {
-            YamlConfiguration.getProvider(YamlConfiguration.class).save(mainDataConfig, new File(dataDir, "mainData.yml"));
+            yamlProvider.save(mainDataConfig, new File(dataDir, "mainData.yml"));
         } catch (IOException ioe) {
             ioe.printStackTrace();
         }
