@@ -6,6 +6,7 @@ import com.i54mpenguin.punisher.handlers.ErrorHandler;
 import com.i54mpenguin.punisher.managers.PunishmentManager;
 import com.i54mpenguin.punisher.managers.storage.StorageManager;
 import com.i54mpenguin.punisher.utils.NameFetcher;
+import com.i54mpenguin.punisher.utils.UUIDFetcher;
 import lombok.Getter;
 import lombok.ToString;
 import net.md_5.bungee.api.ChatColor;
@@ -183,7 +184,7 @@ public class Punishment {
      * @return true if the punishment is a permanent ban that was made by console and contains the message "Overly Toxic", these are the main signs of a reputation ban.
      */
     public boolean isRepBan() {
-        return isBan() && punisherUUID.equals(UUID.fromString("0-0-0-0-0")) && isPermanent() && message.contains("Overly Toxic");
+        return isBan() && punisherUUID.equals(UUIDFetcher.getBLANK_UUID()) && isPermanent() && message.contains("Overly Toxic");
     }
 
     /**
@@ -307,7 +308,7 @@ public class Punishment {
 
         //punisher uuid check
         if (punisherUUID == null)
-            punisherUUID = UUID.fromString("0-0-0-0-0");
+            punisherUUID = UUIDFetcher.getBLANK_UUID();
 
         //expiration check
         if (isWarn() || isKick() || isTest())

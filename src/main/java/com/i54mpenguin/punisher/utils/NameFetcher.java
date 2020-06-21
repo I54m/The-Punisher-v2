@@ -22,7 +22,7 @@ public class NameFetcher {
     }
 
     public static String getName(UUID uuid) {
-        if (uuid.equals(UUID.fromString("0-0-0-0-0")))
+        if (uuid.equals(UUIDFetcher.getBLANK_UUID()))
             return "CONSOLE";
         if (NAMES.containsKey(uuid))
             return NAMES.get(uuid);

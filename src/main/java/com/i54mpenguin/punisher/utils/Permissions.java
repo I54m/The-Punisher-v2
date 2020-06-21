@@ -33,8 +33,8 @@ public class Permissions {
     }
 
     public static boolean higher(ProxiedPlayer player, UUID targetuuid) throws IllegalArgumentException {
-        if (player.getUniqueId().equals(UUID.fromString("0-0-0-0-0"))) return true;
-        else if (targetuuid.equals(UUID.fromString("0-0-0-0-0"))) return false;
+        if (player.getUniqueId().equals(UUIDFetcher.getBLANK_UUID())) return true;
+        else if (targetuuid.equals(UUIDFetcher.getBLANK_UUID())) return false;
         int playerlevel = getPermissionLvl(player);
         int targetlevel = getPermissionLvl(getUser(targetuuid));
         if (player.hasPermission("punisher.bypass") && playerlevel <= targetlevel)
@@ -124,8 +124,8 @@ public class Permissions {
     }
 
     public static boolean higher(UUID player1UUID, UUID player2UUID) {
-        if (player1UUID.equals(UUID.fromString("0-0-0-0-0"))) return true;
-        else if (player2UUID.equals(UUID.fromString("0-0-0-0-0"))) return false;
+        if (player1UUID.equals(UUIDFetcher.getBLANK_UUID())) return true;
+        else if (player2UUID.equals(UUIDFetcher.getBLANK_UUID())) return false;
         User user1 = getUser(player1UUID);
         ContextManager cm = LUCKPERMS_API.getContextManager();
         QueryOptions queryOptions1 = cm.getQueryOptions(user1).orElse(cm.getStaticQueryOptions());
