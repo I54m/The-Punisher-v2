@@ -2,63 +2,58 @@ package com.i54mpenguin.punisher.managers;
 
 import com.i54mpenguin.punisher.PunisherPlugin;
 import com.i54mpenguin.punisher.exceptions.ManagerNotStartedException;
-import com.i54mpenguin.punisher.handlers.ErrorHandler;
+import com.i54mpenguin.punisher.exceptions.WorkerException;
 import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
 
 import java.util.ArrayList;
 
-public class WorkerManager {
+public class WorkerManager implements Manager {
 
     @Getter
     private static final WorkerManager INSTANCE = new WorkerManager();
     private final ArrayList<Worker> workers = new ArrayList<>();
     private boolean locked = true;
     private Thread mainThread;
-    private final PunisherPlugin plugin = PunisherPlugin.getInstance();
 
     private WorkerManager() {
     }
 
+    @Override
     public synchronized void start() {
-        try {
-            if (!locked)
-                throw new Exception("Worker Manager Already started!");
-        } catch (Exception e) {
-            // TODO: 11/06/2020 need to handle this error
-            e.printStackTrace();
+        if (!locked) {
+            ERROR_HANDLER.log(new Exception("Worker Manager Already started!"));
             return;
         }
         mainThread = Thread.currentThread();
         locked = false;
-        plugin.getLogger().info(plugin.getPrefix() + ChatColor.GREEN + "Started Worker Manager!");
+        PLUGIN.getLogger().info(PLUGIN.getPrefix() + ChatColor.GREEN + "Started Worker Manager!");
     }
 
+    @Override
     public boolean isStarted() {
         return !locked;
     }
 
+    @Override
     public synchronized void stop() {
-        try {
-            if (locked)
-                throw new ManagerNotStartedException(this.getClass());
-        } catch (ManagerNotStartedException mnse) {
-            ErrorHandler.getINSTANCE().log(mnse);
+        if (locked) {
+            ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
             return;
         }
         locked = true;
         try {
-            if (!workers.isEmpty()){
-                plugin.getLogger().info(plugin.getPrefix() + ChatColor.GREEN + "Pausing main thread while workers finish up!");
+            if (!workers.isEmpty()) {
+                PLUGIN.getLogger().info(PLUGIN.getPrefix() + ChatColor.GREEN + "Pausing main thread while workers finish up!");
                 mainThread.wait();
             }
         } catch (InterruptedException e) {
-            plugin.getLogger().severe(plugin.getPrefix() + ChatColor.RED + "Error: main thread was interrupted while waiting for workers to finish!");
-            plugin.getLogger().severe(plugin.getPrefix() + ChatColor.RED + "Interrupting workers, this may cause data loss!!");
+            PLUGIN.getLogger().severe(PLUGIN.getPrefix() + ChatColor.RED + "Error: main thread was interrupted while waiting for workers to finish!");
+            PLUGIN.getLogger().severe(PLUGIN.getPrefix() + ChatColor.RED + "Interrupting workers, this may cause data loss!!");
             PunisherPlugin.getLOGS().severe("Error: main thread was interrupted while waiting for workers to finish!");
             PunisherPlugin.getLOGS().severe("Interrupting workers, this may cause data loss!!");
             for (Worker worker : workers) {
-                plugin.getLogger().severe(plugin.getPrefix() + ChatColor.RED + "Interrupting " + worker.getName());
+                PLUGIN.getLogger().severe(PLUGIN.getPrefix() + ChatColor.RED + "Interrupting " + worker.getName());
                 PunisherPlugin.getLOGS().severe("Interrupting " + worker.getName());
                 worker.interrupt();
             }
@@ -67,15 +62,12 @@ public class WorkerManager {
     }
 
     public synchronized void runWorker(Worker worker) {
-        try {
-            if (locked)
-                throw new ManagerNotStartedException(this.getClass());
-        } catch (ManagerNotStartedException mnse) {
-            ErrorHandler.getINSTANCE().log(mnse);
+        if (locked) {
+            ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
             return;
         }
-        worker.setName("The-Punisher - Worker Thread #" + (workers.isEmpty() ? 1 : workers.size() + 1));
         workers.add(worker);
+        worker.setName("The-Punisher - Worker Thread #" + workers.indexOf(worker));
         worker.start();
     }
 
@@ -102,8 +94,8 @@ public class WorkerManager {
             status = Status.WORKING;
             try {
                 runnable.run();
-            } catch (Exception e){
-                // TODO: 19/05/2020 error handler thread error
+            } catch (Exception e) {
+                ERROR_HANDLER.log(new WorkerException(e, this));
                 status = Status.FINISHED;
                 WorkerManager.getINSTANCE().finishedWorker(this);
             }

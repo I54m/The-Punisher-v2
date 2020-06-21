@@ -1,10 +1,9 @@
 package com.i54mpenguin.punisher.managers;
 
-import com.i54mpenguin.punisher.PunisherPlugin;
 import com.i54mpenguin.punisher.exceptions.ManagerNotStartedException;
-import com.i54mpenguin.punisher.handlers.ErrorHandler;
 import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.PlayerDisconnectEvent;
 import net.md_5.bungee.api.event.PreLoginEvent;
@@ -26,7 +25,8 @@ import java.util.*;
  * The PlayerDataManager handles all player data files and caches the required ones
  */
 @SuppressWarnings("ResultOfMethodCallIgnored")
-public class PlayerDataManager implements Listener {
+@NoArgsConstructor
+public class PlayerDataManager implements Listener, Manager {
 
     /**
      * Private manager instance with a getter method.
@@ -34,17 +34,13 @@ public class PlayerDataManager implements Listener {
     @Getter
     private static final PlayerDataManager INSTANCE = new PlayerDataManager();
     /**
-     * Main plugin instance.
-     */
-    private final PunisherPlugin plugin = PunisherPlugin.getInstance();
-    /**
      * Cache to keep all loaded player data configuration files.
      */
     private final Map<UUID, Configuration> playerDataCache = new HashMap<>();
     /**
      * The Main Data File to store joinids -> uuid conversion and other things needed globally.
      */
-    private final File mainDataFile = new File(plugin.getDataFolder() + "/playerdata/", "MainData.yml");
+    private final File mainDataFile = new File(PLUGIN.getDataFolder() + "/playerdata/", "MainData.yml");
     /**
      * Whether the manager is started or not,
      * true if the manager should be locked and no operations allowed, else false.
@@ -61,16 +57,11 @@ public class PlayerDataManager implements Listener {
     private Configuration mainDataConfig;
 
     /**
-     * Private manager constructor
-     */
-    private PlayerDataManager() {
-    }
-
-    /**
      * Whether the manager is started or not.
      *
      * @return true if the manager should be locked and no operations allowed, else false.
      */
+    @Override
     public boolean isStarted() {
         return !locked;
     }
@@ -78,13 +69,10 @@ public class PlayerDataManager implements Listener {
     /**
      * Used to start the PlayerDataManager and register it's listeners.
      */
+    @Override
     public void start() {
-        try {
-            if (!locked)
-                throw new Exception("Player Data Manager Already Started!");
-        } catch (Exception e) {
-            // TODO: 11/06/2020 need to handle this error
-            e.printStackTrace();
+        if (!locked) {
+            ERROR_HANDLER.log(new Exception("Player Data Manager Already started!"));
             return;
         }
         try {
@@ -98,23 +86,21 @@ public class PlayerDataManager implements Listener {
         } catch (IOException ioe) {
             ioe.printStackTrace();
         }
-        plugin.getProxy().getPluginManager().registerListener(plugin, this);
+        PLUGIN.getProxy().getPluginManager().registerListener(PLUGIN, this);
         locked = false;
     }
 
     /**
      * Used to stop the PlayerDataManager and register it's listeners.
      */
+    @Override
     public void stop() {
-        try {
-            if (locked)
-                throw new Exception("Player Data Manager Already Stopped!");
-        } catch (Exception e) {
-            e.printStackTrace();
+        if (locked) {
+            ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
             return;
         }
         saveMainDataConfig();
-        plugin.getProxy().getPluginManager().unregisterListener(this);
+        PLUGIN.getProxy().getPluginManager().unregisterListener(this);
         locked = true;
     }
 
@@ -192,11 +178,8 @@ public class PlayerDataManager implements Listener {
      * @return a configuration file of the stored data
      */
     public Configuration getPlayerData(ProxiedPlayer player) {
-        try {
-            if (locked)
-                throw new ManagerNotStartedException(this.getClass());
-        } catch (ManagerNotStartedException mnse) {
-            ErrorHandler.getINSTANCE().log(mnse);
+        if (locked) {
+            ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
             return null;
         }
         return getPlayerData(player.getUniqueId());
@@ -210,11 +193,8 @@ public class PlayerDataManager implements Listener {
      * @return a configuration file of the stored data
      */
     public Configuration getPlayerData(UUID uuid) {
-        try {
-            if (locked)
-                throw new ManagerNotStartedException(this.getClass());
-        } catch (ManagerNotStartedException mnse) {
-            ErrorHandler.getINSTANCE().log(mnse);
+        if (locked) {
+            ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
             return null;
         }
         if (isPlayerDataLoaded(uuid))
@@ -231,17 +211,14 @@ public class PlayerDataManager implements Listener {
      * @return a configuration file of the stored data
      */
     public Configuration loadPlayerData(UUID uuid) {
-        try {
-            if (locked)
-                throw new ManagerNotStartedException(this.getClass());
-        } catch (ManagerNotStartedException mnse) {
-            ErrorHandler.getINSTANCE().log(mnse);
+        if (locked) {
+            ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
             return null;
         }
         try {
             boolean newPlayer = false;
             if (isPlayerDataLoaded(uuid)) return getPlayerData(uuid);
-            File dataFile = new File(plugin.getDataFolder() + "/playerdata/", uuid.toString() + ".yml");
+            File dataFile = new File(PLUGIN.getDataFolder() + "/playerdata/", uuid.toString() + ".yml");
             if (!dataFile.exists()) {
                 dataFile.createNewFile();
                 newPlayer = true;
@@ -279,16 +256,13 @@ public class PlayerDataManager implements Listener {
      * @param uuid uuid of the player to get the data file of
      */
     public void savePlayerData(UUID uuid) {
-        try {
-            if (locked)
-                throw new ManagerNotStartedException(this.getClass());
-        } catch (ManagerNotStartedException mnse) {
-            ErrorHandler.getINSTANCE().log(mnse);
+        if (locked) {
+            ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
             return;
         }
         try {
             if (!isPlayerDataLoaded(uuid)) return;
-            File dataFile = new File(plugin.getDataFolder() + "/playerdata/", uuid.toString() + ".yml");
+            File dataFile = new File(PLUGIN.getDataFolder() + "/playerdata/", uuid.toString() + ".yml");
             if (!dataFile.exists()) {
                 dataFile.createNewFile();
                 return;
@@ -304,11 +278,8 @@ public class PlayerDataManager implements Listener {
      * @return true if the player's data config is loaded in the cache, false if the player's data config is not loaded in the cache
      */
     public boolean isPlayerDataLoaded(UUID uuid) {
-        try {
-            if (locked)
-                throw new ManagerNotStartedException(this.getClass());
-        } catch (ManagerNotStartedException mnse) {
-            ErrorHandler.getINSTANCE().log(mnse);
+        if (locked) {
+            ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
             return false;
         }
         return playerDataCache.containsKey(uuid);
