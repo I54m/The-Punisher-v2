@@ -2,7 +2,6 @@ package com.i54mpenguin.punisher.managers.storage;
 
 import com.i54mpenguin.punisher.exceptions.ManagerNotStartedException;
 import com.i54mpenguin.punisher.exceptions.PunishmentsDatabaseException;
-import com.i54mpenguin.punisher.handlers.ErrorHandler;
 import com.i54mpenguin.punisher.managers.WorkerManager;
 import com.i54mpenguin.punisher.objects.ActivePunishments;
 import com.i54mpenguin.punisher.objects.Punishment;
@@ -46,18 +45,32 @@ public class FlatFileManager implements StorageManager {
     private FlatFileManager() {
     }
 
+    @Override
     public boolean isStarted() {
         return !locked;
     }
 
     @Override
-    public void start() throws Exception {
-        setupStorage();
+    public void start() {
+        if (!locked) {
+            ERROR_HANDLER.log(new Exception("Flat File Manager Already started!"));
+            return;
+        }
+        try {
+            setupStorage();
+        } catch (Exception e) {
+            ERROR_HANDLER.log(e);
+            return;
+        }
         locked = false;
     }
 
     @Override
     public void stop() {
+        if (locked) {
+            ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
+            return;
+        }
         locked = true;
         cacheTask.cancel();
     }
@@ -65,11 +78,8 @@ public class FlatFileManager implements StorageManager {
     @SuppressWarnings("ResultOfMethodCallIgnored")
     @Override
     public void setupStorage() throws Exception {
-        try {
-            if (locked)
-                throw new ManagerNotStartedException(this.getClass());
-        } catch (ManagerNotStartedException mnse) {
-            ErrorHandler.getINSTANCE().log(mnse);
+        if (locked) {
+            ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
             return;
         }
         //create main directories
@@ -127,7 +137,7 @@ public class FlatFileManager implements StorageManager {
     @Override
     public void cache() throws PunishmentsDatabaseException {
         if (locked) {
-            ErrorHandler.getINSTANCE().log(new ManagerNotStartedException(this.getClass()));
+            ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
             return;
         }
         try {
@@ -143,7 +153,7 @@ public class FlatFileManager implements StorageManager {
     @Override
     public void dumpNew() throws PunishmentsDatabaseException {
         if (locked) {
-            ErrorHandler.getINSTANCE().log(new ManagerNotStartedException(this.getClass()));
+            ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
             return;
         }
         TreeMap<Integer, Punishment> PunishmentCache = new TreeMap<>(this.PUNISHMENT_CACHE);//to avoid concurrent modification exception if we happen to clear cache while looping over it (unlikely but could still happen)
@@ -195,7 +205,7 @@ public class FlatFileManager implements StorageManager {
     @Override
     public void updatePunishment(@NotNull Punishment punishment) throws PunishmentsDatabaseException {
         if (locked) {
-            ErrorHandler.getINSTANCE().log(new ManagerNotStartedException(this.getClass()));
+            ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
             return;
         }
         try {
@@ -224,7 +234,7 @@ public class FlatFileManager implements StorageManager {
     @Override
     public void createHistory(@NotNull UUID uuid) throws PunishmentsDatabaseException {
         if (locked) {
-            ErrorHandler.getINSTANCE().log(new ManagerNotStartedException(this.getClass()));
+            ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
             return;
         }
         try {
@@ -245,7 +255,7 @@ public class FlatFileManager implements StorageManager {
     @Override
     public void createStaffHistory(@NotNull UUID uuid) throws PunishmentsDatabaseException {
         if (locked) {
-            ErrorHandler.getINSTANCE().log(new ManagerNotStartedException(this.getClass()));
+            ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
             return;
         }
         try {
@@ -266,7 +276,7 @@ public class FlatFileManager implements StorageManager {
     @Override
     public void incrementHistory(@NotNull Punishment punishment) throws PunishmentsDatabaseException {
         if (locked) {
-            ErrorHandler.getINSTANCE().log(new ManagerNotStartedException(this.getClass()));
+            ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
             return;
         }
         try {
@@ -288,7 +298,7 @@ public class FlatFileManager implements StorageManager {
     @Override
     public void incrementStaffHistory(@NotNull Punishment punishment) throws PunishmentsDatabaseException {
         if (locked) {
-            ErrorHandler.getINSTANCE().log(new ManagerNotStartedException(this.getClass()));
+            ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
             return;
         }
         try {
@@ -307,7 +317,7 @@ public class FlatFileManager implements StorageManager {
     @Override
     public void loadUser(@NotNull UUID uuid) throws PunishmentsDatabaseException {
         if (locked) {
-            ErrorHandler.getINSTANCE().log(new ManagerNotStartedException(this.getClass()));
+            ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
             return;
         }
         try {
@@ -323,7 +333,7 @@ public class FlatFileManager implements StorageManager {
 
     private void loadPunishmentsFromFile(File file, boolean onlyLoadActive) throws Exception {
         if (locked) {
-            ErrorHandler.getINSTANCE().log(new ManagerNotStartedException(this.getClass()));
+            ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
             return;
         }
         if (!file.exists()) return;
@@ -379,7 +389,7 @@ public class FlatFileManager implements StorageManager {
     @Override
     public int getOffences(@NotNull UUID targetUUID, @NotNull String reason) throws PunishmentsDatabaseException {
         if (locked) {
-            ErrorHandler.getINSTANCE().log(new ManagerNotStartedException(this.getClass()));
+            ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
             return 0;
         }
         if (!PUNISHMENT_REASONS.containsKey(reason)) throw new IllegalArgumentException(reason + " is not a defined reason!!");
@@ -397,7 +407,7 @@ public class FlatFileManager implements StorageManager {
     @Override
     public TreeMap<Integer, Punishment> getHistory(@NotNull UUID uuid) throws PunishmentsDatabaseException {
         if (locked) {
-            ErrorHandler.getINSTANCE().log(new ManagerNotStartedException(this.getClass()));
+            ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
             return null;
         }
         try {
@@ -416,7 +426,7 @@ public class FlatFileManager implements StorageManager {
     @Override
     public TreeMap<Integer, Punishment> getStaffHistory(@NotNull UUID uuid) throws PunishmentsDatabaseException {
         if (locked) {
-            ErrorHandler.getINSTANCE().log(new ManagerNotStartedException(this.getClass()));
+            ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
             return null;
         }
         try {
@@ -435,7 +445,7 @@ public class FlatFileManager implements StorageManager {
     @Override
     public ArrayList<UUID> getAlts(@NotNull UUID uuid) throws PunishmentsDatabaseException {
         if (locked) {
-            ErrorHandler.getINSTANCE().log(new ManagerNotStartedException(this.getClass()));
+            ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
             return null;
         }
         try {
@@ -455,7 +465,7 @@ public class FlatFileManager implements StorageManager {
     @Override
     public TreeMap<Long, String> getIpHist(@NotNull UUID uuid) throws PunishmentsDatabaseException {
         if (locked) {
-            ErrorHandler.getINSTANCE().log(new ManagerNotStartedException(this.getClass()));
+            ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
             return null;
         }
         try {
@@ -476,7 +486,7 @@ public class FlatFileManager implements StorageManager {
     @Override
     public void updateAlts(@NotNull final UUID uuid, @NotNull final String ip) throws PunishmentsDatabaseException {
         if (locked) {
-            ErrorHandler.getINSTANCE().log(new ManagerNotStartedException(this.getClass()));
+            ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
             return;
         }
         try {
@@ -530,7 +540,7 @@ public class FlatFileManager implements StorageManager {
     @Override
     public void updateIpHist(@NotNull UUID uuid, @NotNull String ip) throws PunishmentsDatabaseException {
         if (locked) {
-            ErrorHandler.getINSTANCE().log(new ManagerNotStartedException(this.getClass()));
+            ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
             return;
         }
         try {
