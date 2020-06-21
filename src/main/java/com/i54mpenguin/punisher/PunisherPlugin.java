@@ -11,8 +11,8 @@ import com.i54mpenguin.punisher.commands.*;
 import com.i54mpenguin.punisher.listeners.*;
 import com.i54mpenguin.punisher.managers.PlayerDataManager;
 import com.i54mpenguin.punisher.managers.PunishmentManager;
+import com.i54mpenguin.punisher.managers.ReputationManager;
 import com.i54mpenguin.punisher.managers.WorkerManager;
-import com.i54mpenguin.punisher.managers.storage.DatabaseManager;
 import com.i54mpenguin.punisher.managers.storage.FlatFileManager;
 import com.i54mpenguin.punisher.managers.storage.StorageManager;
 import com.i54mpenguin.punisher.objects.gui.ConfirmationGUI;
@@ -64,12 +64,12 @@ public class PunisherPlugin extends Plugin {
     /*
      * Manager instances
      */
-    private final PunishmentManager punManager = PunishmentManager.getINSTANCE();
-    private final DatabaseManager dbManager = DatabaseManager.getINSTANCE();
-    private final WorkerManager workerManager = WorkerManager.getINSTANCE();
-    private final PlayerDataManager playerDataManager = PlayerDataManager.getINSTANCE();
     @Getter(AccessLevel.PUBLIC)
     private StorageManager storageManager;
+    private static final PlayerDataManager PLAYER_DATA_MANAGER = PlayerDataManager.getINSTANCE();
+    private static final ReputationManager REPUTATION_MANAGER = ReputationManager.getINSTANCE();
+    private static final PunishmentManager PUNISHMENT_MANAGER = PunishmentManager.getINSTANCE();
+    private static final WorkerManager WORKER_MANAGER = WorkerManager.getINSTANCE();
 
     /*
      * Config variables
@@ -203,31 +203,31 @@ public class PunisherPlugin extends Plugin {
                         getLogger().info(prefix + ChatColor.GREEN + "Could not check for update!");
                         isUpdate = false;
                     } else if (UpdateChecker.check("${project.version}")) {
-                        getLogger().warning(prefix + ChatColor.RED + "Update checker found an update, current version: " + this.getDescription().getVersion() + " latest version: " + UpdateChecker.getCurrentVersion());
-                        getLogger().warning(prefix + ChatColor.RED + "This update was released on: " + UpdateChecker.getRealeaseDate());
-                        getLogger().warning(prefix + ChatColor.RED + "This may fix some bugs and enhance features.");
-                        getLogger().warning(prefix + ChatColor.RED + "You will no longer receive support for this version!");
+                        getLogger().warning(ChatColor.RED + "Update checker found an update, current version: " + this.getDescription().getVersion() + " latest version: " + UpdateChecker.getCurrentVersion());
+                        getLogger().warning(ChatColor.RED + "This update was released on: " + UpdateChecker.getRealeaseDate());
+                        getLogger().warning(ChatColor.RED + "This may fix some bugs and enhance features.");
+                        getLogger().warning(ChatColor.RED + "You will no longer receive support for this version!");
                         LOGS.warning("Update checker found an update, current version: " + this.getDescription().getVersion() + " latest version: " + UpdateChecker.getCurrentVersion());
                         LOGS.warning("This update was released on: " + UpdateChecker.getRealeaseDate());
                         LOGS.warning("This may fix some bugs and enhance features.");
                         LOGS.warning("You will no longer receive support for this version!");
                         isUpdate = true;
                     } else {
-                        getLogger().info(prefix + ChatColor.GREEN + "Plugin is up to date!");
+                        getLogger().info(ChatColor.GREEN + "Plugin is up to date!");
                         isUpdate = false;
                     }
                 } catch (Exception e) {
                     getLogger().severe(ChatColor.RED + e.getMessage());
                 }
             } else if (this.getDescription().getVersion().contains("LEGACY")) {//if running a legacy version then alert user
-                getLogger().warning(prefix + ChatColor.GREEN + "You are running a LEGACY version of The Punisher");
-                getLogger().warning(prefix + ChatColor.GREEN + "This version is no longer updated with new features and ONLY MAJOR BUGS WILL BE FIXED!!");
-                getLogger().warning(prefix + ChatColor.GREEN + "It is recommended that you update to the latest version to have new features.");
-                getLogger().warning(prefix + ChatColor.GREEN + "Update checking is not needed in this version");
+                getLogger().warning(ChatColor.GREEN + "You are running a LEGACY version of The Punisher v2");
+                getLogger().warning(ChatColor.GREEN + "This version is no longer updated with new features and ONLY MAJOR BUGS WILL BE FIXED!!");
+                getLogger().warning(ChatColor.GREEN + "It is recommended that you update to the latest version to have new features.");
+                getLogger().warning(ChatColor.GREEN + "Update checking is not needed in this version");
                 isUpdate = false;
             } else {
-                getLogger().info(prefix + ChatColor.GREEN + "You are running an unofficial release version of The Punisher");
-                getLogger().info(prefix + ChatColor.GREEN + "Update checking is not needed in this version");
+                getLogger().info(ChatColor.GREEN + "You are running an unofficial release version of The Punisher v2");
+                getLogger().info(ChatColor.GREEN + "Update checking is not needed in this version");
                 isUpdate = false;
             }
 
@@ -242,7 +242,7 @@ public class PunisherPlugin extends Plugin {
 //                DiscordMain.startBot();
 
             //start selected storage manager, this must be started first to allow other managers to save and load data correctly
-            getLogger().info(prefix + ChatColor.GREEN + "Starting Storage Manager...");
+            getLogger().info(ChatColor.GREEN + "Starting Storage Manager...");
             switch (config.getString("Storage-Type").toUpperCase()){
                 case "FLAT_FILE": {
                     storageManager = FlatFileManager.getINSTANCE();
@@ -262,21 +262,20 @@ public class PunisherPlugin extends Plugin {
             }
             storageManager.start();
             storageManager.startCaching();
-            //start player data manager, this must be started next as the punishment manager and reputation manager both rely on data from this
-            getLogger().info(prefix + ChatColor.GREEN + "Starting Player Data Manager...");
-            playerDataManager.start();
-            //start reputation manager
-            //repmanager.start();
+            //start player data manager, this must be started next as the reputation manager depends on this for data
+            getLogger().info(ChatColor.GREEN + "Starting Player Data Manager...");
+            PLAYER_DATA_MANAGER.start();
+            //start reputation manager, this must be started before the punishment manager as the punishment manager depends on this to alter and fetch reputation
+            getLogger().info(ChatColor.GREEN + "Starting Reputation Manager...");
+            REPUTATION_MANAGER.start();
             //start punishment manager
+            getLogger().info(ChatColor.GREEN + "Starting Punishment Manager...");
             //punManager.start();
             //start worker manager
             //this should be started last so that other managers don't start doing operations with workers when the plugin has not fully loaded
-            getLogger().info(prefix + ChatColor.GREEN + "Starting Worker Manager...");
-            workerManager.start();
-
-
-
-
+            //as this could cause errors while the server is not fully started and a player joins
+            getLogger().info(ChatColor.GREEN + "Starting Worker Manager...");
+            WORKER_MANAGER.start();
 
             //plugin loading/enabling is now complete so we announce it
             setLoaded(true);
@@ -302,10 +301,10 @@ public class PunisherPlugin extends Plugin {
         try {
             getProxy().getPluginManager().unregisterListeners(this);
             getProxy().getPluginManager().unregisterCommands(this);
-            if (workerManager.isStarted())
-                workerManager.stop();
-            if (playerDataManager.isStarted())
-                playerDataManager.stop();
+            if (WORKER_MANAGER.isStarted())
+                WORKER_MANAGER.stop();
+            if (PLAYER_DATA_MANAGER.isStarted())
+                PLAYER_DATA_MANAGER.stop();
             storageManager.stop();
 //            DiscordMain.shutdown();
             File latestLogs = new File(getDataFolder() + "/logs/latest.log");
