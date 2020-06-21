@@ -15,6 +15,8 @@ import java.util.concurrent.Callable;
 
 public class UUIDFetcher implements Callable<UUID> {
 
+    @Getter
+    public static final UUID BLANK_UUID = UUID.fromString("0-0-0-0-0");
     private static final HashMap<String, UUID> UUID_CACHE = new HashMap<>();
     private String name;
 
@@ -61,7 +63,7 @@ public class UUIDFetcher implements Callable<UUID> {
     @Override
     public UUID call() throws Exception {
         if (name.equalsIgnoreCase("console"))
-            return UUID.fromString("0-0-0-0-0");
+            return BLANK_UUID;
         if (UUID_CACHE.containsKey(name.toLowerCase()))
             return UUID_CACHE.get(name.toLowerCase());
         StringBuilder sb = new StringBuilder();
