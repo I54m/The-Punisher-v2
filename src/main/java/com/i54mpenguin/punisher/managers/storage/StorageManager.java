@@ -16,8 +16,17 @@ public interface StorageManager extends Manager {
     WorkerManager WORKER_MANAGER = WorkerManager.getINSTANCE();
 
     TreeMap<Integer, Punishment> PUNISHMENT_CACHE = new TreeMap<>();
+    default TreeMap<Integer, Punishment> getPunishmentCache() {
+        return PUNISHMENT_CACHE;
+    }
     Map<UUID, ActivePunishments> ACTIVE_PUNISHMENT_CACHE = new HashMap<>();
+    default Map<UUID, ActivePunishments> getActivePunishmentCache() {
+        return ACTIVE_PUNISHMENT_CACHE;
+    }
     Map<String, Integer> PUNISHMENT_REASONS = new HashMap<>();
+    default Map<String, Integer> getPunishmentReasons() {
+        return PUNISHMENT_REASONS;
+    }
 
     default void clearCache() {
         ACTIVE_PUNISHMENT_CACHE.clear();
