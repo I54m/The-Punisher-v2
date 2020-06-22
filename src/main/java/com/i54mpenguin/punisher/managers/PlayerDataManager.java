@@ -83,6 +83,7 @@ public class PlayerDataManager implements Listener, Manager {
             }
             mainDataConfig = ConfigurationProvider.getProvider(YamlConfiguration.class).load(mainDataFile);
             if (newFile) mainDataConfig.set("lastJoinID", 0);
+            lastJoinId = mainDataConfig.getInt("lastJoinID", 0);
         } catch (IOException ioe) {
             ioe.printStackTrace();
         }
