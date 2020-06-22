@@ -26,7 +26,7 @@ public class ReputationManager implements Manager {
     @Override
     public void start() {
         if (!locked) {
-            ERROR_HANDLER.log(new Exception("Repuation Manager Already started!"));
+            ERROR_HANDLER.log(new Exception("Reputation Manager Already started!"));
             return;
         }
         if (PLAYER_DATA_MANAGER.isStarted()) {
