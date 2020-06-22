@@ -110,7 +110,7 @@ public class PunisherPlugin extends Plugin {
             getLogger().info("Preloading plugin...");
             //setup plugin instance
             setInstance(this);
-            //initialize packet gui system
+            //initialize packet system
             initProtocol();
             getLogger().info("Plugin preloaded!");
         } catch (Exception e) {
@@ -122,11 +122,13 @@ public class PunisherPlugin extends Plugin {
     /**
      * This method is the main start method which sill go through and start and setup each part of the plugin in the correct order.
      */
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     @Override
     public void onEnable() {
         try {
             //record start time
             long startTime = System.nanoTime();
+
             //check for required dependencies and hook into any that are found
             luckPermsHook = new LuckPermsHook().hook();
             if (luckPermsHook == null) {
@@ -137,12 +139,14 @@ public class PunisherPlugin extends Plugin {
             }
             //initialize permissions module and hooks
             Permissions.init();
+
             //preload gui menus
             setupMenus();
             //register commands
             registerCommands();
             //register event listeners
             registerListeners();
+
             //load all configs and create them if they don't exist
             getLogger().info(ChatColor.GREEN + "Loading Configs...");
             loadConfigs();
@@ -161,14 +165,7 @@ public class PunisherPlugin extends Plugin {
                 config.set("Configversion", this.getDescription().getVersion());
                 saveConfig();
             }
-            // TODO: 8/06/2020 set this to work with player data configs
-//            //make sure info config has last join id set
-//            if (!playerInfoConfig.contains("lastjoinid")) {
-//                playerInfoConfig.set("lastjoinid", 0);
-//                saveInfo();
-//            }
-//            ServerConnect.lastJoinId = me.fiftyfour.punisher.bungee.PunisherPlugin.playerInfoConfig.getInt("lastjoinid", 0);
-//
+
             //setup plugin prefixes
             prefix = ChatColor.translateAlternateColorCodes('&', config.getString("Plugin-prefixes.Plugin-Wide", "&7[&cPunisher&7] "));
             StaffChat.prefix = ChatColor.translateAlternateColorCodes('&', config.getString("Plugin-prefixes.Staff-Chat", "&7[&cSC&7] &7[%server%] %player%: "));
@@ -231,37 +228,32 @@ public class PunisherPlugin extends Plugin {
                 isUpdate = false;
             }
 
-            // TODO: 9/06/2020 implement rep on vote and discord bot
-//            //check if rep on vote should be enabled
-//            if ((getProxy().getPluginManager().getPlugin("NuVotifier") != null || getProxy().getPluginManager().getPlugin("Votifier") != null) && config.getBoolean("Voting.addRepOnVote")) {
-//                getLogger().info(prefix + ChatColor.GREEN + "Enabled Rep on Vote feature!");
-//                getProxy().getPluginManager().registerListener(this, new PlayerVote());
-//            }
-//            //check if discord integration is enabled
-//            if (config.getBoolean("DiscordIntegration.Enabled"))
-//                DiscordMain.startBot();
+            //check if rep on vote should be enabled
+            if ((getProxy().getPluginManager().getPlugin("NuVotifier") != null || getProxy().getPluginManager().getPlugin("Votifier") != null) && config.getBoolean("Voting.addRepOnVote")) {
+                getLogger().info(ChatColor.GREEN + "Enabled Rep on Vote feature!");
+                getProxy().getPluginManager().registerListener(this, new PlayerVote());
+            }
 
             //start selected storage manager, this must be started first to allow other managers to save and load data correctly
             getLogger().info(ChatColor.GREEN + "Starting Storage Manager...");
-            switch (config.getString("Storage-Type").toUpperCase()){
+            switch (config.getString("Storage-Type").toUpperCase().replace(" ", "_")){
                 case "FLAT_FILE": {
                     storageManager = FlatFileManager.getINSTANCE();
                     break;
                 }
-                case "SQLITE": {
-                    //sqlite storage manager
-                    break;
-                }
-                case "MY_SQL": {
-                    //mysql storage manager
-                    break;
-                }
+//                case "SQLITE": {
+//                    //sqlite storage manager
+//                    break;
+//                }
+//                case "MY_SQL": {
+//                    //mysql storage manager
+//                    break;
+//                }
                 default: {
                     throw new IllegalArgumentException(config.getString("Storage-Type") + " is not a supported storage type, choices are: FLAT_FILE, SQLITE or MY_SQL!");
                 }
             }
             storageManager.start();
-            storageManager.startCaching();
             //start player data manager, this must be started next as the reputation manager depends on this for data
             getLogger().info(ChatColor.GREEN + "Starting Player Data Manager...");
             PLAYER_DATA_MANAGER.start();
@@ -276,19 +268,21 @@ public class PunisherPlugin extends Plugin {
             //as this could cause errors while the server is not fully started and a player joins
             getLogger().info(ChatColor.GREEN + "Starting Worker Manager...");
             WORKER_MANAGER.start();
+            //storage manager can only start caching data once we have started all the other managers up
+            storageManager.startCaching();
 
             //plugin loading/enabling is now complete so we announce it
             setLoaded(true);
             long duration = (System.nanoTime() - startTime) / 1000000;
-            getLogger().info(prefix + ChatColor.GREEN + "Successfully enabled The Punisher v" + this.getDescription().getVersion() + " By 54mpenguin (took " + duration + "ms)");
+            getLogger().info(ChatColor.GREEN + "Successfully enabled The Punisher v" + this.getDescription().getVersion() + " By 54mpenguin (took " + duration + "ms)");
         } catch (Exception e) {
             //if we get any errors on startup we shutdown and alert the user
             onDisable();
-            getLogger().severe(prefix + ChatColor.RED + "Could not enable The Punisher v" + this.getDescription().getVersion() + "!!");
+            getLogger().severe(ChatColor.RED + "Could not enable The Punisher v" + this.getDescription().getVersion() + "!!");
             if (e.getCause() != null)
-                getLogger().severe(prefix + ChatColor.RED + "Error cause: " + e.getCause());
+                getLogger().severe(ChatColor.RED + "Error cause: " + e.getCause());
             if (e.getMessage() != null)
-                getLogger().severe(prefix + ChatColor.RED + "Error message: " + e.getMessage());
+                getLogger().severe(ChatColor.RED + "Error message: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -299,14 +293,28 @@ public class PunisherPlugin extends Plugin {
     @Override
     public void onDisable() {
         try {
+            //unregister all commands and listeners in an attempt to limit operations that use the managers.
             getProxy().getPluginManager().unregisterListeners(this);
             getProxy().getPluginManager().unregisterCommands(this);
-            if (WORKER_MANAGER.isStarted())
-                WORKER_MANAGER.stop();
+            //punishment manager is stopped second so that we no longer accept any new punishment activity
+            if (PUNISHMENT_MANAGER.isStarted())
+                PUNISHMENT_MANAGER.stop();
+            //the storage manager is next so that we no longer maintain a cache or allow data loading/saving
+            if (storageManager.isStarted())
+                storageManager.stop();
+            //the reputation manager is stopped next as it depends on the player data manager and must be stopped before it
+            if (REPUTATION_MANAGER.isStarted())
+                REPUTATION_MANAGER.stop();
+            //the player data manager is stopped next as it is the last manager left before we stop all worker threads
             if (PLAYER_DATA_MANAGER.isStarted())
                 PLAYER_DATA_MANAGER.stop();
-            storageManager.stop();
+            //the worker manager is stopped last so that we can safely stop any workers that have not yet finished
+            if (WORKER_MANAGER.isStarted())
+                WORKER_MANAGER.stop();
+
 //            DiscordMain.shutdown();
+
+            //stop logging and tidy up logs files last as we need to allow errors from shutting managers down to be logged
             File latestLogs = new File(getDataFolder() + "/logs/latest.log");
             if (latestLogs.length() != 0) {
                 LOGS.info("****END OF LOGS ENDING DATE: " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MMM-yyyy HH:mm:ss")) + "****");
@@ -315,7 +323,7 @@ public class PunisherPlugin extends Plugin {
             }
             logsHandler.close();
         } catch (Exception e) {
-            e.printStackTrace();
+            e.printStackTrace();//print any errors as we can no longer log to the logs file and the errors are most likely not too important and can be ignored
         }
 
     }
@@ -348,6 +356,7 @@ public class PunisherPlugin extends Plugin {
         getLogger().info(prefix + ChatColor.GREEN + "Registering Listeners...");
         getProxy().getPluginManager().registerListener(this, new PlayerChat());
         getProxy().getPluginManager().registerListener(this, new PlayerLogin());
+        getProxy().getPluginManager().registerListener(this, new PlayerVote());
         getProxy().getPluginManager().registerListener(this, new PostPlayerLogin());
         getProxy().getPluginManager().registerListener(this, new PluginMessage());
         getProxy().getPluginManager().registerListener(this, new TabComplete());
@@ -408,7 +417,6 @@ public class PunisherPlugin extends Plugin {
             logsDir.mkdir();
         if (!playerDataDir.exists())
             playerDataDir.mkdir();
-        //todo start player data manager here
         logsHandler = new FileHandler(getDataFolder() + "/logs/latest.log");
         logsHandler.setFormatter(new Formatter() {
             @Override
@@ -432,7 +440,6 @@ public class PunisherPlugin extends Plugin {
         });
         LOGS.setUseParentHandlers(false);
         LOGS.addHandler(logsHandler);
-
 
         if (!punishmentsFile.exists()) {
             punishmentsFile.createNewFile();
