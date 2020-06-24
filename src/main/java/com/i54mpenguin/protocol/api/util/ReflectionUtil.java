@@ -43,20 +43,20 @@ public final class ReflectionUtil {
             upstreamBridgeClass = Class.forName("net.md_5.bungee.connection.UpstreamBridge");
             upstreamConnectionField = upstreamBridgeClass.getDeclaredField("con");
             upstreamConnectionField.setAccessible(true);
-            final Class channelWrapperClass = Class.forName("net.md_5.bungee.netty.ChannelWrapper");
+            final Class<?> channelWrapperClass = Class.forName("net.md_5.bungee.netty.ChannelWrapper");
             channelWrapperChannelField = channelWrapperClass.getDeclaredField("ch");
             channelWrapperChannelField.setAccessible(true);
             protocolVersionField = MinecraftDecoder.class.getDeclaredField("protocolVersion");
             protocolVersionField.setAccessible(true);
             protocolField = MinecraftDecoder.class.getDeclaredField("protocol");
             protocolField.setAccessible(true);
-            final Class userConnectionClass = Class.forName("net.md_5.bungee.UserConnection");
+            final Class<?> userConnectionClass = Class.forName("net.md_5.bungee.UserConnection");
             userConnectionChannelWrapperField = userConnectionClass.getDeclaredField("ch");
             userConnectionChannelWrapperField.setAccessible(true);
-            final Class initialHandlerClass = Class.forName("net.md_5.bungee.connection.InitialHandler");
+            final Class<?> initialHandlerClass = Class.forName("net.md_5.bungee.connection.InitialHandler");
             initialHandlerChannelWrapperField = initialHandlerClass.getDeclaredField("ch");
             initialHandlerChannelWrapperField.setAccessible(true);
-            final Class handlerBossClass = Class.forName("net.md_5.bungee.netty.HandlerBoss");
+            final Class<?> handlerBossClass = Class.forName("net.md_5.bungee.netty.HandlerBoss");
             handlerBossHandlerField = handlerBossClass.getDeclaredField("handler");
             handlerBossHandlerField.setAccessible(true);
         } catch (final Exception e) {
@@ -160,10 +160,8 @@ public final class ReflectionUtil {
             final Object channelWrapper = getChannelWrapper(player);
             final Channel channel = (Channel) channelWrapperChannelField.get(channelWrapper);
             MinecraftDecoder minecraftDecoder = channel.pipeline().get(MinecraftDecoder.class);
-            if(minecraftDecoder == null) {
-                System.out.println("HUUURENSOOOHN");
+            if(minecraftDecoder == null)
                 return -1;
-            }
             return (int) protocolVersionField.get(minecraftDecoder);
         } catch (final IllegalAccessException e) {
             e.printStackTrace();
