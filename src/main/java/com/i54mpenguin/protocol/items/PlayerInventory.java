@@ -2,7 +2,6 @@ package com.i54mpenguin.protocol.items;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
-import com.i54mpenguin.protocol.items.packet.HeldItemChange;
 import com.i54mpenguin.protocol.items.packet.SetSlot;
 import com.i54mpenguin.protocol.items.packet.WindowItems;
 import net.md_5.bungee.api.ProxyServer;
@@ -99,13 +98,6 @@ public final class PlayerInventory {
 
     public void setHeldItem(final short heldItem) {
         this.heldItem = heldItem;
-    }
-
-    public void changeHeldItem(final short rawSlot) {
-        setHeldItem((short) (rawSlot+36));
-        if(getPlayer() == null) return;
-        getPlayer().unsafe().sendPacket(new HeldItemChange(rawSlot));
-        getPlayer().getServer().unsafe().sendPacket(new HeldItemChange(rawSlot));
     }
 
     public void setOnCursor(final ItemStack onCursor) {
