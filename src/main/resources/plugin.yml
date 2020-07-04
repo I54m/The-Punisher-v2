@@ -1,9 +1,9 @@
 name: The-Punisher
-author: 54mpenguin
-website: https://54mpenguin.com
+author: i54m
+website: https://i54m.com
 version: ${project.version}
 api-version: 1.13
-main: com.i54mpenguin.punisher.bukkit.PunisherBukkitPlugin
+main: com.i54m.punisher.bukkit.PunisherBukkitPlugin
 softdepend: [LuckPerms, Votifier, NuVotifier]
 description: The Bukkit side of the Punisher plugin.
 
