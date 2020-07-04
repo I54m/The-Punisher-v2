@@ -1,6 +1,6 @@
-package com.i54mpenguin.punisher.bukkit.objects;
+package com.i54m.punisher.bukkit.objects;
 
-import com.i54mpenguin.punisher.bukkit.PunisherBukkit;
+import com.i54m.punisher.bukkit.PunisherBukkit;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;

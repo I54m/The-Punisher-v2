@@ -1,13 +1,13 @@
 package me.fiftyfour.punisher.bungee;
 
-import com.i54mpenguin.punisher.chats.AdminChat;
-import com.i54mpenguin.punisher.chats.StaffChat;
-import com.i54mpenguin.punisher.managers.DatabaseManager;
-import com.i54mpenguin.punisher.managers.PunishmentManager;
-import com.i54mpenguin.punisher.managers.WorkerManager;
-import com.i54mpenguin.punisher.utils.LuckPermsHook;
-import com.i54mpenguin.punisher.utils.Permissions;
-import com.i54mpenguin.punisher.utils.UpdateChecker;
+import com.i54m.punisher.chats.AdminChat;
+import com.i54m.punisher.chats.StaffChat;
+import com.i54m.punisher.managers.DatabaseManager;
+import com.i54m.punisher.managers.PunishmentManager;
+import com.i54m.punisher.managers.WorkerManager;
+import com.i54m.punisher.utils.LuckPermsHook;
+import com.i54m.punisher.utils.Permissions;
+import com.i54m.punisher.utils.UpdateChecker;
 import lombok.Getter;
 import lombok.Setter;
 import me.fiftyfour.punisher.bungee.discordbot.DiscordMain;

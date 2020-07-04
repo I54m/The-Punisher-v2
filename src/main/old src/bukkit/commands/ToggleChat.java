@@ -1,6 +1,6 @@
-package com.i54mpenguin.punisher.bukkit.commands;
+package com.i54m.punisher.bukkit.commands;
 
-import com.i54mpenguin.punisher.bukkit.PunisherBukkit;
+import com.i54m.punisher.bukkit.PunisherBukkit;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;

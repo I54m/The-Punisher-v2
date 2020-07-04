@@ -1,7 +1,7 @@
 package me.fiftyfour.punisher.bungee.discordbot.commands;
 
-import com.i54mpenguin.punisher.exceptions.DataFecthException;
-import com.i54mpenguin.punisher.handlers.ErrorHandler;
+import com.i54m.punisher.exceptions.DataFecthException;
+import com.i54m.punisher.handlers.ErrorHandler;
 import me.fiftyfour.punisher.bungee.PunisherPlugin;
 import me.fiftyfour.punisher.bungee.discordbot.DiscordMain;
 import me.fiftyfour.punisher.universal.util.NameFetcher;

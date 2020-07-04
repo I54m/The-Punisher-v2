@@ -1,7 +1,7 @@
-package com.i54mpenguin.punisher.objects.confirmationgui;
+package com.i54m.punisher.objects.confirmationgui;
 
-import com.i54mpenguin.punisher.bukkit.commands.PunishGUI;
-import com.i54mpenguin.punisher.bukkit.objects.IconMenu;
+import com.i54m.punisher.bukkit.commands.PunishGUI;
+import com.i54m.punisher.bukkit.objects.IconMenu;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;

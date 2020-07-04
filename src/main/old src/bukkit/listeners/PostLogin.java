@@ -1,6 +1,6 @@
-package com.i54mpenguin.punisher.bukkit.listeners;
+package com.i54m.punisher.bukkit.listeners;
 
-import com.i54mpenguin.punisher.bukkit.PunisherBukkit;
+import com.i54m.punisher.bukkit.PunisherBukkit;
 import me.fiftyfour.punisher.universal.util.NameFetcher;
 import me.fiftyfour.punisher.universal.util.UUIDFetcher;
 import org.bukkit.Bukkit;

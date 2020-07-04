@@ -1,4 +1,4 @@
-package com.i54mpenguin.punisher.bukkit.objects.punishmenu.levelzero;
+package com.i54m.punisher.bukkit.objects.punishmenu.levelzero;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Material;

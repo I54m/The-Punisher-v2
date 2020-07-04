@@ -1,7 +1,7 @@
 package me.fiftyfour.punisher.bungee.discordbot;
 
-import com.i54mpenguin.punisher.managers.PunishmentManager;
-import com.i54mpenguin.punisher.managers.WorkerManager;
+import com.i54m.punisher.managers.PunishmentManager;
+import com.i54m.punisher.managers.WorkerManager;
 import me.fiftyfour.punisher.bungee.PunisherPlugin;
 import me.fiftyfour.punisher.bungee.discordbot.commands.DiscordCommand;
 import me.fiftyfour.punisher.bungee.discordbot.listeners.PlayerDisconnect;
@@ -58,7 +58,7 @@ public class DiscordMain {
                     if (loggingChannel == null)
                         throw new NullPointerException("Could not find logging channel!");
                     loggingChannel.getManager().setTopic(ProxyServer.getInstance().getPlayers().size() + " players online | "
-                            + com.i54mpenguin.punisher.listeners.ServerConnect.lastJoinId + " unique players ever joined").queue();
+                            + com.i54m.punisher.listeners.ServerConnect.lastJoinId + " unique players ever joined").queue();
                 }, 10, 5, TimeUnit.SECONDS));
             }
             if (plugin.getConfig().getBoolean("DiscordIntegration.EnableRoleSync")) {

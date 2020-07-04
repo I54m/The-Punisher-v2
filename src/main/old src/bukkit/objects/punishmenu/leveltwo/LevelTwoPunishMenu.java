@@ -1,7 +1,7 @@
-package com.i54mpenguin.punisher.bukkit.objects.punishmenu.leveltwo;
+package com.i54m.punisher.bukkit.objects.punishmenu.leveltwo;
 
-import com.i54mpenguin.punisher.bukkit.PunisherBukkit;
-import com.i54mpenguin.punisher.bukkit.objects.IconMenu;
+import com.i54m.punisher.bukkit.PunisherBukkit;
+import com.i54m.punisher.bukkit.objects.IconMenu;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 

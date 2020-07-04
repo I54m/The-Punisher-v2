@@ -1,12 +1,12 @@
-package com.i54mpenguin.punisher.bukkit.commands;
+package com.i54m.punisher.bukkit.commands;
 
 
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
-import com.i54mpenguin.punisher.bukkit.PunisherBukkit;
-import com.i54mpenguin.punisher.exceptions.DataFecthException;
-import com.i54mpenguin.punisher.utils.Permissions;
-import com.i54mpenguin.punisher.utils.UserFetcher;
+import com.i54m.punisher.bukkit.PunisherBukkit;
+import com.i54m.punisher.exceptions.DataFecthException;
+import com.i54m.punisher.utils.Permissions;
+import com.i54m.punisher.utils.UserFetcher;
 import me.fiftyfour.punisher.universal.util.NameFetcher;
 import me.fiftyfour.punisher.universal.util.UUIDFetcher;
 import net.luckperms.api.model.user.User;

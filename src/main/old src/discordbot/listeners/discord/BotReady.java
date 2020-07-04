@@ -1,7 +1,7 @@
 package me.fiftyfour.punisher.bungee.discordbot.listeners.discord;
 
-import com.i54mpenguin.punisher.listeners.ServerConnect;
-import com.i54mpenguin.punisher.managers.PunishmentManager;
+import com.i54m.punisher.listeners.ServerConnect;
+import com.i54m.punisher.managers.PunishmentManager;
 import me.fiftyfour.punisher.bungee.PunisherPlugin;
 import me.fiftyfour.punisher.bungee.discordbot.DiscordMain;
 import net.dv8tion.jda.api.entities.Activity;

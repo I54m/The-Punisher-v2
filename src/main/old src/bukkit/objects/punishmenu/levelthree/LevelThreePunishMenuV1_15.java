@@ -1,4 +1,4 @@
-package com.i54mpenguin.punisher.bukkit.objects.punishmenu.levelthree;
+package com.i54m.punisher.bukkit.objects.punishmenu.levelthree;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Material;

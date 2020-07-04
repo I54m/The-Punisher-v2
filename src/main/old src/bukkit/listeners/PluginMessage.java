@@ -1,6 +1,6 @@
-package com.i54mpenguin.punisher.bukkit.listeners;
+package com.i54m.punisher.bukkit.listeners;
 
-import com.i54mpenguin.punisher.bukkit.PunisherBukkit;
+import com.i54m.punisher.bukkit.PunisherBukkit;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.messaging.PluginMessageListener;

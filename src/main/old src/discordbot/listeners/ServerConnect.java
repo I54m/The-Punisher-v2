@@ -1,7 +1,7 @@
 package me.fiftyfour.punisher.bungee.discordbot.listeners;
 
-import com.i54mpenguin.punisher.handlers.ErrorHandler;
-import com.i54mpenguin.punisher.managers.WorkerManager;
+import com.i54m.punisher.handlers.ErrorHandler;
+import com.i54m.punisher.managers.WorkerManager;
 import me.fiftyfour.punisher.bungee.PunisherPlugin;
 import me.fiftyfour.punisher.bungee.discordbot.DiscordMain;
 import net.dv8tion.jda.api.entities.Guild;
