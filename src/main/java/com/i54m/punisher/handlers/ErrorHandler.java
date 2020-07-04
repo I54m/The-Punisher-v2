@@ -104,7 +104,7 @@ public class ErrorHandler {
     public boolean isExceptionCausedByPunisher(final Throwable e) {
         final List<StackTraceElement> all = getEverything(e, new ArrayList<>());
         for (final StackTraceElement element : all) {
-            if (element.getClassName().toLowerCase().contains("com.i54mpenguin.punisher"))
+            if (element.getClassName().toLowerCase().contains("com.i54m.punisher"))
                 return true;
         }
         return false;
