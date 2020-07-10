@@ -1,5 +1,7 @@
 package com.i54m.protocol.api.util;
 
+import java.util.ArrayList;
+
 /**
  * This class contains protocol constants similar to {@link net.md_5.bungee.protocol.ProtocolConstants}
  */
@@ -37,5 +39,33 @@ public final class ProtocolVersions {
 
     private ProtocolVersions() {}
 
+    public static ArrayList<Integer> getSupportedVersions() {
+        ArrayList<Integer> supportedVersions = new ArrayList<>();
+        supportedVersions.add(47);
+        supportedVersions.add(107);
+        supportedVersions.add(108);
+        supportedVersions.add(109);
+        supportedVersions.add(110);
+        supportedVersions.add(210);
+        supportedVersions.add(315);
+        supportedVersions.add(316);
+        supportedVersions.add(335);
+        supportedVersions.add(338);
+        supportedVersions.add(340);
+        supportedVersions.add(393);
+        supportedVersions.add(401);
+        supportedVersions.add(404);
+        supportedVersions.add(477);
+        supportedVersions.add(480);
+        supportedVersions.add(485);
+        supportedVersions.add(490);
+        supportedVersions.add(498);
+        supportedVersions.add(573);
+        supportedVersions.add(575);
+        supportedVersions.add(578);
+        supportedVersions.add(735);
+        supportedVersions.add(736);
+        return supportedVersions;
+    }
 
 }
