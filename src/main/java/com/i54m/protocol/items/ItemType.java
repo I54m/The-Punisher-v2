@@ -1096,6 +1096,7 @@ public enum ItemType {
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 901),
                 new ItemIDMapping(MINECRAFT_1_10, MINECRAFT_1_12_2, 447),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 767),
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 833),
                 new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 834)
                 };
     }
@@ -1104,7 +1105,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 309),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 245),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 263)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 263)
                 };
     }
 
@@ -1206,7 +1207,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 230),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 191),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 197)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 197)
                 };
     }
 
@@ -1257,14 +1258,14 @@ public enum ItemType {
     private static ItemIDMapping[] ANDESITE_SLAB() {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 552),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 501)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 501)
                 };
     }
 
     private static ItemIDMapping[] ANDESITE_STAIRS() {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 539),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 488)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 488)
                 };
     }
 
@@ -1457,6 +1458,7 @@ public enum ItemType {
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 899),
                 new ItemIDMapping(MINECRAFT_1_10, MINECRAFT_1_12_2, 445),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 765),
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 831),
                 new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 832)
                 };
     }
@@ -1465,7 +1467,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 307),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 243),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 261)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 261)
                 };
     }
 
@@ -1567,7 +1569,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 228),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 189),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 195)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 195)
                 };
     }
 
@@ -1635,7 +1637,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 479),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 410),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 428)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 428)
                 };
     }
 
@@ -1643,7 +1645,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 495),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 426),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 444)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 444)
                 };
     }
 
@@ -1929,7 +1931,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 508),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 439),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 457)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 457)
                 };
     }
 
@@ -1937,7 +1939,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 503),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 434),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 452)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 452)
                 };
     }
 
@@ -1945,7 +1947,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 518),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 449),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 467)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 467)
                 };
     }
 
@@ -2044,7 +2046,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 476),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 407),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 425)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 425)
                 };
     }
 
@@ -2052,7 +2054,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 492),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 423),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 441)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 441)
                 };
     }
 
@@ -2138,7 +2140,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 509),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 440),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 458)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 458)
                 };
     }
 
@@ -2146,7 +2148,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 504),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 435),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 453)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 453)
                 };
     }
 
@@ -2154,7 +2156,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 519),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 450),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 468)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 468)
                 };
     }
 
@@ -2231,7 +2233,7 @@ public enum ItemType {
     private static ItemIDMapping[] CAT_SPAWN_EGG() {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 762),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 700)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 700)
                 };
     }
 
@@ -2356,7 +2358,7 @@ public enum ItemType {
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 315),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 145, 1),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 248),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 266)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 266)
                 };
     }
 
@@ -2566,6 +2568,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 765),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 643),
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 702),
                 new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 703)
                 };
     }
@@ -2884,7 +2887,7 @@ public enum ItemType {
     private static ItemIDMapping[] CUT_RED_SANDSTONE_SLAB() {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 157),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 132)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 132)
                 };
     }
 
@@ -2898,7 +2901,7 @@ public enum ItemType {
     private static ItemIDMapping[] CUT_SANDSTONE_SLAB() {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 149),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 124)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 124)
                 };
     }
 
@@ -2934,7 +2937,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 473),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 404),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 422)// TODO: 25/06/2020 concrete and concrete powder missing 1.14-1.14.4 ids
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 422)
                 };
     }
 
@@ -2942,7 +2945,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 489),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 420),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 438)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 438)
                 };
     }
 
@@ -3012,8 +3015,8 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 316),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 145, 2),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 249),// TODO: 25/06/2020 anvil missing 1.14 - 1.14.4 id
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 267)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 249),
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 267)
                 };
     }
 
@@ -3029,7 +3032,8 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 902),
                 new ItemIDMapping(MINECRAFT_1_10, MINECRAFT_1_12_2, 448),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 768),// TODO: 25/06/2020 boats missing 1.14 - 1.14.4 id
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 768),
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 834),
                 new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 835)
                 };
     }
@@ -3037,8 +3041,8 @@ public enum ItemType {
     private static ItemIDMapping[] DARK_OAK_BUTTON() {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 310),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 246), // TODO: 25/06/2020 buttons missing 1.14 - 1.14.4 id
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 264)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 246),
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 264)
                 };
     }
 
@@ -3138,8 +3142,8 @@ public enum ItemType {
     private static ItemIDMapping[] DARK_OAK_TRAPDOOR() {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 231),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 192), // TODO: 25/06/2020 missing 1.14 mapping here too
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 198)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 192),
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 198)
                 };
     }
 
@@ -3154,9 +3158,9 @@ public enum ItemType {
     private static ItemIDMapping[] DARK_PRISMARINE() {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 413),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 168, 2),// TODO: 25/06/2020 missing 1.14 mapping for prismarine
+                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 168, 2),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 345),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 363)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 363)
                 };
     }
 
@@ -3164,7 +3168,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 161),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 130),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 136)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 136)
                 };
     }
 
@@ -3172,7 +3176,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 416),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 348),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 366)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 366)
                 };
     }
 
@@ -3188,8 +3192,8 @@ public enum ItemType {
     private static ItemIDMapping[] DEAD_BRAIN_CORAL() {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 512),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 443),// TODO: 25/06/2020 missing 1.14 mapping for coral?
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 461)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 443),
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 461)
                 };
     }
 
@@ -3197,7 +3201,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 498),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 429),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 447)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 447)
                 };
     }
 
@@ -3205,7 +3209,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 523),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 454),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 472)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 472)
                 };
     }
 
@@ -3213,7 +3217,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 513),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 444),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 462)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 462)
                 };
     }
 
@@ -3221,7 +3225,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 499),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 430),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 448)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 448)
                 };
     }
 
@@ -3229,7 +3233,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 524),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 455),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 473)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 473)
                 };
     }
 
@@ -3245,7 +3249,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 514),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 445),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 463)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 463)
                 };
     }
 
@@ -3253,7 +3257,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 500),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 431),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 449)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 449)
                 };
     }
 
@@ -3261,7 +3265,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 525),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 456),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 474)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 474)
                 };
     }
 
@@ -3269,7 +3273,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 515),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 446),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 464)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 464)
                 };
     }
 
@@ -3277,7 +3281,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 501),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 432),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 450)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 450)
                 };
     }
 
@@ -3285,7 +3289,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 526),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 457),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 475)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 475)
                 };
     }
 
@@ -3293,7 +3297,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 516),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 447),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 465)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 465)
                 };
     }
 
@@ -3301,7 +3305,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 497),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 428),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 446)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 446)
                 };
     }
 
@@ -3309,7 +3313,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 522),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 453),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 471)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 471)
                 };
     }
 
@@ -3455,16 +3459,16 @@ public enum ItemType {
     }
 
     private static ItemIDMapping[] DIORITE_SLAB() {
-        return new ItemIDMapping[]{// TODO: 25/06/2020 new slabs and stairs missing 1.14 mapping (pretty sure they were added in 1.14 not 1.15)
+        return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 555),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 504)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 504)
                 };
     }
 
     private static ItemIDMapping[] DIORITE_STAIRS() {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 542),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 491)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 491)
                 };
     }
 
@@ -3493,7 +3497,8 @@ public enum ItemType {
     private static ItemIDMapping[] DOLPHIN_SPAWN_EGG() {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 768),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 646),// TODO: 25/06/2020 spawn eggs missing 1.14 id?
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 646),
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 705),
                 new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 706)
                 };
     }
@@ -3502,6 +3507,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 769),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 647),
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 706),
                 new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 707)
                 };
     }
@@ -3536,8 +3542,8 @@ public enum ItemType {
     private static ItemIDMapping[] DRIED_KELP() {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 736),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 616),// TODO: 25/06/2020 dried kelp missing 1.14 id
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 674)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 616),
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 674)
                 };
     }
 
@@ -3545,7 +3551,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 676),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 560),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 613)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 613)
                 };
     }
 
@@ -3562,6 +3568,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 770),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 648),
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 707),
                 new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 708)
                 };
     }
@@ -3579,6 +3586,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 771),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 649),
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 708),
                 new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 709)
                 };
     }
@@ -3635,8 +3643,8 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 651),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 322, 1),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 540),// TODO: 25/06/2020 missing 1.14 id
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 588)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 540),
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 588)
                 };
     }
 
@@ -3744,14 +3752,14 @@ public enum ItemType {
     private static ItemIDMapping[] END_STONE_BRICK_SLAB() {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 548),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 497)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 497)
                 };
     }
 
     private static ItemIDMapping[] END_STONE_BRICK_STAIRS() {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 534),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 483)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 483)
                 };
     }
 
@@ -3766,6 +3774,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 774),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 652),
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 711),
                 new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 712)
                 };
     }
@@ -3858,7 +3867,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 510),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 441),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 459)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 459)
                 };
     }
 
@@ -3866,7 +3875,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 505),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 436),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 454)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 454)
                 };
     }
 
@@ -3874,7 +3883,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 520),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 451),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 469)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 469)
                 };
     }
 
@@ -3933,6 +3942,7 @@ public enum ItemType {
     private static ItemIDMapping[] FOX_SPAWN_EGG() {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 775),
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 712),
                 new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 713)
                 };
     }
@@ -4196,14 +4206,14 @@ public enum ItemType {
     private static ItemIDMapping[] GRANITE_SLAB() {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 551),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 500)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 500)
                 };
     }
 
     private static ItemIDMapping[] GRANITE_STAIRS() {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 538),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 487)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 487)
                 };
     }
 
@@ -4278,7 +4288,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 471),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 402),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 420)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 420)
                 };
     }
 
@@ -4286,7 +4296,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 487),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 418),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 436)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 436)
                 };
     }
 
@@ -4384,7 +4394,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 477),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 408),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 426)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 426)
                 };
     }
 
@@ -4392,7 +4402,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 493),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 424),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 442)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 442)
                 };
     }
 
@@ -4567,7 +4577,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 511),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 442),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 460)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 460)
                 };
     }
 
@@ -4575,7 +4585,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 506),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 437),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 455)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 455)
                 };
     }
 
@@ -4583,7 +4593,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 521),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 452),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 470)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 470)
                 };
     }
 
@@ -4601,6 +4611,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 780),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 656),
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 716),
                 new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 717)
                 };
     }
@@ -4872,6 +4883,7 @@ public enum ItemType {
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 900),
                 new ItemIDMapping(MINECRAFT_1_10, MINECRAFT_1_12_2, 446),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 766),
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 832),
                 new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 833)
                 };
     }
@@ -4880,7 +4892,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 308),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 244),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 262)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 262)
                 };
     }
 
@@ -4978,11 +4990,11 @@ public enum ItemType {
                 };
     }
 
-    private static ItemIDMapping[] JUNGLE_TRAPDOOR() {// TODO: 26/06/2020 new wood type trapdoor missing 1.14 id
+    private static ItemIDMapping[] JUNGLE_TRAPDOOR() {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 229),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 190),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 196)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 196)
                 };
     }
 
@@ -4998,7 +5010,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 134),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 559),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 612)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 612)
                 };
     }
 
@@ -5181,7 +5193,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 467),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 398),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 416)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 416)
                 };
     }
 
@@ -5189,7 +5201,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 483),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 414),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 432)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 432)
                 };
     }
 
@@ -5287,7 +5299,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 472),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 403),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 421)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 421)
                 };
     }
 
@@ -5295,7 +5307,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 488),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 419),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 437)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 437)
                 };
     }
 
@@ -5426,7 +5438,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 469),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 400),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 418)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 418)
                 };
     }
 
@@ -5434,7 +5446,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 485),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 416),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 434)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 434)
                 };
     }
 
@@ -5514,6 +5526,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 781),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 657),
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 717),
                 new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 718)
                 };
     }
@@ -5563,7 +5576,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 466),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 397),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 415)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 415)
                 };
     }
 
@@ -5571,7 +5584,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 482),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 413),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 431)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 431)
                 };
     }
 
@@ -5751,14 +5764,14 @@ public enum ItemType {
     private static ItemIDMapping[] MOSSY_COBBLESTONE_SLAB() {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 547),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 496)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 496)
                 };
     }
 
     private static ItemIDMapping[] MOSSY_COBBLESTONE_STAIRS() {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 533),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 482)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 482)
                 };
     }
 
@@ -5783,14 +5796,14 @@ public enum ItemType {
     private static ItemIDMapping[] MOSSY_STONE_BRICK_SLAB() {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 545),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 494)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 494)
                 };
     }
 
     private static ItemIDMapping[] MOSSY_STONE_BRICK_STAIRS() {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 531),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 480)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 480)
                 };
     }
 
@@ -5805,6 +5818,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 784),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 660),
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 720),
                 new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 721)
                 };
     }
@@ -6370,7 +6384,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 465),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 396),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 414)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 414)
                 };
     }
 
@@ -6378,7 +6392,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 481),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 412),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 430)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 430)
                 };
     }
 
@@ -6481,6 +6495,7 @@ public enum ItemType {
     private static ItemIDMapping[] PANDA_SPAWN_EGG() {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 786),
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 722),
                 new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 723)
                 };
     }
@@ -6498,6 +6513,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 787),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 662),
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 723),
                 new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 724)
                 };
     }
@@ -6515,7 +6531,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 150),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 120),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 125)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 125)
                 };
     }
 
@@ -6531,6 +6547,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 788),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 663),
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 724),
                 new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 725)
                 };
     }
@@ -6560,6 +6577,7 @@ public enum ItemType {
     private static ItemIDMapping[] PILLAGER_SPAWN_EGG() {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 791),
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 726),
                 new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 727)
                 };
     }
@@ -6596,7 +6614,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 470),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 401),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 419)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 419)
                 };
     }
 
@@ -6604,7 +6622,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 486),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 417),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 435)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 435)
                 };
     }
 
@@ -6717,6 +6735,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 792),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 665),
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 727),
                 new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 728)
                 };
     }
@@ -6731,14 +6750,14 @@ public enum ItemType {
     private static ItemIDMapping[] POLISHED_ANDESITE_SLAB() {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 554),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 503)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 503)
                 };
     }
 
     private static ItemIDMapping[] POLISHED_ANDESITE_STAIRS() {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 541),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 490)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 490)
                 };
     }
 
@@ -6818,14 +6837,14 @@ public enum ItemType {
     private static ItemIDMapping[] POLISHED_DIORITE_SLAB() {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 546),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 495)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 495)
                 };
     }
 
     private static ItemIDMapping[] POLISHED_DIORITE_STAIRS() {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 532),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 481)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 481)
                 };
     }
 
@@ -6839,14 +6858,14 @@ public enum ItemType {
     private static ItemIDMapping[] POLISHED_GRANITE_SLAB() {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 543),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 492)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 492)
                 };
     }
 
     private static ItemIDMapping[] POLISHED_GRANITE_STAIRS() {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 529),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 478)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 478)
                 };
     }
 
@@ -6917,7 +6936,7 @@ public enum ItemType {
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 412),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 168, 1),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 344),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 362)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 362)
                 };
     }
 
@@ -6925,7 +6944,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 160),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 129),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 135)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 135)
                 };
     }
 
@@ -6933,7 +6952,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 415),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 347),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 365)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 365)
                 };
     }
 
@@ -6961,7 +6980,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 159),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 128),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 134)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 134)
                 };
     }
 
@@ -6969,14 +6988,14 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 414),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 346),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 364)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 364)
                 };
     }
 
     private static ItemIDMapping[] PRISMARINE_WALL() {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 290),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 248)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 248)
                 };
     }
 
@@ -7001,6 +7020,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 793),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 666),
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 728),
                 new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 729)
                 };
     }
@@ -7065,7 +7085,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 474),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 405),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 423)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 423)
                 };
     }
 
@@ -7073,7 +7093,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 490),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 421),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 439)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 439)
                 };
     }
 
@@ -7289,6 +7309,7 @@ public enum ItemType {
     private static ItemIDMapping[] RAVAGER_SPAWN_EGG() {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 795),
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 730),
                 new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 731)
                 };
     }
@@ -7371,7 +7392,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 478),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 409),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 427)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 427)
                 };
     }
 
@@ -7379,7 +7400,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 494),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 425),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 443)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 443)
                 };
     }
 
@@ -7430,14 +7451,14 @@ public enum ItemType {
     private static ItemIDMapping[] RED_NETHER_BRICK_SLAB() {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 553),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 502)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 502)
                 };
     }
 
     private static ItemIDMapping[] RED_NETHER_BRICK_STAIRS() {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 540),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 489)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 489)
                 };
     }
 
@@ -7613,6 +7634,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 796),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 668),
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 731),
                 new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 732)
                 };
     }
@@ -7754,6 +7776,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 798),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 670),
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 733),
                 new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 734)
                 };
     }
@@ -7779,6 +7802,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 801),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 673),
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 736),
                 new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 737)
                 };
     }
@@ -7863,14 +7887,14 @@ public enum ItemType {
     private static ItemIDMapping[] SMOOTH_QUARTZ_SLAB() {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 550),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 499)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 499)
                 };
     }
 
     private static ItemIDMapping[] SMOOTH_QUARTZ_STAIRS() {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 537),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 486)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 486)
                 };
     }
 
@@ -7886,14 +7910,14 @@ public enum ItemType {
     private static ItemIDMapping[] SMOOTH_RED_SANDSTONE_SLAB() {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 544),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 493)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 493)
                 };
     }
 
     private static ItemIDMapping[] SMOOTH_RED_SANDSTONE_STAIRS() {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 530),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 479)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 479)
                 };
     }
 
@@ -7909,14 +7933,14 @@ public enum ItemType {
     private static ItemIDMapping[] SMOOTH_SANDSTONE_SLAB() {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 549),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 498)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 498)
                 };
     }
 
     private static ItemIDMapping[] SMOOTH_SANDSTONE_STAIRS() {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 530),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 485)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 485)
                 };
     }
 
@@ -7931,7 +7955,7 @@ public enum ItemType {
     private static ItemIDMapping[] SMOOTH_STONE_SLAB() {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 147),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 122)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 122)
                 };
     }
 
@@ -8057,6 +8081,7 @@ public enum ItemType {
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 898),
                 new ItemIDMapping(MINECRAFT_1_10, MINECRAFT_1_12_2, 444),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 764),
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 830),
                 new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 831)
                 };
     }
@@ -8065,7 +8090,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 306),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 242),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 260)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 260)
                 };
     }
 
@@ -8167,7 +8192,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 227),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 188),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 194)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 194)
                 };
     }
 
@@ -8319,7 +8344,7 @@ public enum ItemType {
     private static ItemIDMapping[] STONE_STAIRS() {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 535),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 484)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 484)
                 };
     }
 
@@ -8336,6 +8361,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 805),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 677),
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 740),
                 new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 741)
                 };
     }
@@ -8596,6 +8622,7 @@ public enum ItemType {
     private static ItemIDMapping[] TRADER_LLAMA_SPAWN_EGG() {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 807),
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 741),
                 new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 742)
                 };
     }
@@ -8647,6 +8674,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 808),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 678),
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 742),
                 new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 743)
                 };
     }
@@ -8655,7 +8683,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 507),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 438),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 456)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 456)
                 };
     }
 
@@ -8663,7 +8691,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 502),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 433),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 451)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 451)
                 };
     }
 
@@ -8671,7 +8699,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 517),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 448),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 466)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 466)
                 };
     }
 
@@ -8679,7 +8707,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 496),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 427),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 445)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 445)
                 };
     }
 
@@ -8687,7 +8715,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 570),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 470),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 518)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 518)
                 };
     }
 
@@ -8695,6 +8723,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 809),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 679),
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 743),
                 new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 744)
                 };
     }
@@ -8709,6 +8738,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 810),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 680),
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 744),
                 new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 745)
                 };
     }
@@ -8727,6 +8757,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 812),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 682),
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 746),
                 new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 747)
                 };
     }
@@ -8743,6 +8774,7 @@ public enum ItemType {
     private static ItemIDMapping[] WANDERING_TRADER_SPAWN_EGG() {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 813),
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 747),
                 new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 748)
                 };
     }
@@ -8922,7 +8954,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 464),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 395),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 413)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 413)
                 };
     }
 
@@ -8930,7 +8962,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 480),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 411),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 429)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 429)
                 };
     }
 
@@ -9033,6 +9065,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 815),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 684),
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 749),
                 new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 750)
                 };
     }
@@ -9144,7 +9177,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 468),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 399),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 417)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 417)
                 };
     }
 
@@ -9152,7 +9185,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 484),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 415),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 433)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 433)
                 };
     }
 
@@ -9220,7 +9253,6 @@ public enum ItemType {
 
     private static ItemIDMapping[] ZOGLIN_SPAWN_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 817),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 817)
                 };
     }
@@ -9239,6 +9271,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 819),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 687),
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 752),
                 new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 753)
                 };
     }
@@ -9266,6 +9299,7 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 820),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 689),
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 754),
                 new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 755)
                 };
     }
