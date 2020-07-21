@@ -85,10 +85,10 @@ public class UUIDFetcher implements Callable<UUID> {
         Gson g = new Gson();
         Profile profile;
         profile = g.fromJson(sb.toString(), Profile.class);
-
-        NameFetcher.storeName(profile.getId(), profile.getName());
-        UUID_CACHE.put(name.toLowerCase(), profile.getId());
-        return profile.getId();
+        UUID uuid = formatUUID(profile.id);
+        NameFetcher.storeName(uuid, profile.getName());
+        UUID_CACHE.put(name.toLowerCase(), uuid);
+        return uuid;
     }
 
     public void storeUUID(UUID uuid, String name) {
@@ -99,11 +99,11 @@ public class UUIDFetcher implements Callable<UUID> {
         @Getter
         private final String name;
         @Getter
-        private final UUID id;
+        private final String id;
 
         public Profile(String name, String id) {
             this.name = name;
-            this.id = formatUUID(id);
+            this.id = id;
         }
     }
 }
