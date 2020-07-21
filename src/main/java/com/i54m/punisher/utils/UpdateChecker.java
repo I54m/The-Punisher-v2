@@ -51,7 +51,7 @@ public class UpdateChecker {
         StringBuilder sb = new StringBuilder();
         URLConnection urlConn;
         try {
-            urlConn = new URL("https://api.54mpenguin.com/the-punisher/version/").openConnection();
+            urlConn = new URL("https://api.i54m.com/the-punisher/version/").openConnection();
             urlConn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.95 Safari/537.11");
             urlConn.setReadTimeout(5000);
             if (urlConn.getInputStream() != null) {
