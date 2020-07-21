@@ -18,7 +18,7 @@ public class NameFetcher {
     private static final HashMap<UUID, String> NAMES = new HashMap<>();
 
     public static String getName(String uuid){
-        return getName(UUID.fromString(uuid));
+        return getName(UUIDFetcher.formatUUID(uuid));
     }
 
     public static String getName(UUID uuid) {
