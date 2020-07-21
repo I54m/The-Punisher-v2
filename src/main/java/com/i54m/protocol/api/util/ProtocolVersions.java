@@ -1,6 +1,8 @@
 package com.i54m.protocol.api.util;
 
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * This class contains protocol constants similar to {@link net.md_5.bungee.protocol.ProtocolConstants}
@@ -33,6 +35,7 @@ public final class ProtocolVersions {
     public final static int MINECRAFT_1_15_2 = 578;
     public final static int MINECRAFT_1_16 = 735;
     public final static int MINECRAFT_1_16_1 = 736;// https://wiki.vg/Pre-release_protocol https://wiki.vg/Protocol_version_numbers
+    public static final int MINECRAFT_1_16_2 = 0;
 
 
     public final static int MINECRAFT_LATEST = MINECRAFT_1_16_1;
@@ -41,30 +44,44 @@ public final class ProtocolVersions {
 
     public static ArrayList<Integer> getSupportedVersions() {
         ArrayList<Integer> supportedVersions = new ArrayList<>();
-        supportedVersions.add(47);
-        supportedVersions.add(107);
-        supportedVersions.add(108);
-        supportedVersions.add(109);
-        supportedVersions.add(110);
-        supportedVersions.add(210);
-        supportedVersions.add(315);
-        supportedVersions.add(316);
-        supportedVersions.add(335);
-        supportedVersions.add(338);
-        supportedVersions.add(340);
-        supportedVersions.add(393);
-        supportedVersions.add(401);
-        supportedVersions.add(404);
-        supportedVersions.add(477);
-        supportedVersions.add(480);
-        supportedVersions.add(485);
-        supportedVersions.add(490);
-        supportedVersions.add(498);
-        supportedVersions.add(573);
-        supportedVersions.add(575);
-        supportedVersions.add(578);
-        supportedVersions.add(735);
-        supportedVersions.add(736);
+        supportedVersions.add(MINECRAFT_1_8);
+        supportedVersions.add(MINECRAFT_1_9);
+        supportedVersions.add(MINECRAFT_1_9_1);
+        supportedVersions.add(MINECRAFT_1_9_2);
+        supportedVersions.add(MINECRAFT_1_9_3);
+        supportedVersions.add(MINECRAFT_1_10);
+        supportedVersions.add(MINECRAFT_1_11);
+        supportedVersions.add(MINECRAFT_1_11_1);
+        supportedVersions.add(MINECRAFT_1_12);
+        supportedVersions.add(MINECRAFT_1_12_1);
+        supportedVersions.add(MINECRAFT_1_12_2);
+        supportedVersions.add(MINECRAFT_1_13);
+        supportedVersions.add(MINECRAFT_1_13_1);
+        supportedVersions.add(MINECRAFT_1_13_2);
+        supportedVersions.add(MINECRAFT_1_14);
+        supportedVersions.add(MINECRAFT_1_14_1);
+        supportedVersions.add(MINECRAFT_1_14_2);
+        supportedVersions.add(MINECRAFT_1_14_3);
+        supportedVersions.add(MINECRAFT_1_14_4);
+        supportedVersions.add(MINECRAFT_1_15);
+        supportedVersions.add(MINECRAFT_1_15_1);
+        supportedVersions.add(MINECRAFT_1_15_2);
+        supportedVersions.add(MINECRAFT_1_16);
+        supportedVersions.add(MINECRAFT_1_16_1);
+        return supportedVersions;
+    }
+
+    public static Map<String, Integer> getSupportedMajorVersions() {
+        Map<String, Integer> supportedVersions = new TreeMap<>();
+        supportedVersions.put("1_8", MINECRAFT_1_8);
+        supportedVersions.put("1_9", MINECRAFT_1_9);
+        supportedVersions.put("1_10", MINECRAFT_1_10);
+        supportedVersions.put("1_11", MINECRAFT_1_11);
+        supportedVersions.put("1_12", MINECRAFT_1_12);
+        supportedVersions.put("1_13", MINECRAFT_1_13);
+        supportedVersions.put("1_14", MINECRAFT_1_14);
+        supportedVersions.put("1_15", MINECRAFT_1_15);
+        supportedVersions.put("1_16", MINECRAFT_1_16);
         return supportedVersions;
     }
 
