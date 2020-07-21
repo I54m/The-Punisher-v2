@@ -1,6 +1,7 @@
 package com.i54m.protocol.items;
 
 import lombok.Getter;
+import org.jetbrains.annotations.Nullable;
 
 import static com.i54m.protocol.api.util.ProtocolVersions.*;
 
@@ -389,6 +390,7 @@ public enum ItemType {
     OAK_PLANKS(64, OAK_PLANKS(), NO_DATA),
     OAK_PRESSURE_PLATE(64, OAK_PRESSURE_PLATE(), NO_DATA),
     OAK_SAPLING(64, OAK_SAPLING(), NO_DATA),
+    OAK_SIGN(64, OAK_SIGN(), NO_DATA),
     OAK_SLAB(64, OAK_SLAB(), NO_DATA),
     OAK_STAIRS(64, OAK_STAIRS(), NO_DATA),
     OAK_TRAPDOOR(64, OAK_TRAPDOOR(), NO_DATA),
@@ -488,7 +490,6 @@ public enum ItemType {
     SEA_LANTERN(64, SEA_LANTERN(), NO_DATA),
     SHEARS(64, SHEARS(), NO_DATA),
     SHEEP_SPAWN_EGG(64, SHEEP_SPAWN_EGG(), NO_DATA),
-    SIGN(16, SIGN(), NO_DATA),
     SILVERFISH_SPAWN_EGG(64, SILVERFISH_SPAWN_EGG(), NO_DATA),
     SKELETON_SKULL(64, SKELETON_SKULL(), NO_DATA),
     SKELETON_SPAWN_EGG(64, SKELETON_SPAWN_EGG(), NO_DATA),
@@ -577,8 +578,8 @@ public enum ItemType {
     YELLOW_WOOL(64, YELLOW_WOOL(), NO_DATA),
     ZOMBIE_HEAD(64, ZOMBIE_HEAD(), NO_DATA),
     ZOMBIE_HORSE_SPAWN_EGG(64, ZOMBIE_HORSE_SPAWN_EGG(), HORSE_SPAWN_EGG),
-    ZOMBIE_PIGMAN_SPAWN_EGG(64, ZOMBIE_PIGMAN_SPAWN_EGG(), NO_DATA),
     ZOMBIE_SPAWN_EGG(64, ZOMBIE_SPAWN_EGG(), NO_DATA),
+    ZOMBIFIED_PIGLIN_SPAWN_EGG(64, ZOMBIFIED_PIGLIN_SPAWN_EGG(), NO_DATA),
 
 
     /* 1.9 items */
@@ -832,12 +833,9 @@ public enum ItemType {
     TURTLE_SPAWN_EGG(64, TURTLE_SPAWN_EGG(), SLIME_SPAWN_EGG),
 
 
-
     /* 1.14 items */
-    //todo some of these seem to be missing their 1.14-1.14.4 ids if below 698 can convert 1.15 - 1.15.2 mapping to 1.14 - 1.15.2
 
 
-    OAK_SIGN(64, OAK_SIGN(), SIGN),
     STONE_BRICK_STAIRS(64, STONE_BRICK_STAIRS(), COBBLESTONE_STAIRS),
     ACACIA_SIGN(64, ACACIA_SIGN(), OAK_SIGN),
     ANDESITE_SLAB(64, ANDESITE_SLAB(), COBBLESTONE_SLAB),
@@ -1002,7 +1000,7 @@ public enum ItemType {
     SOUL_CAMPFIRE(64, SOUL_CAMPFIRE(), NO_DATA),
     SOUL_LANTERN(64, SOUL_LANTERN(), NO_DATA),
     SOUL_SOIL(64, SOUL_SOIL(), NO_DATA),
-    SOUL_TOUCH(64, SOUL_TOUCH(), NO_DATA),
+    SOUL_TORCH(64, SOUL_TORCH(), NO_DATA),
     STRIDER_SPAWN_EGG(64, STRIDER_SPAWN_EGG(), NO_DATA),
     STRIPPED_CRIMSON_HYPHAE(64, STRIPPED_CRIMSON_HYPHAE(), NO_DATA),
     STRIPPED_CRIMSON_STEM(64, STRIPPED_CRIMSON_STEM(), NO_DATA),
@@ -1029,7 +1027,6 @@ public enum ItemType {
     WARPED_WART_BLOCK(64, WARPED_WART_BLOCK(), NO_DATA),
     WEEPING_VINES(64, WEEPING_VINES(), NO_DATA),
     ZOGLIN_SPAWN_EGG(64, ZOGLIN_SPAWN_EGG(), NO_DATA),
-    ZOMBIFIED_PIGLIN_SPAWN_EGG(64, ZOMBIFIED_PIGLIN_SPAWN_EGG(), NO_DATA),
 
 
     /* 1.17 Items */
@@ -1046,17 +1043,17 @@ public enum ItemType {
         this.fallback = fallback;
     }
 
-    public static ItemType getType(int id, int colVersion, ItemStack stack) {
-        return getType(id, (short) 0, colVersion, stack);
+    public static ItemType getType(int id, int protocolVersion, ItemStack stack) {
+        return getType(id, (short) 0, protocolVersion, stack);
     }
 
-    public static ItemType getType(int id, short durability, int colVersion, ItemStack stack) {
-        if (colVersion >= 393)
+    public static ItemType getType(int id, short durability, int protocolVersion, ItemStack stack) {
+        if (protocolVersion >= 393)
             durability = 0;
         for (ItemType type : values()) {
-            ItemIDMapping mapping = type.getApplicableMapping(colVersion);
+            ItemIDMapping mapping = type.getApplicableMapping(protocolVersion);
             if (mapping instanceof AbstractCustomItemIDMapping) {
-                if (((AbstractCustomItemIDMapping) mapping).isApplicable(stack, colVersion, id, durability))
+                if (((AbstractCustomItemIDMapping) mapping).isApplicable(stack, protocolVersion, id, durability))
                     return type;
             } else if (mapping.getId() == id && mapping.getData() == durability)
                 return type;
@@ -1065,21 +1062,34 @@ public enum ItemType {
         return null;
     }
 
-    public ItemIDMapping getApplicableMapping(int colVersion) {
-        for (ItemIDMapping mapping : this.mappings) {
-            if (mapping.getProtocolVersionRangeStart() <= colVersion && mapping.getProtocolVersionRangeEnd() >= colVersion)
-                return mapping;
-        }
-        return fallbackItemIDMapping(colVersion);
+    public ItemIDMapping[] getItemMapping() {
+        return mappings;
     }
 
-    private ItemIDMapping fallbackItemIDMapping(int colVersion) {
-        if (fallback == null) return null;
-        if (fallback.getApplicableMapping(colVersion) != null) {
-            this.maxStackSize = fallback.maxStackSize;
-            return fallback.getApplicableMapping(colVersion);
+    @Nullable
+    public ItemIDMapping getApplicableMappingNoFallback(int protocolVersion) {
+        for (ItemIDMapping mapping : this.mappings) {
+            if (mapping.getProtocolVersionRangeStart() <= protocolVersion && mapping.getProtocolVersionRangeEnd() >= protocolVersion)
+                return mapping;
         }
-        if (colVersion >= 47)
+        return null;
+    }
+
+    public ItemIDMapping getApplicableMapping(int protocolVersion) {
+        for (ItemIDMapping mapping : this.mappings) {
+            if (mapping.getProtocolVersionRangeStart() <= protocolVersion && mapping.getProtocolVersionRangeEnd() >= protocolVersion)
+                return mapping;
+        }
+        return fallbackItemIDMapping(protocolVersion);
+    }
+
+    private ItemIDMapping fallbackItemIDMapping(int protocolVersion) {
+        if (fallback == null) return null;
+        if (fallback.getApplicableMapping(protocolVersion) != null) {
+            this.maxStackSize = fallback.maxStackSize;
+            return fallback.getApplicableMapping(protocolVersion);
+        }
+        if (protocolVersion >= 47)
             //if item does not exist in current version and we don't have any fallback items then return a final fallback item of stone
             return new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_LATEST, 1);
         else return null;
@@ -1087,763 +1097,766 @@ public enum ItemType {
 
     private static ItemIDMapping[] NO_DATA() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_LATEST, -1)
+                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_LATEST, -1),
                 };
     }
 
     private static ItemIDMapping[] ACACIA_BOAT() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 901),
                 new ItemIDMapping(MINECRAFT_1_10, MINECRAFT_1_12_2, 447),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 767),
                 new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 833),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 834)
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 834),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 901),
                 };
     }
 
     private static ItemIDMapping[] ACACIA_BUTTON() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 309),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 245),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 263)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 263),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 309),
                 };
     }
 
     private static ItemIDMapping[] ACACIA_DOOR() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 562),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 430),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 196),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 465),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 511)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 511),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 562),
                 };
     }
 
     private static ItemIDMapping[] ACACIA_FENCE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 212),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 192),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 179),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 185)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 185),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 212),
                 };
     }
 
     private static ItemIDMapping[] ACACIA_FENCE_GATE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 256),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 187),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 214),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 220)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 220),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 256),
                 };
     }
 
     private static ItemIDMapping[] ACACIA_LEAVES() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 73),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 161),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 60)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 60),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 73),
                 };
     }
 
     private static ItemIDMapping[] ACACIA_LOG() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 162),
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 36),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 41),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 162),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 162),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 36)
                 };
     }
 
     private static ItemIDMapping[] ACACIA_PLANKS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 19),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 5, 4),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 17)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 17),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 19),
                 };
     }
 
     private static ItemIDMapping[] ACACIA_PRESSURE_PLATE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 195),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 164),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 170)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 170),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 195),
                 };
     }
 
     private static ItemIDMapping[] ACACIA_SAPLING() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 27),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 6, 4),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 23)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 23),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 27),
                 };
     }
 
     private static ItemIDMapping[] ACACIA_SIGN() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 593),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 656),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 593)
                 };
     }
 
     private static ItemIDMapping[] ACACIA_SLAB() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 142),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 126, 4),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 116),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 119)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 119),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 142),
                 };
     }
 
     private static ItemIDMapping[] ACACIA_STAIRS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 369),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 163),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 301),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 319)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 319),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 369),
                 };
     }
 
     private static ItemIDMapping[] ACACIA_TRAPDOOR() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 230),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 191),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 197)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 197),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 230),
                 };
     }
 
     private static ItemIDMapping[] ACACIA_WOOD() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 65),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 5, 4),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 54)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 54),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 65),
                 };
     }
 
     private static ItemIDMapping[] ACTIVATOR_RAIL() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 329),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 157),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 261),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 279)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 279),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 329),
                 };
     }
 
     private static ItemIDMapping[] AIR() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_LATEST, 0)
+                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_LATEST, 0),
                 };
     }
 
     private static ItemIDMapping[] ALLIUM() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 114),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 38, 2),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 101)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 101),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 114),
                 };
     }
 
     private static ItemIDMapping[] ANCIENT_DEBRIS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 959)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 959),
                 };
     }
 
     private static ItemIDMapping[] ANDESITE() {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 1, 5),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_LATEST, 6)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_LATEST, 6),
                 };
     }
 
     private static ItemIDMapping[] ANDESITE_SLAB() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 501),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 552),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 501)
                 };
     }
 
     private static ItemIDMapping[] ANDESITE_STAIRS() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 488),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 539),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 488)
                 };
     }
 
     private static ItemIDMapping[] ANDESITE_WALL() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 254),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 296),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 254)
                 };
     }
 
     private static ItemIDMapping[] ANVIL() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 314),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 145),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 247),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 265)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 265),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 314),
                 };
     }
 
     private static ItemIDMapping[] APPLE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 576),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 260),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 476),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 524)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 524),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 576),
                 };
     }
 
     private static ItemIDMapping[] ARMOR_STAND() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 859),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 791),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 416),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 726),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 792)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 791),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 792),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 859),
                 };
     }
 
     private static ItemIDMapping[] ARROW() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 578),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 262),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 478),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 526)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 526),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 578),
                 };
     }
 
     private static ItemIDMapping[] AZURE_BLUET() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 115),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 38, 3),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 102)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 102),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 115),
                 };
     }
 
     private static ItemIDMapping[] BAKED_POTATO() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 831),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 764),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 393),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 699),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 765)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 764),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 765),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 831),
                 };
     }
 
     private static ItemIDMapping[] BAMBOO() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 614),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 135),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 614)
                 };
     }
 
     private static ItemIDMapping[] BARREL() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 864),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 865),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 935),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 865)
                 };
     }
 
     private static ItemIDMapping[] BARRIER() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 347),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 166),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 279),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 297)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 297),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 347),
                 };
     }
 
     private static ItemIDMapping[] BASALT() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 221)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 221),
                 };
     }
 
     private static ItemIDMapping[] BAT_SPAWN_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 759),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_8, 383, 65),
+                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 383, 65),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 639),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 697)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 697),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 759),
                 };
     }
 
     private static ItemIDMapping[] BEACON() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 286),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 138),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 238),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 244)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 244),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 286),
                 };
     }
 
     private static ItemIDMapping[] BEDROCK() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 29),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 7),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 25)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 25),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 29),
                 };
     }
 
     private static ItemIDMapping[] BEE_NEST() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 879),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 952),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 879)
                 };
     }
 
     private static ItemIDMapping[] BEE_SPAWN_EGG() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 698),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 760),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 698)
                 };
     }
 
     private static ItemIDMapping[] BEEF() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 739),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 363),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 619),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 677)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 677),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 739),
                 };
     }
 
     private static ItemIDMapping[] BEEHIVE() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 880),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 953),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 880)
                 };
     }
 
     private static ItemIDMapping[] BEETROOT() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 888),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 820),
                 new ItemIDMapping(MINECRAFT_1_9, MINECRAFT_1_12_2, 434),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 754),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 821)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 820),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 821),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 888),
                 };
     }
 
     private static ItemIDMapping[] BEETROOT_SEEDS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 889),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 821),
                 new ItemIDMapping(MINECRAFT_1_9, MINECRAFT_1_12_2, 435),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 755),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 822)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 821),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 822),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 889),
                 };
     }
 
     private static ItemIDMapping[] BEETROOT_SOUP() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 890),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 822),
-                new ItemIDMapping(MINECRAFT_1_9, MINECRAFT_1_12_2, 436),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 756),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 823)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 822),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 823),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 890),
+                new ItemIDMapping(MINECRAFT_1_9, MINECRAFT_1_12_2, 436),
                 };
     }
 
     private static ItemIDMapping[] BELL() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 873),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 874),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 944),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 874)
                 };
     }
 
     private static ItemIDMapping[] BIRCH_BOAT() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 899),
                 new ItemIDMapping(MINECRAFT_1_10, MINECRAFT_1_12_2, 445),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 765),
                 new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 831),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 832)
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 832),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 899),
                 };
     }
 
     private static ItemIDMapping[] BIRCH_BUTTON() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 307),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 243),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 261)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 261),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 307),
                 };
     }
 
     private static ItemIDMapping[] BIRCH_DOOR() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 560),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 428),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 194),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 463),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 509)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 509),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 560),
                 };
     }
 
     private static ItemIDMapping[] BIRCH_FENCE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 210),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 189),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 177),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 183)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 183),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 210),
                 };
     }
 
     private static ItemIDMapping[] BIRCH_FENCE_GATE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 254),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 184),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 212),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 218)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 218),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 254),
                 };
     }
 
     private static ItemIDMapping[] BIRCH_LEAVES() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 71),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 18, 2),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 58)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 58),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 71),
                 };
     }
 
     private static ItemIDMapping[] BIRCH_LOG() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 17, 2),
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 34),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 39),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 17, 2),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 17, 2),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 34)
                 };
     }
 
     private static ItemIDMapping[] BIRCH_PLANKS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 17),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 5, 2),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 15)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 15),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 17),
                 };
     }
 
     private static ItemIDMapping[] BIRCH_PRESSURE_PLATE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 193),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 162),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 168)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 168),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 193),
                 };
     }
 
     private static ItemIDMapping[] BIRCH_SAPLING() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 25),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 6, 2),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 21)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 21),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 25),
                 };
     }
 
     private static ItemIDMapping[] BIRCH_SIGN() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 591),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 654),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 591)
                 };
     }
 
     private static ItemIDMapping[] BIRCH_SLAB() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 140),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 126, 2),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 114),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 117)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 117),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 140),
                 };
     }
 
     private static ItemIDMapping[] BIRCH_STAIRS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 281),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 135),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 235),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 241)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 241),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 281),
                 };
     }
 
     private static ItemIDMapping[] BIRCH_TRAPDOOR() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 228),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 189),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 195)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 195),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 228),
                 };
     }
 
     private static ItemIDMapping[] BIRCH_WOOD() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 63),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 5, 2),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 52)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 52),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 63),
                 };
     }
 
     private static ItemIDMapping[] BLACKSTONE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 962)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 962),
                 };
     }
 
     private static ItemIDMapping[] BLACKSTONE_SLAB() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 963)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 963),
                 };
     }
 
     private static ItemIDMapping[] BLACKSTONE_STAIRS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 964)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 964),
                 };
     }
 
     private static ItemIDMapping[] BLACKSTONE_WALL() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 301)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 301),
                 };
     }
 
     private static ItemIDMapping[] BLACK_BANNER() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 884),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 816),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 425),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 750),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 817)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 816),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 817),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 884),
                 };
     }
 
     private static ItemIDMapping[] BLACK_BED() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 731),
                 new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 355, 15),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 611),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 669)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 669),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 731),
                 };
     }
 
     private static ItemIDMapping[] BLACK_CARPET() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 365),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 171, 15),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 297),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 315)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 315),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 365),
                 };
     }
 
     private static ItemIDMapping[] BLACK_CONCRETE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 479),
+                new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 251, 15),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 410),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 428)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 428),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 479),
                 };
     }
 
     private static ItemIDMapping[] BLACK_CONCRETE_POWDER() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 495),
+                new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 252, 15),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 426),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 444)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 444),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 495),
                 };
     }
 
     private static ItemIDMapping[] BLACK_DYE() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 649),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 711),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 649)
                 };
     }
 
     private static ItemIDMapping[] BLACK_GLAZED_TERRACOTTA() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 463),
                 new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 250),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 394),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 412)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 412),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 463),
                 };
     }
 
     private static ItemIDMapping[] BLACK_SHULKER_BOX() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 447),
                 new ItemIDMapping(MINECRAFT_1_11, MINECRAFT_1_12_2, 234),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 378),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 396)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 396),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 447),
                 };
     }
 
     private static ItemIDMapping[] BLACK_STAINED_GLASS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 394),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 95, 15),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 326),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 344)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 344),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 394),
                 };
     }
 
     private static ItemIDMapping[] BLACK_STAINED_GLASS_PANE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 410),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 160, 15),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 342),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 360)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 360),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 410),
                 };
     }
 
     private static ItemIDMapping[] BLACK_TERRACOTTA() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 346),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 159, 15),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 278),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 296)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 296),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 346),
                 };
     }
 
     private static ItemIDMapping[] BLACK_WOOL() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 110),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 35, 15),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 97)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 97),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 110),
                 };
     }
 
     private static ItemIDMapping[] BLAST_FURNACE() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 866),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 867),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 937),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 867)
                 };
     }
 
     private static ItemIDMapping[] BLAZE_POWDER() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 753),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 377),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 633),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 691)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 691),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 753),
                 };
     }
 
     private static ItemIDMapping[] BLAZE_ROD() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 745),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 369),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 625),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 683)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 683),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 745),
                 };
     }
 
     private static ItemIDMapping[] BLAZE_SPAWN_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 761),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 698),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_8, 383, 61),
+                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 383, 61),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 640),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 699)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 698),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 699),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 761),
                 };
     }
 
     private static ItemIDMapping[] BLUE_BANNER() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 880),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 812),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 425, 4),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 746),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 813)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 812),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 813),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 880),
                 };
     }
 
     private static ItemIDMapping[] BLUE_BED() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 727),
                 new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 355, 11),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 607),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 665)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 665),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 727),
                 };
     }
 
     private static ItemIDMapping[] BLUE_CARPET() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 361),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 171, 11),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 293),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 311)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 311),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 361),
                 };
     }
 
     private static ItemIDMapping[] BLUE_CONCRETE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 475),
+                new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 251, 11),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 406),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 424)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 424),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 475),
                 };
     }
 
     private static ItemIDMapping[] BLUE_CONCRETE_POWDER() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 491),
+                new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 252, 11),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 422),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 440)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 440),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 491),
                 };
     }
 
     private static ItemIDMapping[] BLUE_DYE() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 647),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 709),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 647)
                 };
     }
 
     private static ItemIDMapping[] BLUE_GLAZED_TERRACOTTA() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 459),
                 new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 246),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 390),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 408)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 408),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 459),
                 };
     }
 
     private static ItemIDMapping[] BLUE_ICE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 527),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 458),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 476)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 476),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 527),
                 };
     }
 
     private static ItemIDMapping[] BLUE_ORCHID() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 113),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 38, 1),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 100)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 100),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 113),
                 };
     }
 
     private static ItemIDMapping[] BLUE_SHULKER_BOX() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 443),
                 new ItemIDMapping(MINECRAFT_1_11, MINECRAFT_1_12_2, 230),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 374),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 392)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 392),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 443),
                 };
     }
 
     private static ItemIDMapping[] BLUE_STAINED_GLASS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 390),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 95, 11),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 322),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 340)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 340),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 390),
                 };
     }
 
     private static ItemIDMapping[] BLUE_STAINED_GLASS_PANE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 406),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 160, 11),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 338),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 356)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 356),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 406),
                 };
     }
 
@@ -1858,1267 +1871,1273 @@ public enum ItemType {
 
     private static ItemIDMapping[] BLUE_WOOL() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 106),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 35, 11),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 93)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 93),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 106),
                 };
     }
 
     private static ItemIDMapping[] BONE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 713),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 352),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 593),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 651)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 651),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 713),
                 };
     }
 
     private static ItemIDMapping[] BONE_BLOCK() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 428),
                 new ItemIDMapping(MINECRAFT_1_10, MINECRAFT_1_12_2, 216),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 359),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 377)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 377),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 428),
                 };
     }
 
     private static ItemIDMapping[] BONE_MEAL() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 708),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 351, 15),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 592),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 646)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 646),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 708),
                 };
     }
 
     private static ItemIDMapping[] BOOK() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 678),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 340),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 562),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 616)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 616),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 678),
                 };
     }
 
     private static ItemIDMapping[] BOOKSHELF() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 168),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 47),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 137),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 143)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 143),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 168),
                 };
     }
 
     private static ItemIDMapping[] BOW() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 577),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 261),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 477),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 525)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 525),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 577),
                 };
     }
 
     private static ItemIDMapping[] BOWL() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 600),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 281),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 498),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 546)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 546),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 600),
                 };
     }
 
     private static ItemIDMapping[] BRAIN_CORAL() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 508),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 439),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 457)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 457),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 508),
                 };
     }
 
     private static ItemIDMapping[] BRAIN_CORAL_BLOCK() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 503),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 434),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 452)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 452),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 503),
                 };
     }
 
     private static ItemIDMapping[] BRAIN_CORAL_FAN() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 518),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 449),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 467)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 467),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 518),
                 };
     }
 
     private static ItemIDMapping[] BREAD() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 621),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 297),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 514),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 562)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 562),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 621),
                 };
     }
 
     private static ItemIDMapping[] BREWING_STAND() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 755),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 379),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 117),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 635),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 693)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 693),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 755),
                 };
     }
 
     private static ItemIDMapping[] BRICK() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 674),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 336),
-                new ItemIDMapping(MINECRAFT_1_9, MINECRAFT_1_12_2, 45),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 556),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 609)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 609),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 674),
                 };
     }
 
     private static ItemIDMapping[] BRICK_SLAB() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 152),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 44, 4),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 122),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 127)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 127),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 152),
         };
     }
 
     private static ItemIDMapping[] BRICK_STAIRS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 260),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 108),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 216),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 222)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 222),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 260),
         };
     }
 
     private static ItemIDMapping[] BRICK_WALL() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 247),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 289),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 247)
         };
     }
 
     private static ItemIDMapping[] BRICKS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 166),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 45),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 135),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 141)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 141),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 166),
                 };
     }
 
     private static ItemIDMapping[] BROWN_BANNER() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 881),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 813),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 425, 3),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 747),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 814)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 813),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 814),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 881),
                 };
     }
 
     private static ItemIDMapping[] BROWN_BED() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 728),
                 new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 355, 12),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 608),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 666)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 666),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 728),
                 };
     }
 
     private static ItemIDMapping[] BROWN_CARPET() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 362),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 171, 12),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 294),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 312)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 312),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 362),
                 };
     }
 
     private static ItemIDMapping[] BROWN_CONCRETE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 476),
+                new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 251, 12),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 407),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 425)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 425),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 476),
                 };
     }
 
     private static ItemIDMapping[] BROWN_CONCRETE_POWDER() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 492),
+                new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 252, 12),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 423),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 441)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 441),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 492),
                 };
     }
 
     private static ItemIDMapping[] BROWN_DYE() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 648),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 710),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 648)
                 };
     }
 
     private static ItemIDMapping[] BROWN_GLAZED_TERRACOTTA() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 460),
                 new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 247),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 391),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 409)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 409),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 460),
                 };
     }
 
     private static ItemIDMapping[] BROWN_MUSHROOM() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 124),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 39),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 108),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 111)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 111),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 124),
                 };
     }
 
     private static ItemIDMapping[] BROWN_MUSHROOM_BLOCK() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 244),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 99),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 203),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 209)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 209),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 244),
                 };
     }
 
     private static ItemIDMapping[] BROWN_SHULKER_BOX() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 444),
                 new ItemIDMapping(MINECRAFT_1_11, MINECRAFT_1_12_2, 231),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 375),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 393)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 393),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 444),
                 };
     }
 
     private static ItemIDMapping[] BROWN_STAINED_GLASS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 391),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 95, 12),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 323),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 341)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 341),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 391),
                 };
     }
 
     private static ItemIDMapping[] BROWN_STAINED_GLASS_PANE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 407),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 160, 12),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 339),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 357)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 357),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 407),
                 };
     }
 
     private static ItemIDMapping[] BROWN_TERRACOTTA() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 343),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 159, 12),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 275),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 293)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 293),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 343),
                 };
     }
 
     private static ItemIDMapping[] BROWN_WOOL() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 107),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 35, 12),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 94)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 94),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 107),
                 };
     }
 
     private static ItemIDMapping[] BUBBLE_CORAL() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 509),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 440),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 458)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 458),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 509),
                 };
     }
 
     private static ItemIDMapping[] BUBBLE_CORAL_BLOCK() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 504),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 435),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 453)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 453),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 504),
                 };
     }
 
     private static ItemIDMapping[] BUBBLE_CORAL_FAN() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 519),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 450),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 468)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 468),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 519),
                 };
     }
 
     private static ItemIDMapping[] BUCKET() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 660),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 325),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 542),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 595)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 595),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 660),
                 };
     }
 
     private static ItemIDMapping[] CACTUS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 205),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 81),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 172),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 178)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 178),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 205),
                 };
     }
 
     private static ItemIDMapping[] CAKE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 715),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 354),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 595),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 653)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 653),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 715),
                 };
     }
 
     private static ItemIDMapping[] CAMPFIRE() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 876),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 877),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 948),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 877)
                 };
     }
 
     private static ItemIDMapping[] CARROT() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 829),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 762),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 391),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 141),// TODO: 25/06/2020 2 different 1.8-1.12.2 ids?
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 697),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 763)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 762),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 763),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 829),
                 };
     }
 
     private static ItemIDMapping[] CARROT_ON_A_STICK() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 841),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 774),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 398),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 709),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 775)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 774),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 775),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 841),
                 };
     }
 
     private static ItemIDMapping[] CARTOGRAPHY_TABLE() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 867),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 868),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 938),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 868)
                 };
     }
 
     private static ItemIDMapping[] CARVED_PUMPKIN() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 217),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 182),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 188)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 188),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 217),
                 };
     }
 
     private static ItemIDMapping[] CAT_SPAWN_EGG() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 699),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 700),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 762),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 700)
                 };
     }
 
     private static ItemIDMapping[] CAULDRON() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 756),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 380),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 118),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 636),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 694)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 694),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 756),
                 };
     }
 
     private static ItemIDMapping[] CAVE_SPIDER_SPAWN_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 763),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 700),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_8, 383, 59),
+                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 383, 59),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 641),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 701)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 700),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 701),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 763),
                 };
     }
 
     private static ItemIDMapping[] CHAIN() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 248)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 248),
                 };
     }
 
     private static ItemIDMapping[] CHAINMAIL_BOOTS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 629),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 305),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 522),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 570)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 570),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 629),
                 };
     }
 
     private static ItemIDMapping[] CHAINMAIL_CHESTPLATE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 627),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 303),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 520),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 568)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 568),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 627),
                 };
     }
 
     private static ItemIDMapping[] CHAINMAIL_HELMET() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 626),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 302),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 519),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 567)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 567),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 626),
                 };
     }
 
     private static ItemIDMapping[] CHAINMAIL_LEGGINGS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 628),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 304),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 521),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 569)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 569),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 628),
                 };
     }
 
     private static ItemIDMapping[] CHAIN_COMMAND_BLOCK() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 423),
+                new ItemIDMapping(MINECRAFT_1_9, MINECRAFT_1_12_2, 211),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 355),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 373)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 373),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 423),
                 };
     }
 
     private static ItemIDMapping[] CHARCOAL() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 580),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 263, 1),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 480),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 528)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 528),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 580),
                 };
     }
 
     private static ItemIDMapping[] CHEST() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 180),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 54),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 149),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 155)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 155),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 180),
                 };
     }
 
     private static ItemIDMapping[] CHEST_MINECART() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 680),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 342),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 564),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 618)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 618),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 680),
                 };
     }
 
     private static ItemIDMapping[] CHICKEN() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 741),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 365),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 621),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 679)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 679),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 741),
                 };
     }
 
     private static ItemIDMapping[] CHICKEN_SPAWN_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 764),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 701),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_8, 383, 93),
+                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 383, 93),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 642),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 702)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 701),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 702),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 764),
                 };
     }
 
     private static ItemIDMapping[] CHIPPED_ANVIL() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 315),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 145, 1),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 248),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 266)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 266),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 315),
                 };
     }
 
     private static ItemIDMapping[] CHISELED_NETHER_BRICKS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 266)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 266),
                 };
     }
 
     private static ItemIDMapping[] CHISELED_POLISHED_BLACKSTONE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 969)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 969),
                 };
     }
 
     private static ItemIDMapping[] CHISELED_QUARTZ_BLOCK() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 324),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 155, 1),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 257),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 275)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 275),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 324),
                 };
     }
 
     private static ItemIDMapping[] CHISELED_RED_SANDSTONE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 419),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 179, 1),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 351),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 369)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 369),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 419),
                 };
     }
 
     private static ItemIDMapping[] CHISELED_SANDSTONE() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 24, 1),
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 69),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 82),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 69)
                 };
     }
 
     private static ItemIDMapping[] CHISELED_STONE_BRICKS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 243),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 98, 3),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 202),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 208)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 208),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 243),
                 };
     }
 
     private static ItemIDMapping[] CHORUS_FLOWER() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 174),
                 new ItemIDMapping(MINECRAFT_1_9, MINECRAFT_1_12_2, 200),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 143),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 149)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 149),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 174),
                 };
     }
 
     private static ItemIDMapping[] CHORUS_FRUIT() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 886),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 818),
                 new ItemIDMapping(MINECRAFT_1_9, MINECRAFT_1_12_2, 432),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 752),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 819)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 818),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 819),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 886),
                 };
     }
 
     private static ItemIDMapping[] CHORUS_PLANT() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 173),
                 new ItemIDMapping(MINECRAFT_1_9, MINECRAFT_1_12_2, 199),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 142),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 148)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 148),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 173),
                 };
     }
 
     private static ItemIDMapping[] CLAY() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 206),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 82),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 173),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 179)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 179),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 206),
                 };
     }
 
     private static ItemIDMapping[] CLAY_BALL() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 675),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 337),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 557),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 610)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 610),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 675),
                 };
     }
 
     private static ItemIDMapping[] CLOCK() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 685),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 347),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 569),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 623)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 623),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 685),
                 };
     }
 
     private static ItemIDMapping[] COAL() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 579),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 263),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 479),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 527)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 527),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 579),
                 };
     }
 
     private static ItemIDMapping[] COAL_BLOCK() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 367),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 173),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 299),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 317)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 317),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 367),
                 };
     }
 
     private static ItemIDMapping[] COAL_ORE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 35),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 16),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 31)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 31),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 35),
                 };
     }
 
     private static ItemIDMapping[] COARSE_DIRT() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_LATEST, 10) // TODO: 25/06/2020 1.8-1.13 item missing? pre sure this just used dirt but had diff data
+                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 3, 1),
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_LATEST, 10),
                 };
     }
 
     private static ItemIDMapping[] COBBLESTONE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 14),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 4),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 12)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 12),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 14),
                 };
     }
 
     private static ItemIDMapping[] COBBLESTONE_SLAB() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 151),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 44, 3),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 121),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 126)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 126),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 151),
                 };
     }
 
     private static ItemIDMapping[] COBBLESTONE_STAIRS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 188),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 67),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 157),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 163)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 163),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 188),
                 };
     }
 
     private static ItemIDMapping[] COBBLESTONE_WALL() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 287),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 139),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 239),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 245)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 245),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 287),
                 };
     }
 
     private static ItemIDMapping[] COBWEB() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 88),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 30),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 75)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 75),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 88),
                 };
     }
 
     private static ItemIDMapping[] COCOA_BEANS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 696),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 351, 3),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 580),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 634)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 634),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 696),
                 };
     }
 
     private static ItemIDMapping[] COD() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 687),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 349),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 571),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 625)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 625),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 687),
                 };
     }
 
     private static ItemIDMapping[] COD_BUCKET() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 672),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 554),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 607)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 607),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 672),
                 };
     }
 
     private static ItemIDMapping[] COD_SPAWN_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 765),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 643),
                 new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 702),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 703)
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 703),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 765),
                 };
     }
 
     private static ItemIDMapping[] COMMAND_BLOCK() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 285),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 137),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 237),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 243)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 243),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 285),
                 };
     }
 
     private static ItemIDMapping[] COMMAND_BLOCK_MINECART() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 866),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 798),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 422),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 732),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 799)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 798),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 799),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 866),
                 };
     }
 
     private static ItemIDMapping[] COMPARATOR() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 567),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 404),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 468),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 514)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 514),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 567),
                 };
     }
 
     private static ItemIDMapping[] COMPASS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 683),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 345),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 567),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 621)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 621),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 683),
                 };
     }
 
     private static ItemIDMapping[] COMPOSTER() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 517),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 934),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 517)
                 };
     }
 
     private static ItemIDMapping[] CONDUIT() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 528),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 459),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 477)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 477),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 528),
                 };
     }
 
     private static ItemIDMapping[] COOKED_BEEF() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 740),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 364),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 620),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 678)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 678),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 740),
                 };
     }
 
     private static ItemIDMapping[] COOKED_CHICKEN() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 742),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 366),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 622),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 680)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 680),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 742),
                 };
     }
 
     private static ItemIDMapping[] COOKED_COD() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 691),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 350),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 578),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 629)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 575),
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 629),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 691),
                 };
     }
 
     private static ItemIDMapping[] COOKED_MUTTON() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 868),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 800),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 424),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 734),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 801)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 800),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 801),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 868),
                 };
     }
 
     private static ItemIDMapping[] COOKED_PORKCHOP() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 648),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 320),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 537),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 585)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 585),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 648),
                 };
     }
 
     private static ItemIDMapping[] COOKED_RABBIT() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 855),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 787),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 412),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 722),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 788)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 787),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 788),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 855),
                 };
     }
 
     private static ItemIDMapping[] COOKED_SALMON() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 692),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 350, 1),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 576),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 630)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 630),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 692),
                 };
     }
 
     private static ItemIDMapping[] COOKIE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 732),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 357),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 612),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 670)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 670),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 732),
                 };
     }
 
     private static ItemIDMapping[] CORNFLOWER() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 108),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 121),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 108)
                 };
     }
 
     private static ItemIDMapping[] COW_SPAWN_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 766),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 703),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_8, 383, 92),
+                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 383, 92),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 644),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 704)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 703),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 704),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 766),
                 };
     }
 
     private static ItemIDMapping[] CRACKED_NETHER_BRICKS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 265)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 265),
                 };
     }
 
     private static ItemIDMapping[] CRACKED_POLISHED_BLACKSTONE_BRICKS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 973)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 973),
                 };
     }
 
     private static ItemIDMapping[] CRACKED_STONE_BRICKS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 242),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 98, 2),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 201),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 207)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 207),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 242),
                 };
     }
 
     private static ItemIDMapping[] CRAFTING_TABLE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 183),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 58),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 152),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 158)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 158),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 183),
                 };
     }
 
     private static ItemIDMapping[] CREEPER_BANNER_PATTERN() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 860),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 861),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 929),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 861)
                 };
     }
 
     private static ItemIDMapping[] CREEPER_HEAD() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 839),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 772),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 397, 4),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 707),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 773)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 772),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 773),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 839),
                 };
     }
 
     private static ItemIDMapping[] CREEPER_SPAWN_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 767),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 704),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_8, 383, 50),
+                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 383, 50),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 645),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 705)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 704),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 705),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 767),
                 };
     }
 
     private static ItemIDMapping[] CRIMSON_BUTTON() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 311)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 311),
                 };
     }
 
     private static ItemIDMapping[] CRIMSON_DOOR() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 564)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 564),
                 };
     }
 
     private static ItemIDMapping[] CRIMSON_FENCE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 214)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 214),
                 };
     }
 
     private static ItemIDMapping[] CRIMSON_FENCE_GATE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 258)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 258),
                 };
     }
 
     private static ItemIDMapping[] CRIMSON_FUNGUS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 126)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 126),
                 };
     }
 
     private static ItemIDMapping[] CRIMSON_HYPHAE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 67)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 67),
                 };
     }
 
     private static ItemIDMapping[] CRIMSON_NYLIUM() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 12)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 12),
                 };
     }
 
     private static ItemIDMapping[] CRIMSON_PLANKS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 21)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 21),
                 };
     }
 
     private static ItemIDMapping[] CRIMSON_PRESSURE_PLATE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 197)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 197),
                 };
     }
 
     private static ItemIDMapping[] CRIMSON_ROOTS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 128)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 128),
                 };
     }
 
     private static ItemIDMapping[] CRIMSON_SIGN() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 658)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 658),
                 };
     }
 
     private static ItemIDMapping[] CRIMSON_SLAB() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 144)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 144),
                 };
     }
 
     private static ItemIDMapping[] CRIMSON_STAIRS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 283)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 283),
                 };
     }
 
     private static ItemIDMapping[] CRIMSON_STEM() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 43)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 43),
                 };
     }
 
     private static ItemIDMapping[] CRIMSON_TRAPDOOR() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 232)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 232),
                 };
     }
 
     private static ItemIDMapping[] CROSSBOW() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 856),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 857),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 925),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 857)
                 };
     }
 
     private static ItemIDMapping[] CRYING_OBSIDIAN() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 961)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 961),
                 };
     }
 
     private static ItemIDMapping[] CUT_RED_SANDSTONE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 420),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 352),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 370)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 370),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 420),
                 };
     }
 
     private static ItemIDMapping[] CUT_RED_SANDSTONE_SLAB() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 132),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 157),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 132)
                 };
     }
 
     private static ItemIDMapping[] CUT_SANDSTONE() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 70),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 83),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 70)
                 };
     }
 
     private static ItemIDMapping[] CUT_SANDSTONE_SLAB() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 124),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 149),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 124)
                 };
     }
 
     private static ItemIDMapping[] CYAN_BANNER() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 878),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 810),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 425, 6),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 744),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 811)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 810),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 811),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 878),
                 };
     }
 
     private static ItemIDMapping[] CYAN_BED() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 725),
                 new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 355, 9),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 605),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 663)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 663),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 725),
                 };
     }
 
     private static ItemIDMapping[] CYAN_CARPET() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 359),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 171, 9),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 291),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 309)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 309),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 359),
                 };
     }
 
     private static ItemIDMapping[] CYAN_CONCRETE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 473),
+                new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 251, 9),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 404),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 422)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 422),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 473),
                 };
     }
 
     private static ItemIDMapping[] CYAN_CONCRETE_POWDER() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 489),
+                new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 252, 9),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 420),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 438)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 438),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 489),
                 };
     }
 
     private static ItemIDMapping[] CYAN_DYE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 699),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 351, 6),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 583),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 637)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 637),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 699),
                 };
     }
 
     private static ItemIDMapping[] CYAN_GLAZED_TERRACOTTA() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 457),
                 new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 244),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 388),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 406)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 406),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 457),
                 };
     }
 
     private static ItemIDMapping[] CYAN_SHULKER_BOX() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 441),
                 new ItemIDMapping(MINECRAFT_1_11, MINECRAFT_1_12_2, 228),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 372),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 390)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 390),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 441),
                 };
     }
 
     private static ItemIDMapping[] CYAN_STAINED_GLASS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 388),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 95, 9),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 320),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 338)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 338),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 388),
                 };
     }
 
     private static ItemIDMapping[] CYAN_STAINED_GLASS_PANE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 404),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 160, 9),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 336),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 354)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 354),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 404),
                 };
     }
 
     private static ItemIDMapping[] CYAN_TERRACOTTA() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 340),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 159, 9),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 272),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 290)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 290),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 340),
                 };
     }
 
     private static ItemIDMapping[] CYAN_WOOL() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 104),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 35, 9),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 91)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 91),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 104),
                 };
     }
 
     private static ItemIDMapping[] DAMAGED_ANVIL() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 316),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 145, 2),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 249),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 267)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 267),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 316),
                 };
     }
 
     private static ItemIDMapping[] DANDELION() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 111),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 37),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 98)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 98),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 111),
                 };
     }
 
     private static ItemIDMapping[] DARK_OAK_BOAT() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 902),
                 new ItemIDMapping(MINECRAFT_1_10, MINECRAFT_1_12_2, 448),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 768),
                 new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 834),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 835)
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 835),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 902),
                 };
     }
 
     private static ItemIDMapping[] DARK_OAK_BUTTON() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 310),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 246),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 264)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 264),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 310),
                 };
     }
 
     private static ItemIDMapping[] DARK_OAK_DOOR() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 563),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 431),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 197),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 466),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 512)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 512),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 563),
                 };
     }
 
     private static ItemIDMapping[] DARK_OAK_FENCE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 213),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 191),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 180),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 186)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 186),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 213),
                 };
     }
 
     private static ItemIDMapping[] DARK_OAK_FENCE_GATE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 257),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 186),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 215),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 221)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 221),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 257),
                 };
     }
 
     private static ItemIDMapping[] DARK_OAK_LEAVES() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 74),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 161, 1),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 61)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 61),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 74),
                 };
     }
 
     private static ItemIDMapping[] DARK_OAK_LOG() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 162, 1),
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 37),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 42),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 162, 1),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 162, 1),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 37)
                 };
     }
 
     private static ItemIDMapping[] DARK_OAK_PLANKS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 20),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 5, 5),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 18)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 18),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 20),
                 };
     }
 
     private static ItemIDMapping[] DARK_OAK_PRESSURE_PLATE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 196),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 165),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 171)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 171),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 196),
                 };
     }
 
     private static ItemIDMapping[] DARK_OAK_SAPLING() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 28),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 6, 5),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 24)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 24),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 28),
                 };
     }
 
     private static ItemIDMapping[] DARK_OAK_SIGN() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 594),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 657),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 594)
                 };
     }
 
@@ -3126,6187 +3145,6236 @@ public enum ItemType {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 126, 5),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 117),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 120)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 120),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 143),
                 };
     }
 
     private static ItemIDMapping[] DARK_OAK_STAIRS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 370),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 164),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 302),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 320)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 320),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 370),
                 };
     }
 
     private static ItemIDMapping[] DARK_OAK_TRAPDOOR() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 231),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 192),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 198)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 198),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 231),
                 };
     }
 
     private static ItemIDMapping[] DARK_OAK_WOOD() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 66),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 5, 5),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 55)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 55),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 66),
                 };
     }
 
     private static ItemIDMapping[] DARK_PRISMARINE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 413),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 168, 2),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 345),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 363)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 363),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 413),
                 };
     }
 
     private static ItemIDMapping[] DARK_PRISMARINE_SLAB() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 161),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 130),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 136)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 136),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 161),
                 };
     }
 
     private static ItemIDMapping[] DARK_PRISMARINE_STAIRS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 416),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 348),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 366)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 366),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 416),
                 };
     }
 
     private static ItemIDMapping[] DAYLIGHT_DETECTOR() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 320),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 151),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 253),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 271)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 271),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 320),
                 };
     }
 
     private static ItemIDMapping[] DEAD_BRAIN_CORAL() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 512),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 443),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 461)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 461),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 512),
                 };
     }
 
     private static ItemIDMapping[] DEAD_BRAIN_CORAL_BLOCK() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 498),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 429),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 447)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 447),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 498),
                 };
     }
 
     private static ItemIDMapping[] DEAD_BRAIN_CORAL_FAN() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 523),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 454),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 472)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 472),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 523),
                 };
     }
 
     private static ItemIDMapping[] DEAD_BUBBLE_CORAL() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 513),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 444),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 462)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 462),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 513),
                 };
     }
 
     private static ItemIDMapping[] DEAD_BUBBLE_CORAL_BLOCK() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 499),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 430),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 448)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 448),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 499),
                 };
     }
 
     private static ItemIDMapping[] DEAD_BUBBLE_CORAL_FAN() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 524),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 455),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 473)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 473),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 524),
                 };
     }
 
     private static ItemIDMapping[] DEAD_BUSH() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 91),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 32),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 78)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 78),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 91),
                 };
     }
 
     private static ItemIDMapping[] DEAD_FIRE_CORAL() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 514),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 445),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 463)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 463),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 514),
                 };
     }
 
     private static ItemIDMapping[] DEAD_FIRE_CORAL_BLOCK() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 500),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 431),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 449)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 449),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 500),
                 };
     }
 
     private static ItemIDMapping[] DEAD_FIRE_CORAL_FAN() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 525),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 456),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 474)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 474),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 525),
                 };
     }
 
     private static ItemIDMapping[] DEAD_HORN_CORAL() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 515),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 446),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 464)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 464),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 515),
                 };
     }
 
     private static ItemIDMapping[] DEAD_HORN_CORAL_BLOCK() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 501),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 432),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 450)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 450),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 501),
                 };
     }
 
     private static ItemIDMapping[] DEAD_HORN_CORAL_FAN() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 526),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 457),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 475)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 475),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 526),
                 };
     }
 
     private static ItemIDMapping[] DEAD_TUBE_CORAL() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 516),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 447),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 465)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 465),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 516),
                 };
     }
 
     private static ItemIDMapping[] DEAD_TUBE_CORAL_BLOCK() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 497),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 428),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 446)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 446),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 497),
                 };
     }
 
     private static ItemIDMapping[] DEAD_TUBE_CORAL_FAN() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 522),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 453),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 471)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 471),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 522),
                 };
     }
 
     private static ItemIDMapping[] DEBUG_STICK() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 907),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 773),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 840)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 839),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 840),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 907),
                 };
     }
 
     private static ItemIDMapping[] DETECTOR_RAIL() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 86),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 28),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 73)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 73),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 86),
                 };
     }
 
     private static ItemIDMapping[] DIAMOND() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 581),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 264),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 481),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 529)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 529),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 581),
                 };
     }
 
     private static ItemIDMapping[] DIAMOND_AXE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 598),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 279),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 496),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 544)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 544),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 598),
                 };
     }
 
     private static ItemIDMapping[] DIAMOND_BLOCK() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 182),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 57),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 151),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 157)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 157),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 182),
                 };
     }
 
     private static ItemIDMapping[] DIAMOND_BOOTS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 637),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 313),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 530),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 578)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 578),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 637),
                 };
     }
 
     private static ItemIDMapping[] DIAMOND_CHESTPLATE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 635),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 311),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 528),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 576)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 576),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 635),
                 };
     }
 
     private static ItemIDMapping[] DIAMOND_HELMET() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 634),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 310),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 527),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 578)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 575),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 634),
                 };
     }
 
     private static ItemIDMapping[] DIAMOND_HOE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 616),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 293),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 510),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 558)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 558),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 616),
                 };
     }
 
     private static ItemIDMapping[] DIAMOND_HORSE_ARMOR() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 862),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 794),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 419),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 729),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 795)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 794),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 795),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 862),
                 };
     }
 
     private static ItemIDMapping[] DIAMOND_LEGGINGS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 636),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 312),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 529),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 577)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 577),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 636),
                 };
     }
 
     private static ItemIDMapping[] DIAMOND_ORE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 181),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 56),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 150),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 156)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 156),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 181),
                 };
     }
 
     private static ItemIDMapping[] DIAMOND_PICKAXE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 597),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 278),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 495),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 543)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 543),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 597),
                 };
     }
 
     private static ItemIDMapping[] DIAMOND_SHOVEL() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 596),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 277),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 494),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 542)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 542),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 596),
                 };
     }
 
     private static ItemIDMapping[] DIAMOND_SWORD() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 595),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 276),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 493),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 541)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 541),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 595),
                 };
     }
 
     private static ItemIDMapping[] DIORITE() {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 1, 3),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_LATEST, 4)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_LATEST, 4),
                 };
     }
 
     private static ItemIDMapping[] DIORITE_SLAB() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 504),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 555),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 504)
                 };
     }
 
     private static ItemIDMapping[] DIORITE_STAIRS() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 491),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 542),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 491)
                 };
     }
 
     private static ItemIDMapping[] DIORITE_WALL() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 258),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 300),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 258)
                 };
     }
 
     private static ItemIDMapping[] DIRT() {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 3),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_LATEST, 9)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_LATEST, 9),
                 };
     }
 
     private static ItemIDMapping[] DISPENSER() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 80),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 23),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 67)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 67),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 80),
                 };
     }
 
     private static ItemIDMapping[] DOLPHIN_SPAWN_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 768),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 646),
                 new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 705),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 706)
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 706),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 768),
                 };
     }
 
     private static ItemIDMapping[] DONKEY_SPAWN_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 769),
+                new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 383, 32),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 647),
                 new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 706),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 707)
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 707),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 769),
                 };
     }
 
     private static ItemIDMapping[] DRAGON_BREATH() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 891),
+                new ItemIDMapping(MINECRAFT_1_9, MINECRAFT_1_12_2,  437),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 757),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 824)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 823),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 824),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 891),
                 };
     }
 
     private static ItemIDMapping[] DRAGON_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 273),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 122),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 227),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 233)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 233),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 273),
                 };
     }
 
     private static ItemIDMapping[] DRAGON_HEAD() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 840),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 773),
                 new ItemIDMapping(MINECRAFT_1_9, MINECRAFT_1_12_2, 397, 5),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 708),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 774)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 773),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 774),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 840),
                 };
     }
 
     private static ItemIDMapping[] DRIED_KELP() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 736),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 616),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 674)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 674),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 736),
                 };
     }
 
     private static ItemIDMapping[] DRIED_KELP_BLOCK() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 676),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 560),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 613)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 613),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 676),
                 };
     }
 
     private static ItemIDMapping[] DROPPER() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 330),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 158),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 262),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 280)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 280),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 330),
                 };
     }
 
     private static ItemIDMapping[] DROWNED_SPAWN_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 770),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 648),
                 new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 707),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 708)
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 708),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 770),
                 };
     }
 
     private static ItemIDMapping[] EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 682),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 344),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 566),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 620)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 620),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 682),
                 };
     }
 
     private static ItemIDMapping[] ELDER_GUARDIAN_SPAWN_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 771),
+                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 383, 4),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 649),
                 new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 708),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 709)
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 709),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 771),
                 };
     }
 
     private static ItemIDMapping[] ELYTRA() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 897),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 829),
                 new ItemIDMapping(MINECRAFT_1_9, MINECRAFT_1_12_2, 443),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 763),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 830)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 829),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 830),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 897),
                 };
     }
 
     private static ItemIDMapping[] EMERALD() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 826),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 759),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 388),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 694),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 760)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 759),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 760),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 826),
                 };
     }
 
     private static ItemIDMapping[] EMERALD_BLOCK() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 279),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 133),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 233),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 239)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 239),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 279),
                 };
     }
 
     private static ItemIDMapping[] EMERALD_ORE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 276),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 129),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 230),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 236)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 236),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 276),
                 };
     }
 
     private static ItemIDMapping[] ENCHANTED_BOOK() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 847),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 779),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 403),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 714),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 780)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 779),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 780),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 847),
                 };
     }
 
     private static ItemIDMapping[] ENCHANTED_GOLDEN_APPLE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 651),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 322, 1),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 540),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 588)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 588),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 651),
                 };
     }
 
     private static ItemIDMapping[] ENCHANTING_TABLE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 269),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 116),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 223),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 229)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 229),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 269),
                 };
     }
 
     private static ItemIDMapping[] ENDERMAN_SPAWN_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 772),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 709),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_8, 383, 58),
+                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 383, 58),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 650),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 710)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 709),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 710),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 772),
                 };
     }
 
     private static ItemIDMapping[] ENDERMITE_SPAWN_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 773),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 710),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_8, 383, 67),
+                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 383, 67),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 651),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 711)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 710),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 711),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 773),
                 };
     }
 
     private static ItemIDMapping[] ENDER_CHEST() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 277),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 130),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 231),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 237)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 237),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 277),
                 };
     }
 
     private static ItemIDMapping[] ENDER_EYE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 757),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 381),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 637),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 695)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 695),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 757),
                 };
     }
 
     private static ItemIDMapping[] ENDER_PEARL() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 744),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 368),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 624),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 682)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 682),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 744),
                 };
     }
 
     private static ItemIDMapping[] END_CRYSTAL() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 885),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 817),
                 new ItemIDMapping(MINECRAFT_1_9, MINECRAFT_1_12_2, 426),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 751),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 818)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 817),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 818),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 885),
                 };
     }
 
     private static ItemIDMapping[] END_PORTAL_FRAME() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 270),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 120),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 224),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 230)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 230),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 270),
                 };
     }
 
     private static ItemIDMapping[] END_ROD() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 172),
                 new ItemIDMapping(MINECRAFT_1_9, MINECRAFT_1_12_2, 198),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 141),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 147)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 147),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 172),
                 };
     }
 
     private static ItemIDMapping[] END_STONE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 271),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 121),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 225),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 231)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 231),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 271),
                 };
     }
 
     private static ItemIDMapping[] END_STONE_BRICKS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 272),
+                new ItemIDMapping(MINECRAFT_1_9, MINECRAFT_1_12_2, 206),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 226),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 232)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 232),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 272),
                 };
     }
 
     private static ItemIDMapping[] END_STONE_BRICK_SLAB() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 497),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 548),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 497)
                 };
     }
 
     private static ItemIDMapping[] END_STONE_BRICK_STAIRS() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 483),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 534),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 483)
                 };
     }
 
     private static ItemIDMapping[] END_STONE_BRICK_WALL() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 257),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 299),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 257)
                 };
     }
 
     private static ItemIDMapping[] EVOKER_SPAWN_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 774),
+                new ItemIDMapping(MINECRAFT_1_11, MINECRAFT_1_12_2, 383, 34),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 652),
                 new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 711),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 712)
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 712),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 774),
                 };
     }
 
     private static ItemIDMapping[] EXPERIENCE_BOTTLE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 822),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 384),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 690),
                 new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 755),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 756)
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 756),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 822),
                 };
     }
 
     private static ItemIDMapping[] FARMLAND() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 184),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 60),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 153),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 159)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 159),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 184),
                 };
     }
 
     private static ItemIDMapping[] FEATHER() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 611),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 288),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 505),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 553)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 553),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 611),
                 };
     }
 
     private static ItemIDMapping[] FERMENTED_SPIDER_EYE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 752),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 376),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 632),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 690)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 690),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 752),
                 };
     }
 
     private static ItemIDMapping[] FERN() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 90),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 31, 2),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 77)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 77),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 90),
                 };
     }
 
     private static ItemIDMapping[] FILLED_MAP() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 733),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 358),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 613),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 671)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 671),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 733),
                 };
     }
 
     private static ItemIDMapping[] FIREWORK_ROCKET() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 845),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 777),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 401),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 712),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 778)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 777),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 778),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 845),
                 };
     }
 
     private static ItemIDMapping[] FIREWORK_STAR() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 846),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 778),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 402),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 713),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 779)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 778),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 779),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 846),
                 };
     }
 
     private static ItemIDMapping[] FIRE_CHARGE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 823),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 756),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 385),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 691),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 757)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 756),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 757),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 823),
                 };
     }
 
     private static ItemIDMapping[] FIRE_CORAL() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 510),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 441),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 459)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 459),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 510),
                 };
     }
 
     private static ItemIDMapping[] FIRE_CORAL_BLOCK() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 505),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 436),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 454)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 454),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 505),
                 };
     }
 
     private static ItemIDMapping[] FIRE_CORAL_FAN() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 520),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 451),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 469)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 469),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 520),
                 };
     }
 
     private static ItemIDMapping[] FISHING_ROD() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 684),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 346),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 568),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 622)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 622),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 684),
                 };
     }
 
-    private static ItemIDMapping[] FLETCHING_TABLE() {// TODO: 25/06/2020 villager workbenches missing 1.14 id
+    private static ItemIDMapping[] FLETCHING_TABLE() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 868),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 869),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 939),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 869)
                 };
     }
 
     private static ItemIDMapping[] FLINT() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 646),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 318),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 535),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 583)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 583),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 646),
                 };
     }
 
     private static ItemIDMapping[] FLINT_AND_STEEL() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 575),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 259),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 475),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 523)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 523),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 575),
                 };
     }
 
-    private static ItemIDMapping[] FLOWER_BANNER_PATTERN() {// TODO: 25/06/2020 banner patterns missing 1.14 id
+    private static ItemIDMapping[] FLOWER_BANNER_PATTERN() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 859),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 860),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 928),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 860)
                 };
     }
 
     private static ItemIDMapping[] FLOWER_POT() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 828),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 761),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 390),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 140),// TODO: 25/06/2020 2 different 1.8 - 1.12 ids?
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 696),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 762)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 761),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 762),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 828),
                 };
     }
 
     private static ItemIDMapping[] FOX_SPAWN_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 775),
                 new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 712),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 713)
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 713),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 775),
                 };
     }
 
     private static ItemIDMapping[] FURNACE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 185),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 61),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 154),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 160)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 160),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 185),
                 };
     }
 
     private static ItemIDMapping[] FURNACE_MINECART() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 681),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 343),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 565),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 619)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 619),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 681),
                 };
     }
 
     private static ItemIDMapping[] GHAST_SPAWN_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 776),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 713),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_8, 383, 56),
+                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 383, 56),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 653),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 714)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 713),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 714),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 776),
                 };
     }
 
     private static ItemIDMapping[] GHAST_TEAR() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 746),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 370),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 626),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 684)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 684),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 746),
                 };
     }
 
     private static ItemIDMapping[] GILDED_BLACKSTONE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 965)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 965),
                 };
     }
 
     private static ItemIDMapping[] GLASS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 77),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 20),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 64)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 64),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 77),
                 };
     }
 
     private static ItemIDMapping[] GLASS_BOTTLE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 750),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 374),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 630),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 688)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 688),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 750),
                 };
     }
 
     private static ItemIDMapping[] GLASS_PANE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 249),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 102),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 207),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 213)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 213),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 249),
                 };
     }
 
     private static ItemIDMapping[] GLISTERING_MELON_SLICE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 758),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 382),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 638),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 696)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 696),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 758),
                 };
     }
 
-    private static ItemIDMapping[] GLOBE_BANNER_PATTERN() {// TODO: 26/06/2020 weren't banner patterns added in 1.14 not 1.15?
+    private static ItemIDMapping[] GLOBE_BANNER_PATTERN() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 863),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 864),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 932),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 864)
                 };
     }
 
     private static ItemIDMapping[] GLOWSTONE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 224),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 89),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 185),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 191)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 191),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 224),
                 };
     }
 
     private static ItemIDMapping[] GLOWSTONE_DUST() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 686),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 348),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 570),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 624)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 624),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 686),
                 };
     }
 
 
     private static ItemIDMapping[] GOLD_BLOCK() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 136),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 41),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 110),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 113)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 113),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 136),
         };
     }
 
     private static ItemIDMapping[] GOLD_INGOT() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 583),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 266),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 483),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 531)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 531),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 583),
         };
     }
 
     private static ItemIDMapping[] GOLD_NUGGET() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 747),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 371),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 627),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 685)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 685),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 747),
         };
     }
 
     private static ItemIDMapping[] GOLD_ORE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 33),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 14),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 29)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 29),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 33),
         };
     }
 
     private static ItemIDMapping[] GOLDEN_APPLE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 650),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 322),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 539),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 587)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 587),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 650),
                 };
     }
 
     private static ItemIDMapping[] GOLDEN_AXE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 605),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 286),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 503),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 551)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 551),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 605),
                 };
     }
 
     private static ItemIDMapping[] GOLDEN_BOOTS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 641),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 317),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 534),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 582)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 582),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 641),
                 };
     }
 
     private static ItemIDMapping[] GOLDEN_CARROT() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 834),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 767),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 396),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 702),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 768)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 767),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 768),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 834),
                 };
     }
 
     private static ItemIDMapping[] GOLDEN_CHESTPLATE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 639),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 315),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 532),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 580)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 580),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 639),
                 };
     }
 
     private static ItemIDMapping[] GOLDEN_HELMET() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 638),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 314),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 531),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 579)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 579),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 638),
                 };
     }
 
     private static ItemIDMapping[] GOLDEN_HOE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 617),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 294),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 511),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 559)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 559),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 617),
                 };
     }
 
     private static ItemIDMapping[] GOLDEN_HORSE_ARMOR() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 861),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 793),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 418),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 728),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 794)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 793),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 794),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 861),
                 };
     }
 
     private static ItemIDMapping[] GOLDEN_LEGGINGS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 640),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 316),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 533),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 581)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 581),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 640),
                 };
     }
 
     private static ItemIDMapping[] GOLDEN_PICKAXE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 604),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 285),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 502),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 550)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 550),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 604),
                 };
     }
 
     private static ItemIDMapping[] GOLDEN_SHOVEL() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 603),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 284),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 501),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 549)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 549),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 603),
                 };
     }
 
     private static ItemIDMapping[] GOLDEN_SWORD() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 602),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 283),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 500),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 548)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 548),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 602),
                 };
     }
 
     private static ItemIDMapping[] GRANITE() {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 1, 1),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_LATEST, 2)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_LATEST, 2),
                 };
     }
 
     private static ItemIDMapping[] GRANITE_SLAB() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 500),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 551),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 500)
                 };
     }
 
     private static ItemIDMapping[] GRANITE_STAIRS() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 487),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 538),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 487)
                 };
     }
 
     private static ItemIDMapping[] GRANITE_WALL() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 251),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 293),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 251)
                 };
     }
 
     private static ItemIDMapping[] GRASS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 89),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 31, 1),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 76)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 76),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 89),
                 };
     }
 
     private static ItemIDMapping[] GRASS_BLOCK() {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 2),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_LATEST, 8)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_LATEST, 8),
                 };
     }
 
     private static ItemIDMapping[] GRASS_PATH() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 372),
                 new ItemIDMapping(MINECRAFT_1_9, MINECRAFT_1_12_2, 208),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 304),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 322)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 322),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 372),
                 };
     }
 
     private static ItemIDMapping[] GRAVEL() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 32),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 13),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 28)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 28),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 32),
                 };
     }
 
     private static ItemIDMapping[] GRAY_BANNER() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 876),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 808),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 425, 8),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 742),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 809)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 808),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 809),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 876),
                 };
     }
 
     private static ItemIDMapping[] GRAY_BED() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 723),
                 new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 355, 7),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 603),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 661)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 661),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 723),
                 };
     }
 
     private static ItemIDMapping[] GRAY_CARPET() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 357),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 171, 7),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 289),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 307)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 307),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 357),
                 };
     }
 
     private static ItemIDMapping[] GRAY_CONCRETE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 471),
+                new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 251, 7),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 402),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 420)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 420),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 471),
                 };
     }
 
     private static ItemIDMapping[] GRAY_CONCRETE_POWDER() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 487),
+                new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 252, 7),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 418),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 436)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 436),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 487),
                 };
     }
 
     private static ItemIDMapping[] GRAY_DYE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 701),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 351, 8),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 585),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 639)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 639),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 701),
                 };
     }
 
     private static ItemIDMapping[] GRAY_GLAZED_TERRACOTTA() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 455),
                 new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 242),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 386),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 404)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 404),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 455),
                 };
     }
 
     private static ItemIDMapping[] GRAY_SHULKER_BOX() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 439),
                 new ItemIDMapping(MINECRAFT_1_11, MINECRAFT_1_12_2, 226),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 370),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 388)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 388),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 439),
                 };
     }
 
     private static ItemIDMapping[] GRAY_STAINED_GLASS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 386),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 95, 7),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 318),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 336)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 336),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 386),
                 };
     }
 
     private static ItemIDMapping[] GRAY_STAINED_GLASS_PANE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 402),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 160, 7),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 334),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 352)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 352),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 402),
                 };
     }
 
     private static ItemIDMapping[] GRAY_TERRACOTTA() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 338),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 159, 7),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 270),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 288)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 288),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 338),
                 };
     }
 
     private static ItemIDMapping[] GRAY_WOOL() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 102),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 35, 7),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 89)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 89),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 102),
                 };
     }
 
     private static ItemIDMapping[] GREEN_BANNER() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 882),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 814),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 425, 2),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 748),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 815)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 814),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 815),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 882),
                 };
     }
 
     private static ItemIDMapping[] GREEN_BED() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 729),
                 new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 355, 13),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 609),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 667)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 667),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 729),
                 };
     }
 
     private static ItemIDMapping[] GREEN_CARPET() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 363),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 171, 13),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 295),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 313)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 313),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 363),
                 };
     }
 
     private static ItemIDMapping[] GREEN_CONCRETE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 477),
+                new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 251, 13),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 408),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 426)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 426),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 477),
                 };
     }
 
     private static ItemIDMapping[] GREEN_CONCRETE_POWDER() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 493),
+                new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 252, 13),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 424),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 442)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 442),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 493),
                 };
     }
 
     private static ItemIDMapping[] GREEN_DYE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 695),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 351, 2),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 579),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 633)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 633),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 695),
                 };
     }
 
     private static ItemIDMapping[] GREEN_GLAZED_TERRACOTTA() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 461),
                 new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 248),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 392),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 410)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 410),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 461),
                 };
     }
 
     private static ItemIDMapping[] GREEN_SHULKER_BOX() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 445),
                 new ItemIDMapping(MINECRAFT_1_11, MINECRAFT_1_12_2, 232),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 376),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 394)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 394),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 445),
                 };
     }
 
     private static ItemIDMapping[] GREEN_STAINED_GLASS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 392),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 95, 13),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 324),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 342)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 342),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 392),
                 };
     }
 
     private static ItemIDMapping[] GREEN_STAINED_GLASS_PANE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 408),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 160, 13),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 340),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 358)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 358),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 408),
                 };
     }
 
     private static ItemIDMapping[] GREEN_TERRACOTTA() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 344),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 159, 13),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 276),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 294)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 294),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 344),
                 };
     }
 
     private static ItemIDMapping[] GREEN_WOOL() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 108),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 35, 13),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 95)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 95),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 108),
                 };
     }
 
     private static ItemIDMapping[] GRINDSTONE() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 869),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 870),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 940),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 870)
                 };
     }
 
     private static ItemIDMapping[] GUARDIAN_SPAWN_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 777),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 714),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_8, 383, 68),
+                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 383, 68),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 654),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 715)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 714),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 715),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 777),
                 };
     }
 
     private static ItemIDMapping[] GUNPOWDER() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 612),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 289),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 506),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 554)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 554),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 612),
                 };
     }
 
     private static ItemIDMapping[] HAY_BLOCK() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 349),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 170),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 281),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 299)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 299),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 349),
                 };
     }
 
-    private static ItemIDMapping[] HEART_OF_THE_SEA() {// TODO: 26/06/2020 missing 1.14 id here too
+    private static ItemIDMapping[] HEART_OF_THE_SEA() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 924),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 789),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 856)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 855),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 856),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 924),
                 };
     }
 
     private static ItemIDMapping[] HEAVY_WEIGHTED_PRESSURE_PLATE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 319),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 148),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 252),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 270)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 270),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 319),
                 };
     }
 
     private static ItemIDMapping[] HOGLIN_SPAWN_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 778)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 778),
                 };
     }
 
     private static ItemIDMapping[] HONEY_BLOCK() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 882),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 955),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 882)
         };
     }
 
     private static ItemIDMapping[] HONEY_BOTTLE() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 881),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 954),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 881)
         };
     }
 
     private static ItemIDMapping[] HONEYCOMB() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 878),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 951),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 878)
                 };
     }
 
     private static ItemIDMapping[] HONEYCOMB_BLOCK() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 883),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 956),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 883)
                 };
     }
 
     private static ItemIDMapping[] HOPPER() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 323),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 154),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 256),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 274)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 274),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 323),
                 };
     }
 
     private static ItemIDMapping[] HOPPER_MINECART() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 851),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 783),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 408),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 718),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 784)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 783),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 784),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 851),
                 };
     }
 
     private static ItemIDMapping[] HORN_CORAL() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 511),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 442),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 460)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 460),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 511),
                 };
     }
 
     private static ItemIDMapping[] HORN_CORAL_BLOCK() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 506),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 437),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 455)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 455),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 506),
                 };
     }
 
     private static ItemIDMapping[] HORN_CORAL_FAN() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 521),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 452),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 470)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 470),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 521),
                 };
     }
 
     private static ItemIDMapping[] HORSE_SPAWN_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 779),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 715),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_8, 383, 100),
+                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 383, 100),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 655),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 716)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 715),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 716),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 779),
                 };
     }
 
     private static ItemIDMapping[] HUSK_SPAWN_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 780),
+                new ItemIDMapping(MINECRAFT_1_10, MINECRAFT_1_12_2, 383, 23),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 656),
                 new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 716),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 717)
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 717),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 780),
                 };
     }
 
     private static ItemIDMapping[] ICE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 203),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 79),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 170),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 176)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 176),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 203),
                 };
     }
 
-    private static ItemIDMapping[] INFESTED_CHISELED_STONE_BRICKS() {// TODO: 26/06/2020 infested blocks missing 1.14 ids
+    private static ItemIDMapping[] INFESTED_CHISELED_STONE_BRICKS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 239),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 97, 5),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 198),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 204)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 204),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 239),
                 };
     }
 
     private static ItemIDMapping[] INFESTED_COBBLESTONE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 235),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 97, 1),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 194),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 200)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 200),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 235),
                 };
     }
 
     private static ItemIDMapping[] INFESTED_CRACKED_STONE_BRICKS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 238),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 97, 4),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 197),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 203)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 203),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 238),
                 };
     }
 
     private static ItemIDMapping[] INFESTED_MOSSY_STONE_BRICKS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 237),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 97, 3),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 196),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 202)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 202),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 237),
                 };
     }
 
     private static ItemIDMapping[] INFESTED_STONE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 234),
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 234),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 97),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 193),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 199)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 199),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 234),
                 };
     }
 
     private static ItemIDMapping[] INFESTED_STONE_BRICKS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 236),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 97, 2),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 195),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 201)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 201),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 236),
                 };
     }
 
     private static ItemIDMapping[] INK_SAC() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 693),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 351),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 577),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 631)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 631),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 693),
                 };
     }
 
     private static ItemIDMapping[] IRON_AXE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 574),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 258),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 474),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 522)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 522),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 574),
                 };
     }
 
     private static ItemIDMapping[] IRON_BARS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 247),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 101),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 206),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 212)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 212),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 247),
                 };
     }
 
     private static ItemIDMapping[] IRON_BLOCK() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 137),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 42),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 111),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 114)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 114),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 137),
                 };
     }
 
     private static ItemIDMapping[] IRON_BOOTS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 633),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 309),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 526),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 574)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 574),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 633),
                 };
     }
 
     private static ItemIDMapping[] IRON_CHESTPLATE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 631),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 307),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 524),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 572)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 572),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 631),
                 };
     }
 
     private static ItemIDMapping[] IRON_DOOR() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 557),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 330),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 460),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 506)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 506),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 557),
                 };
     }
 
     private static ItemIDMapping[] IRON_HELMET() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 630),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 306),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 523),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 571)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 571),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 630),
                 };
     }
 
     private static ItemIDMapping[] IRON_HOE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 615),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 292),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 509),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 557)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 557),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 615),
                 };
     }
 
     private static ItemIDMapping[] IRON_HORSE_ARMOR() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 860),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 792),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 417),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 727),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 793)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 792),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 793),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 860),
                 };
     }
 
     private static ItemIDMapping[] IRON_INGOT() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 582),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 265),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 482),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 530)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 530),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 582),
                 };
     }
 
     private static ItemIDMapping[] IRON_LEGGINGS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 632),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 308),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 525),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 573)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 573),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 632),
                 };
     }
 
     private static ItemIDMapping[] IRON_NUGGET() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 905),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 837),
                 new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 452),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 771),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 838)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 837),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 838),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 905),
                 };
     }
 
     private static ItemIDMapping[] IRON_ORE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 34),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 15),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 30)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 30),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 34),
                 };
     }
 
     private static ItemIDMapping[] IRON_PICKAXE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 573),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 257),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 473),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 521)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 521),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 573),
                 };
     }
 
     private static ItemIDMapping[] IRON_SHOVEL() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 572),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 256),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 472),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 520)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 520),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 572),
                 };
     }
 
     private static ItemIDMapping[] IRON_SWORD() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 586),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 267),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 484),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 532)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 532),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 586),
                 };
     }
 
     private static ItemIDMapping[] IRON_TRAPDOOR() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 348),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 167),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 280),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 298)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 298),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 348),
                 };
     }
 
     private static ItemIDMapping[] ITEM_FRAME() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 827),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 760),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 389),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 695),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 761)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 760),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 761),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 827),
                 };
     }
 
     private static ItemIDMapping[] JACK_O_LANTERN() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 225),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 91),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 186),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 192)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 192),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 225),
                 };
     }
 
-    private static ItemIDMapping[] JIGSAW() {// TODO: 26/06/2020 missing 1.14 id here too
+    private static ItemIDMapping[] JIGSAW() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 516),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 569),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 516)
                 };
     }
 
     private static ItemIDMapping[] JUKEBOX() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 207),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 84),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 174),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 180)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 180),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 207),
                 };
     }
 
     private static ItemIDMapping[] JUNGLE_BOAT() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 900),
                 new ItemIDMapping(MINECRAFT_1_10, MINECRAFT_1_12_2, 446),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 766),
                 new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 832),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 833)
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 833),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 900),
                 };
     }
 
     private static ItemIDMapping[] JUNGLE_BUTTON() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 308),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 244),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 262)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 262),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 308),
                 };
     }
 
     private static ItemIDMapping[] JUNGLE_DOOR() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 561),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 429),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 195),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 464),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 510)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 510),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 561),
                 };
     }
 
     private static ItemIDMapping[] JUNGLE_FENCE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 211),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 190),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 178),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 184)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 184),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 211),
                 };
     }
 
     private static ItemIDMapping[] JUNGLE_FENCE_GATE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 255),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 185),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 213),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 219)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 219),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 255),
                 };
     }
 
     private static ItemIDMapping[] JUNGLE_LEAVES() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 72),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 18, 3),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 59)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 59),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 72),
                 };
     }
 
     private static ItemIDMapping[] JUNGLE_LOG() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 17, 3),
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 35),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 40),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 17, 3),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 17, 3),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 35)
                 };
     }
 
     private static ItemIDMapping[] JUNGLE_PLANKS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 18),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 5, 3),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 16)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 16),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 18),
                 };
     }
 
-    private static ItemIDMapping[] JUNGLE_PRESSURE_PLATE() {// TODO: 26/06/2020 wood pressure plates missing 1.14 id
+    private static ItemIDMapping[] JUNGLE_PRESSURE_PLATE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 194),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 163),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 169)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 169),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 194),
                 };
     }
 
     private static ItemIDMapping[] JUNGLE_SAPLING() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 26),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 6, 3),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 22)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 22),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 26),
                 };
     }
 
     private static ItemIDMapping[] JUNGLE_SIGN() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 592),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 655),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 592)
                 };
     }
 
     private static ItemIDMapping[] JUNGLE_SLAB() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 141),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 126, 3),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 115),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 118)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 118),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 141),
                 };
     }
 
     private static ItemIDMapping[] JUNGLE_STAIRS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 282),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 136),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 236),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 242)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 242),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 282),
                 };
     }
 
     private static ItemIDMapping[] JUNGLE_TRAPDOOR() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 229),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 190),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 196)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 196),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 229),
                 };
     }
 
     private static ItemIDMapping[] JUNGLE_WOOD() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 64),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 5, 3),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 53)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 53),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 64),
                 };
     }
 
     private static ItemIDMapping[] KELP() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 134),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 559),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 612)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 612),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 134),
                 };
     }
 
     private static ItemIDMapping[] KNOWLEDGE_BOOK() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 906),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 838),
                 new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 453),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 772),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 839)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 838),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 839),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 906),
                 };
     }
 
     private static ItemIDMapping[] LADDER() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 186),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 65),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 155),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 161)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 161),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 186),
                 };
     }
 
     private static ItemIDMapping[] LANTERN() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 874),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 875),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 945),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 875)
                 };
     }
 
     private static ItemIDMapping[] LAPIS_BLOCK() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 79),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 22),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 66)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 66),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 79),
                 };
     }
 
     private static ItemIDMapping[] LAPIS_LAZULI() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 697),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 351, 4),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 581),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 635)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 635),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 697),
                 };
     }
 
     private static ItemIDMapping[] LAPIS_ORE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 78),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 21),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 65)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 65),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 78),
                 };
     }
 
     private static ItemIDMapping[] LARGE_FERN() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 378),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 175, 3),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 310),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 328)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 328),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 378),
                 };
     }
 
     private static ItemIDMapping[] LAVA_BUCKET() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 662),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 327),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 544),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 597)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 597),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 662),
                 };
     }
 
     private static ItemIDMapping[] LEAD() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 864),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 796),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 420),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 730),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 797)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 796),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 797),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 864),
                 };
     }
 
     private static ItemIDMapping[] LEATHER() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 668),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 334),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 550),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 603)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 603),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 668),
                 };
     }
 
     private static ItemIDMapping[] LEATHER_BOOTS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 625),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 301),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 518),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 566)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 566),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 625),
                 };
     }
 
     private static ItemIDMapping[] LEATHER_CHESTPLATE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 623),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 299),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 516),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 564)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 564),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 623),
                 };
     }
 
     private static ItemIDMapping[] LEATHER_HELMET() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 622),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 298),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 515),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 563)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 563),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 622),
                 };
     }
 
-    private static ItemIDMapping[] LEATHER_HORSE_ARMOR() {// TODO: 26/06/2020 horse armor missing 1.14 ids
+    private static ItemIDMapping[] LEATHER_HORSE_ARMOR() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 795),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 796),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 863),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 796)
                 };
     }
 
     private static ItemIDMapping[] LEATHER_LEGGINGS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 624),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 300),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 517),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 565)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 565),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 624),
                 };
     }
 
     private static ItemIDMapping[] LECTERN() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 870),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 871),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 941),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 871)
                 };
     }
 
     private static ItemIDMapping[] LEVER() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 189),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 69),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 158),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 164)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 164),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 189),
                 };
     }
 
     private static ItemIDMapping[] LIGHT_BLUE_BANNER() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 872),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 804),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 425, 12),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 738),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 805)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 804),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 805),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 872),
                 };
     }
 
     private static ItemIDMapping[] LIGHT_BLUE_BED() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 719),
                 new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 355, 3),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 599),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 657)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 657),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 719),
                 };
     }
 
     private static ItemIDMapping[] LIGHT_BLUE_CARPET() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 353),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 171, 3),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 285),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 303)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 303),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 353),
                 };
     }
 
     private static ItemIDMapping[] LIGHT_BLUE_CONCRETE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 467),
+                new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 251, 3),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 398),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 416)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 416),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 467),
                 };
     }
 
     private static ItemIDMapping[] LIGHT_BLUE_CONCRETE_POWDER() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 483),
+                new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 252, 3),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 414),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 432)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 432),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 483),
                 };
     }
 
     private static ItemIDMapping[] LIGHT_BLUE_DYE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 705),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 351, 12),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 589),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 643)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 643),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 705),
                 };
     }
 
     private static ItemIDMapping[] LIGHT_BLUE_GLAZED_TERRACOTTA() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 451),
                 new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 238),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 382),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 400)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 400),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 451),
                 };
     }
 
     private static ItemIDMapping[] LIGHT_BLUE_SHULKER_BOX() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 435),
                 new ItemIDMapping(MINECRAFT_1_11, MINECRAFT_1_12_2, 222),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 366),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 384)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 384),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 435),
                 };
     }
 
     private static ItemIDMapping[] LIGHT_BLUE_STAINED_GLASS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 382),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 95, 3),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 314),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 332)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 332),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 382),
                 };
     }
 
     private static ItemIDMapping[] LIGHT_BLUE_STAINED_GLASS_PANE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 398),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 160, 3),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 330),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 348)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 348),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 398),
                 };
     }
 
     private static ItemIDMapping[] LIGHT_BLUE_TERRACOTTA() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 334),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 159, 3),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 266),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 284)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 284),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 334),
                 };
     }
 
     private static ItemIDMapping[] LIGHT_BLUE_WOOL() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 98),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 35, 3),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 85)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 85),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 98),
                 };
     }
 
     private static ItemIDMapping[] LIGHT_GRAY_BANNER() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 877),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 809),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 425, 7),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 743),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 810)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 809),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 810),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 877),
                 };
     }
 
     private static ItemIDMapping[] LIGHT_GRAY_BED() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 724),
                 new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 355, 8),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 604),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 662)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 662),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 724),
                 };
     }
 
     private static ItemIDMapping[] LIGHT_GRAY_CARPET() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 358),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 171, 8),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 290),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 308)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 308),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 358),
                 };
     }
 
     private static ItemIDMapping[] LIGHT_GRAY_CONCRETE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 472),
+                new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 251, 8),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 403),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 421)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 421),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 472),
                 };
     }
 
     private static ItemIDMapping[] LIGHT_GRAY_CONCRETE_POWDER() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 488),
+                new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 252, 8),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 419),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 437)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 437),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 488),
                 };
     }
 
     private static ItemIDMapping[] LIGHT_GRAY_DYE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 700),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 351, 7),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 584),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 638)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 638),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 700),
                 };
     }
 
     private static ItemIDMapping[] LIGHT_GRAY_GLAZED_TERRACOTTA() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 456),
+                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 243),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 387),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 405)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 405),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 456),
                 };
     }
 
     private static ItemIDMapping[] LIGHT_GRAY_SHULKER_BOX() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 440),
                 new ItemIDMapping(MINECRAFT_1_11, MINECRAFT_1_12_2, 227),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 371),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 389)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 389),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 440),
                 };
     }
 
     private static ItemIDMapping[] LIGHT_GRAY_STAINED_GLASS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 387),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 95, 8),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 319),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 337)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 337),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 387),
                 };
     }
 
     private static ItemIDMapping[] LIGHT_GRAY_STAINED_GLASS_PANE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 403),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 160, 8),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 335),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 353)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 353),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 403),
                 };
     }
 
     private static ItemIDMapping[] LIGHT_GRAY_TERRACOTTA() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 339),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 159, 8),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 271),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 289)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 289),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 339),
                 };
     }
 
     private static ItemIDMapping[] LIGHT_GRAY_WOOL() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 103),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 35, 8),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 90)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 90),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 103),
                 };
     }
 
     private static ItemIDMapping[] LIGHT_WEIGHTED_PRESSURE_PLATE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 318),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 147),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 251),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 269)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 269),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 318),
                 };
     }
 
     private static ItemIDMapping[] LILAC() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 374),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 175, 1),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 306),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 324)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 324),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 374),
                 };
     }
 
-    private static ItemIDMapping[] LILY_OF_THE_VALLEY() {// TODO: 26/06/2020 missing 1.14 id here too
+    private static ItemIDMapping[] LILY_OF_THE_VALLEY() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 109),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 122),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 109)
                 };
     }
 
     private static ItemIDMapping[] LILY_PAD() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 263),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 111),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 219),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 225)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 225),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 263),
                 };
     }
 
     private static ItemIDMapping[] LIME_BANNER() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 874),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 806),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 425, 10),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 740),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 807)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 806),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 807),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 874),
                 };
     }
 
     private static ItemIDMapping[] LIME_BED() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 721),
                 new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 355, 5),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 601),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 659)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 659),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 721),
                 };
     }
 
     private static ItemIDMapping[] LIME_CARPET() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 355),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 171, 5),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 287),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 305)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 305),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 355),
                 };
     }
 
     private static ItemIDMapping[] LIME_CONCRETE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 469),
+                new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 251, 5),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 400),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 418)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 418),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 469),
                 };
     }
 
     private static ItemIDMapping[] LIME_CONCRETE_POWDER() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 485),
+                new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 252, 5),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 416),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 434)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 434),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 485),
                 };
     }
 
     private static ItemIDMapping[] LIME_DYE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 703),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 351, 10),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 587),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 641)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 641),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 703),
                 };
     }
 
     private static ItemIDMapping[] LIME_GLAZED_TERRACOTTA() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 453),
                 new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 240),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 384),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 402)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 402),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 453),
                 };
     }
 
     private static ItemIDMapping[] LIME_SHULKER_BOX() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 437),
                 new ItemIDMapping(MINECRAFT_1_11, MINECRAFT_1_12_2, 224),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 368),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 386)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 386),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 437),
                 };
     }
 
     private static ItemIDMapping[] LIME_STAINED_GLASS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 384),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 95, 5),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 316),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 334)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 334),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 384),
                 };
     }
 
     private static ItemIDMapping[] LIME_STAINED_GLASS_PANE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 400),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 160, 5),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 332),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 350)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 350),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 400),
                 };
     }
 
     private static ItemIDMapping[] LIME_TERRACOTTA() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 336),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 159, 5),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 268),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 286)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 286),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 336),
                 };
     }
 
     private static ItemIDMapping[] LIME_WOOL() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 100),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 35, 5),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 87)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 87),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 100),
                 };
     }
 
     private static ItemIDMapping[] LINGERING_POTION() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 895),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 827),
                 new ItemIDMapping(MINECRAFT_1_9, MINECRAFT_1_12_2, 441),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 761),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 828)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 827),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 828),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 895),
                 };
     }
 
     private static ItemIDMapping[] LLAMA_SPAWN_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 781),
+                new ItemIDMapping(MINECRAFT_1_11, MINECRAFT_1_12_2, 383, 103),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 657),
                 new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 717),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 718)
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 718),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 781),
                 };
     }
 
     private static ItemIDMapping[] LODESTONE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 957)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 957),
                 };
     }
 
     private static ItemIDMapping[] LOOM() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 858),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 859),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 927),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 859)
                 };
     }
 
     private static ItemIDMapping[] MAGENTA_BANNER() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 871),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 803),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 425, 13),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 737),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 804)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 803),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 804),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 871),
                 };
     }
 
     private static ItemIDMapping[] MAGENTA_BED() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 718),
                 new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 355, 2),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 598),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 656)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 656),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 718),
                 };
     }
 
     private static ItemIDMapping[] MAGENTA_CARPET() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 352),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 171, 2),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 284),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 302)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 302),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 352),
                 };
     }
 
     private static ItemIDMapping[] MAGENTA_CONCRETE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 466),
+                new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 251, 2),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 397),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 415)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 415),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 466),
                 };
     }
 
     private static ItemIDMapping[] MAGENTA_CONCRETE_POWDER() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 482),
+                new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 252, 2),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 413),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 431)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 431),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 482),
                 };
     }
 
     private static ItemIDMapping[] MAGENTA_DYE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 706),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 351, 13),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 590),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 644)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 644),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 706),
                 };
     }
 
     private static ItemIDMapping[] MAGENTA_GLAZED_TERRACOTTA() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 450),
                 new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 237),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 381),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 399)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 399),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 450),
                 };
     }
 
     private static ItemIDMapping[] MAGENTA_SHULKER_BOX() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 434),
                 new ItemIDMapping(MINECRAFT_1_11, MINECRAFT_1_12_2, 221),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 365),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 383)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 383),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 434),
                 };
     }
 
     private static ItemIDMapping[] MAGENTA_STAINED_GLASS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 381),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 95, 2),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 313),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 331)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 331),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 381),
                 };
     }
 
     private static ItemIDMapping[] MAGENTA_STAINED_GLASS_PANE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 397),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 160, 2),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 329),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 347)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 347),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 397),
                 };
     }
 
     private static ItemIDMapping[] MAGENTA_TERRACOTTA() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 333),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 159, 2),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 265),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 283)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 283),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 333),
                 };
     }
 
     private static ItemIDMapping[] MAGENTA_WOOL() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 97),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 35, 2),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 84)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 84),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 97),
                 };
     }
 
     private static ItemIDMapping[] MAGMA_BLOCK() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 424),
                 new ItemIDMapping(MINECRAFT_1_10, MINECRAFT_1_12_2, 213),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 356),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 374)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 374),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 424),
                 };
     }
 
     private static ItemIDMapping[] MAGMA_CREAM() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 754),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 378),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 634),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 692)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 692),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 754),
                 };
     }
 
     private static ItemIDMapping[] MAGMA_CUBE_SPAWN_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 782),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 718),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_8, 383, 62),
+                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 383, 62),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 658),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 719)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 718),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 719),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 782),
                 };
     }
 
     private static ItemIDMapping[] MAP() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 833),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 766),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 395),
-                new ItemIDMapping(MINECRAFT_1_9, MINECRAFT_1_12_2, 358),// TODO: 26/06/2020 2 different ids for 1.9-1.12?
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 701),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 767)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 766),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 767),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 833),
                 };
     }
 
     private static ItemIDMapping[] MELON() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 250),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 103),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 360),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 208),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 214)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 214),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 250),
                 };
     }
 
     private static ItemIDMapping[] MELON_SEEDS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 738),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 362),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 618),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 676)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 676),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 738),
                 };
     }
 
     private static ItemIDMapping[] MELON_SLICE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 735),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 360),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 615),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 673)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 673),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 735),
                 };
     }
 
     private static ItemIDMapping[] MILK_BUCKET() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 669),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 335),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 551),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 604)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 604),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 669),
                 };
     }
 
     private static ItemIDMapping[] MINECART() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 663),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 328),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 545),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 598)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 598),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 663),
                 };
     }
 
     private static ItemIDMapping[] MOJANG_BANNER_PATTERN() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 862),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 863),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 931),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 863)
                 };
     }
 
     private static ItemIDMapping[] MOOSHROOM_SPAWN_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 783),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 719),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_8, 383, 96),
+                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 383, 96),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 659),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 720)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 719),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 720),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 783),
                 };
     }
 
     private static ItemIDMapping[] MOSSY_COBBLESTONE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 169),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 48),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 138),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 144)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 144),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 169),
                 };
     }
 
     private static ItemIDMapping[] MOSSY_COBBLESTONE_SLAB() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 496),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 547),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 496)
                 };
     }
 
     private static ItemIDMapping[] MOSSY_COBBLESTONE_STAIRS() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 482),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 533),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 482)
                 };
     }
 
     private static ItemIDMapping[] MOSSY_COBBLESTONE_WALL() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 288),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 139, 1),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 240),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 246)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 246),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 288),
                 };
     }
 
     private static ItemIDMapping[] MOSSY_STONE_BRICKS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 241),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 98, 1),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 200),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 206)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 206),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 241),
                 };
     }
 
     private static ItemIDMapping[] MOSSY_STONE_BRICK_SLAB() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 494),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 545),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 494)
                 };
     }
 
     private static ItemIDMapping[] MOSSY_STONE_BRICK_STAIRS() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 480),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 531),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 480)
                 };
     }
 
     private static ItemIDMapping[] MOSSY_STONE_BRICK_WALL() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 288),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 250)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 250),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 292),
                 };
     }
 
     private static ItemIDMapping[] MULE_SPAWN_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 784),
+                new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 383, 32),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 660),
                 new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 720),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 721)
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 721),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 784),
                 };
     }
 
     private static ItemIDMapping[] MUSHROOM_STEM() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 246),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 99, 15),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 205),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 211)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 211),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 246),
                 };
     }
 
     private static ItemIDMapping[] MUSHROOM_STEW() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 601),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 282),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 499),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 547)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 547),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 601),
                 };
     }
 
     private static ItemIDMapping[] MUSIC_DISC_11() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 918),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 850),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 2266),
+                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 2256),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 784),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 851)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 850),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 851),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 918),
                 };
     }
 
     private static ItemIDMapping[] MUSIC_DISC_13() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 908),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 840),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 2256),
+                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 2257),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 774),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 841)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 840),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 841),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 908),
                 };
     }
 
     private static ItemIDMapping[] MUSIC_DISC_BLOCKS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 910),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 842),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 2258),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 776),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 843)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 842),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 843),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 910),
                 };
     }
 
     private static ItemIDMapping[] MUSIC_DISC_CAT() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 909),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 841),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 2257),
+                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 2259),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 775),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 842)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 841),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 842),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 909),
                 };
     }
 
     private static ItemIDMapping[] MUSIC_DISC_CHIRP() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 911),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 843),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 2259),
+                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 2260),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 777),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 844)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 843),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 844),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 911),
                 };
     }
 
     private static ItemIDMapping[] MUSIC_DISC_FAR() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 912),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 844),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 2260),
+                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 2261),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 778),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 845)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 844),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 845),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 912),
                 };
     }
 
     private static ItemIDMapping[] MUSIC_DISC_MALL() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 913),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 845),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 2261),
+                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 2262),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 779),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 846)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 845),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 846),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 913),
                 };
     }
 
     private static ItemIDMapping[] MUSIC_DISC_MELLOHI() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 914),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 846),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 2262),
+                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 2263),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 780),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 847)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 846),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 847),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 914),
                 };
     }
 
     private static ItemIDMapping[] MUSIC_DISC_PIGSTEP() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 920)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 920),
                 };
     }
 
     private static ItemIDMapping[] MUSIC_DISC_STAL() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 915),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 847),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 2263),
+                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 2264),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 781),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 848)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 847),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 848),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 915),
                 };
     }
 
     private static ItemIDMapping[] MUSIC_DISC_STRAD() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 916),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 848),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 2264),
+                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 2265),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 782),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 849)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 848),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 849),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 916),
                 };
     }
 
     private static ItemIDMapping[] MUSIC_DISC_WAIT() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 919),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 851),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 2267),
+                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 2266),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 785),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 852)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 851),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 852),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 919),
                 };
     }
 
     private static ItemIDMapping[] MUSIC_DISC_WARD() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 917),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 849),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 2265),
+                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 2267),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 783),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 850)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 849),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 850),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 917),
                 };
     }
 
     private static ItemIDMapping[] MUTTON() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 867),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 799),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 423),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 733),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 800)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 799),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 800),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 867),
                 };
     }
 
     private static ItemIDMapping[] MYCELIUM() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 262),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 110),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 218),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 224)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 224),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 262),
                 };
     }
 
     private static ItemIDMapping[] NAME_TAG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 865),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 797),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 421),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 731),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 798)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 797),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 798),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 865),
                 };
     }
 
-    private static ItemIDMapping[] NAUTILUS_SHELL() {// TODO: 26/06/2020  missing 1.14 id here too
+    private static ItemIDMapping[] NAUTILUS_SHELL() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 923),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 788),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 855)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 854),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 855),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 923),
                 };
     }
 
     private static ItemIDMapping[] NETHER_BRICK() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 848),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 780),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 112),
+                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 405),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 715),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 781)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 780),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 781),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 848),
         };
     }
 
     private static ItemIDMapping[] NETHER_BRICK_FENCE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 267),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 113),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 221),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 227)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 227),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 267),
         };
     }
 
     private static ItemIDMapping[] NETHER_BRICK_SLAB() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 154),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 44, 6),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 124),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 129)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 129),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 154),
         };
     }
 
     private static ItemIDMapping[] NETHER_BRICK_STAIRS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 268),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 114),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 222),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 228)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 228),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 268),
         };
     }
 
     private static ItemIDMapping[] NETHER_BRICK_WALL() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 253),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 295),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 253)
         };
     }
 
     private static ItemIDMapping[] NETHER_BRICKS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 264),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 405),
+                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 112),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 220),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 226)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 226),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 264),
         };
     }
 
     private static ItemIDMapping[] NETHER_GOLD_ORE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 36)
-        };
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 36),
+                };
     }
 
     private static ItemIDMapping[] NETHER_QUARTZ_ORE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 322),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 153),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 255),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 273)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 273),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 322),
         };
     }
 
     private static ItemIDMapping[] NETHER_SPROUTS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 130)
-        };
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 130),
+                };
     }
 
     private static ItemIDMapping[] NETHER_STAR() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 843),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 775),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 399),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 710),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 776)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 775),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 776),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 843),
         };
     }
 
     private static ItemIDMapping[] NETHER_WART() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 748),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 372),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 628),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 686)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 686),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 748),
         };
     }
 
     private static ItemIDMapping[] NETHER_WART_BLOCK() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 425),
                 new ItemIDMapping(MINECRAFT_1_10, MINECRAFT_1_12_2, 214),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 357),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 375)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 375),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 425),
         };
     }
 
     private static ItemIDMapping[] NETHERITE_AXE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 609)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 609),
                 };
     }
 
     private static ItemIDMapping[] NETHERITE_BLOCK() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 958)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 958),
                 };
     }
 
     private static ItemIDMapping[] NETHERITE_BOOTS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 645)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 645),
                 };
     }
 
     private static ItemIDMapping[] NETHERITE_CHESTPLATE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 643)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 643),
                 };
     }
 
     private static ItemIDMapping[] NETHERITE_HELMET() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 642)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 642),
                 };
     }
 
     private static ItemIDMapping[] NETHERITE_HOE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 618)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 618),
                 };
     }
 
     private static ItemIDMapping[] NETHERITE_INGOT() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 584)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 584),
                 };
     }
 
     private static ItemIDMapping[] NETHERITE_LEGGINGS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 644)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 644),
                 };
     }
 
     private static ItemIDMapping[] NETHERITE_PICKAXE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 608)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 608),
                 };
     }
 
     private static ItemIDMapping[] NETHERITE_SCRAP() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 585)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 585),
                 };
     }
 
     private static ItemIDMapping[] NETHERITE_SHOVEL() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 607)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 607),
                 };
     }
 
     private static ItemIDMapping[] NETHERITE_SWORD() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 606)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 606),
                 };
     }
 
     private static ItemIDMapping[] NETHERRACK() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 218),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 87),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 183),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 189)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 189),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 218),
         };
     }
 
     private static ItemIDMapping[] NOTE_BLOCK() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 84),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 25),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 71)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 71),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 84),
                 };
     }
 
     private static ItemIDMapping[] OAK_BOAT() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 667),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 333),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 549),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 602)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 602),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 667),
                 };
     }
 
     private static ItemIDMapping[] OAK_BUTTON() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 305),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 143),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 241),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 259)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 259),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 305),
                 };
     }
 
     private static ItemIDMapping[] OAK_DOOR() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 558),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 324),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 461),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 507)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 507),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 558),
                 };
     }
 
     private static ItemIDMapping[] OAK_FENCE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 208),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 85),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 175),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 181)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 181),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 208),
                 };
     }
 
     private static ItemIDMapping[] OAK_FENCE_GATE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 252),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 107),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 210),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 216)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 216),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 252),
                 };
     }
 
     private static ItemIDMapping[] OAK_LEAVES() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 69),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 18),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 56)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 56),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 69),
                 };
     }
 
     private static ItemIDMapping[] OAK_LOG() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 17),
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 32),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 37),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 17),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 17),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 32)
                 };
     }
 
     private static ItemIDMapping[] OAK_PLANKS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 15),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 5),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 13)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 13),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 15),
                 };
     }
 
     private static ItemIDMapping[] OAK_PRESSURE_PLATE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 191),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 72),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 160),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 166)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 166),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 191),
                 };
     }
 
     private static ItemIDMapping[] OAK_SAPLING() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 23),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 6),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 19)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 19),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 23),
                 };
     }
 
     private static ItemIDMapping[] OAK_SIGN() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 323),
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 541),
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 589),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 652),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 589)
                 };
     }
 
     private static ItemIDMapping[] OAK_SLAB() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 138),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 126),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 112),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 115)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 115),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 138),
                 };
     }
 
     private static ItemIDMapping[] OAK_STAIRS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 179),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 53),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 148),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 154)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 154),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 179),
                 };
     }
 
     private static ItemIDMapping[] OAK_TRAPDOOR() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 226),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 96),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 187),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 193)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 193),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 226),
                 };
     }
 
     private static ItemIDMapping[] OAK_WOOD() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 61),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 5),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 50)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 50),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 61),
                 };
     }
 
     private static ItemIDMapping[] OBSERVER() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 430),
                 new ItemIDMapping(MINECRAFT_1_11, MINECRAFT_1_12_2, 218),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 361),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 379)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 379),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 430),
                 };
     }
 
     private static ItemIDMapping[] OBSIDIAN() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 170),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 49),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 139),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 145)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 145),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 170),
                 };
     }
 
     private static ItemIDMapping[] OCELOT_SPAWN_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 785),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 721),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_8, 383, 98),
+                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 383, 98),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 661),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 722)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 721),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 722),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 785),
                 };
     }
 
     private static ItemIDMapping[] ORANGE_BANNER() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 870),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 802),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 425, 14),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 736),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 803)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 802),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 803),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 870),
                 };
     }
 
     private static ItemIDMapping[] ORANGE_BED() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 717),
                 new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 355, 1),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 597),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 655)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 655),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 717),
                 };
     }
 
     private static ItemIDMapping[] ORANGE_CARPET() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 351),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 171, 1),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 283),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 301)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 301),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 351),
                 };
     }
 
     private static ItemIDMapping[] ORANGE_CONCRETE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 465),
+                new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 251, 1),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 396),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 414)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 414),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 465),
                 };
     }
 
     private static ItemIDMapping[] ORANGE_CONCRETE_POWDER() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 481),
+                new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 252, 1),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 412),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 430)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 430),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 481),
                 };
     }
 
     private static ItemIDMapping[] ORANGE_DYE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 707),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 351, 14),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 591),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 645)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 645),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 707),
                 };
     }
 
     private static ItemIDMapping[] ORANGE_GLAZED_TERRACOTTA() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 449),
                 new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 236),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 380),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 398)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 398),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 449),
                 };
     }
 
     private static ItemIDMapping[] ORANGE_SHULKER_BOX() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 433),
                 new ItemIDMapping(MINECRAFT_1_11, MINECRAFT_1_12_2, 220),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 364),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 382)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 382),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 433),
                 };
     }
 
     private static ItemIDMapping[] ORANGE_STAINED_GLASS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 380),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 95, 1),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 312),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 330)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 330),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 380),
                 };
     }
 
     private static ItemIDMapping[] ORANGE_STAINED_GLASS_PANE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 396),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 160, 1),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 328),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 346)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 346),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 396),
                 };
     }
 
     private static ItemIDMapping[] ORANGE_TERRACOTTA() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 332),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 159, 1),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 264),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 282)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 282),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 332),
                 };
     }
 
     private static ItemIDMapping[] ORANGE_TULIP() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 117),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 38, 5),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 104)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 104),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 117),
                 };
     }
 
     private static ItemIDMapping[] ORANGE_WOOL() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 96),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 35, 1),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 83)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 83),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 96),
                 };
     }
 
     private static ItemIDMapping[] OXEYE_DAISY() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 120),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 38, 8),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 107)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 107),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 120),
                 };
     }
 
     private static ItemIDMapping[] PACKED_ICE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 368),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 174),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 300),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 318)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 318),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 368),
                 };
     }
 
     private static ItemIDMapping[] PAINTING() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 649),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 321),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 538),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 586)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 586),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 649),
                 };
     }
 
     private static ItemIDMapping[] PANDA_SPAWN_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 786),
                 new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 722),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 723)
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 723),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 786),
                 };
     }
 
     private static ItemIDMapping[] PAPER() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 677),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 339),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 561),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 615)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 615),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 677),
                 };
     }
 
     private static ItemIDMapping[] PARROT_SPAWN_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 787),
+                new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 383, 105),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 662),
                 new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 723),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 724)
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 724),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 787),
                 };
     }
 
-    private static ItemIDMapping[] PEONY() {// TODO: 26/06/2020 missing 1.14 id here too
+    private static ItemIDMapping[] PEONY() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 376),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 175, 5),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 308),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 326)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 326),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 376),
                 };
     }
 
     private static ItemIDMapping[] PETRIFIED_OAK_SLAB() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 150),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 120),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 125)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 125),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 150),
                 };
     }
 
     private static ItemIDMapping[] PHANTOM_MEMBRANE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 922),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 787),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 854)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 853),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 854),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 922),
                 };
     }
 
     private static ItemIDMapping[] PHANTOM_SPAWN_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 788),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 663),
                 new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 724),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 725)
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 725),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 788),
                 };
     }
 
     private static ItemIDMapping[] PIGLIN_BANNER_PATTERN() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 933)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 933),
                 };
     }
 
     private static ItemIDMapping[] PIGLIN_SPAWN_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 790)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 790),
                 };
     }
 
     private static ItemIDMapping[] PIG_SPAWN_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 789),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 725),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_8, 383, 90),
+                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 383, 90),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 664),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 726)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 725),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 726),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 789),
                 };
     }
 
     private static ItemIDMapping[] PILLAGER_SPAWN_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 791),
                 new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 726),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 727)
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 727),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 791),
                 };
     }
 
     private static ItemIDMapping[] PINK_BANNER() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 875),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 807),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 425, 9),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 741),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 808)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 807),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 808),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 875),
                 };
     }
 
     private static ItemIDMapping[] PINK_BED() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 722),
                 new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 355, 6),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 602),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 660)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 660),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 722),
                 };
     }
 
     private static ItemIDMapping[] PINK_CARPET() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 356),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 171, 6),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 288),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 306)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 306),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 356),
                 };
     }
 
     private static ItemIDMapping[] PINK_CONCRETE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 470),
+                new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 251, 6),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 401),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 419)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 419),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 470),
                 };
     }
 
     private static ItemIDMapping[] PINK_CONCRETE_POWDER() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 486),
+                new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 252, 6),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 417),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 435)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 435),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 486),
                 };
     }
 
     private static ItemIDMapping[] PINK_DYE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 702),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 351, 9),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 586),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 640)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 640),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 702),
                 };
     }
 
     private static ItemIDMapping[] PINK_GLAZED_TERRACOTTA() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 454),
                 new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 241),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 385),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 403)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 403),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 454),
                 };
     }
 
     private static ItemIDMapping[] PINK_SHULKER_BOX() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 438),
                 new ItemIDMapping(MINECRAFT_1_11, MINECRAFT_1_12_2, 225),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 369),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 387)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 387),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 438),
                 };
     }
 
     private static ItemIDMapping[] PINK_STAINED_GLASS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 385),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 95, 6),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 317),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 335)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 335),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 385),
                 };
     }
 
     private static ItemIDMapping[] PINK_STAINED_GLASS_PANE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 401),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 160, 6),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 333),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 351)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 351),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 401),
                 };
     }
 
     private static ItemIDMapping[] PINK_TERRACOTTA() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 337),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 159, 6),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 269),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 287)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 287),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 337),
                 };
     }
 
     private static ItemIDMapping[] PINK_TULIP() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 119),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 38, 7),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 106)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 106),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 119),
                 };
     }
 
     private static ItemIDMapping[] PINK_WOOL() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 101),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 35, 6),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 88)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 88),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 101),
                 };
     }
 
     private static ItemIDMapping[] PISTON() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 94),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 33),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 81)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 81),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 94),
                 };
     }
 
     private static ItemIDMapping[] PLAYER_HEAD() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 837),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 770),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 397, 3),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 705),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 771)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 770),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 771),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 837),
                 };
     }
 
     private static ItemIDMapping[] PODZOL() {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 3, 2),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_LATEST, 11)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_LATEST, 11),
                 };
     }
 
     private static ItemIDMapping[] POISONOUS_POTATO() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 832),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 765),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 394),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 700),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 766)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 765),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 766),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 832),
                 };
     }
 
     private static ItemIDMapping[] POLAR_BEAR_SPAWN_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 792),
+                new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 383, 102),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 665),
                 new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 727),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 728)
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 728),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 792),
                 };
     }
 
     private static ItemIDMapping[] POLISHED_ANDESITE() {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 1, 6),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_LATEST, 7)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_LATEST, 7),
                 };
     }
 
     private static ItemIDMapping[] POLISHED_ANDESITE_SLAB() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 503),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 554),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 503)
                 };
     }
 
     private static ItemIDMapping[] POLISHED_ANDESITE_STAIRS() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 490),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 541),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 490)
                 };
     }
 
     private static ItemIDMapping[] POLISHED_BASALT() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 222)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 222),
                 };
     }
 
     private static ItemIDMapping[] POLISHED_BLACKSTONE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 966)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 966),
                 };
     }
 
     private static ItemIDMapping[] POLISHED_BLACKSTONE_BRICKS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 970)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 970),
                 };
     }
 
     private static ItemIDMapping[] POLISHED_BLACKSTONE_BRICK_SLAB() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 971)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 971),
                 };
     }
 
     private static ItemIDMapping[] POLISHED_BLACKSTONE_BRICK_STAIRS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 972)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 972),
                 };
     }
 
     private static ItemIDMapping[] POLISHED_BLACKSTONE_BRICK_WALL() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 303)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 303),
                 };
     }
 
     private static ItemIDMapping[] POLISHED_BLACKSTONE_BUTTON() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 313)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 313),
                 };
     }
 
     private static ItemIDMapping[] POLISHED_BLACKSTONE_PRESSURE_PLATE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 199)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 199),
                 };
     }
 
     private static ItemIDMapping[] POLISHED_BLACKSTONE_SLAB() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 967)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 967),
                 };
     }
 
     private static ItemIDMapping[] POLISHED_BLACKSTONE_STAIRS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 302)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 968),
                 };
     }
 
     private static ItemIDMapping[] POLISHED_BLACKSTONE_WALL() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 968)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 302),
                 };
     }
 
     private static ItemIDMapping[] POLISHED_DIORITE() {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 1, 4),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_LATEST, 5)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_LATEST, 5),
                 };
     }
 
     private static ItemIDMapping[] POLISHED_DIORITE_SLAB() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 495),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 546),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 495)
                 };
     }
 
     private static ItemIDMapping[] POLISHED_DIORITE_STAIRS() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 481),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 532),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 481)
                 };
     }
 
     private static ItemIDMapping[] POLISHED_GRANITE() {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 1, 2),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_LATEST, 3)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_LATEST, 3),
                 };
     }
 
     private static ItemIDMapping[] POLISHED_GRANITE_SLAB() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 492),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 543),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 492)
                 };
     }
 
     private static ItemIDMapping[] POLISHED_GRANITE_STAIRS() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 478),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 529),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 478)
                 };
     }
 
     private static ItemIDMapping[] POPPED_CHORUS_FRUIT() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 887),
+                new ItemIDMapping(MINECRAFT_1_9, MINECRAFT_1_12_2, 433),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 753),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 820)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 819),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 820),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 887),
                 };
     }
 
     private static ItemIDMapping[] POPPY() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 112),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 38),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 99)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 99),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 112),
                 };
     }
 
     private static ItemIDMapping[] PORKCHOP() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 647),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 319),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 536),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 584)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 584),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 647),
                 };
     }
 
     private static ItemIDMapping[] POTATO() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 830),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 763),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 392),// TODO: 26/06/2020 multiple ids for 1.8 - 1.12
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 142),
+                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 392),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 698),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 764)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 763),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 764),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 830),
                 };
     }
 
     private static ItemIDMapping[] POTION() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 749),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 373),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 629),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 687)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 687),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 749),
                 };
     }
 
     private static ItemIDMapping[] POWERED_RAIL() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 85),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 27),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 72)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 72),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 85),
                 };
     }
 
     private static ItemIDMapping[] PRISMARINE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 411),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 168),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 343),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 361)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 361),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 411),
                 };
     }
 
     private static ItemIDMapping[] PRISMARINE_BRICKS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 412),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 168, 1),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 344),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 362)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 362),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 412),
                 };
     }
 
     private static ItemIDMapping[] PRISMARINE_BRICK_SLAB() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 160),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 129),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 135)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 135),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 160),
                 };
     }
 
     private static ItemIDMapping[] PRISMARINE_BRICK_STAIRS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 415),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 347),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 365)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 365),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 415),
                 };
     }
 
     private static ItemIDMapping[] PRISMARINE_CRYSTALS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 853),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 785),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 410),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 720),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 786)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 785),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 786),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 853),
                 };
     }
 
     private static ItemIDMapping[] PRISMARINE_SHARD() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 852),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 784),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 409),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 719),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 785)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 784),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 785),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 852),
                 };
     }
 
     private static ItemIDMapping[] PRISMARINE_SLAB() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 159),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 128),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 134)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 134),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 159),
                 };
     }
 
     private static ItemIDMapping[] PRISMARINE_STAIRS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 414),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 346),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 364)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 364),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 414),
                 };
     }
 
     private static ItemIDMapping[] PRISMARINE_WALL() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 248),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 290),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 248)
                 };
     }
 
     private static ItemIDMapping[] PUFFERFISH() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 690),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 349, 3),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 574),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 628)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 628),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 690),
                 };
     }
 
     private static ItemIDMapping[] PUFFERFISH_BUCKET() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 670),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 552),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 605)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 605),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 670),
                 };
     }
 
     private static ItemIDMapping[] PUFFERFISH_SPAWN_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 793),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 666),
                 new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 728),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 729)
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 729),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 793),
                 };
     }
 
     private static ItemIDMapping[] PUMPKIN() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 216),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 86),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 181),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 187)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 187),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 216),
                 };
     }
 
     private static ItemIDMapping[] PUMPKIN_PIE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 844),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 776),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 400),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 711),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 777)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 776),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 777),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 844),
                 };
     }
 
     private static ItemIDMapping[] PUMPKIN_SEEDS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 737),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 361),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 617),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 675)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 675),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 737),
                 };
     }
 
     private static ItemIDMapping[] PURPLE_BANNER() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 879),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 811),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 425, 5),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 745),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 812)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 811),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 812),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 879),
                 };
     }
 
     private static ItemIDMapping[] PURPLE_BED() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 726),
                 new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 355, 10),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 606),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 664)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 664),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 726),
                 };
     }
 
     private static ItemIDMapping[] PURPLE_CARPET() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 360),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 171, 10),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 292),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 310)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 310),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 360),
                 };
     }
 
     private static ItemIDMapping[] PURPLE_CONCRETE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 474),
+                new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 251, 10),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 405),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 423)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 423),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 474),
                 };
     }
 
     private static ItemIDMapping[] PURPLE_CONCRETE_POWDER() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 490),
+                new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 252, 10),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 421),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 439)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 439),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 490),
                 };
     }
 
     private static ItemIDMapping[] PURPLE_DYE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 698),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 351, 5),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 582),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 636)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 636),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 698),
                 };
     }
 
     private static ItemIDMapping[] PURPLE_GLAZED_TERRACOTTA() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 458),
                 new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 245),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 389),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 407)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 407),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 458),
                 };
     }
 
     private static ItemIDMapping[] PURPLE_SHULKER_BOX() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 442),
                 new ItemIDMapping(MINECRAFT_1_11, MINECRAFT_1_12_2, 229),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 373),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 391)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 391),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 442),
                 };
     }
 
     private static ItemIDMapping[] PURPLE_STAINED_GLASS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 389),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 95, 10),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 321),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 339)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 339),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 389),
                 };
     }
 
     private static ItemIDMapping[] PURPLE_STAINED_GLASS_PANE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 405),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 160, 10),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 337),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 355)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 355),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 405),
                 };
     }
 
     private static ItemIDMapping[] PURPLE_TERRACOTTA() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 341),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 159, 10),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 273),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 291)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 291),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 341),
                 };
     }
 
     private static ItemIDMapping[] PURPLE_WOOL() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 105),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 35, 10),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 92)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 92),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 105),
                 };
     }
 
     private static ItemIDMapping[] PURPUR_BLOCK() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 175),
                 new ItemIDMapping(MINECRAFT_1_9, MINECRAFT_1_12_2, 201),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 144),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 150)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 150),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 175),
                 };
     }
 
     private static ItemIDMapping[] PURPUR_PILLAR() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 176),
                 new ItemIDMapping(MINECRAFT_1_9, MINECRAFT_1_12_2, 202),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 145),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 151)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 151),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 176),
                 };
     }
 
     private static ItemIDMapping[] PURPUR_SLAB() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 158),
                 new ItemIDMapping(MINECRAFT_1_9, MINECRAFT_1_12_2, 205),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 127),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 133)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 133),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 158),
                 };
     }
 
     private static ItemIDMapping[] PURPUR_STAIRS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 177),
                 new ItemIDMapping(MINECRAFT_1_9, MINECRAFT_1_12_2, 203),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 146),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 152)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 152),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 177),
                 };
     }
 
     private static ItemIDMapping[] QUARTZ() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 849),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 781),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 406),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 716),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 782)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 781),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 782),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 849),
                 };
     }
 
     private static ItemIDMapping[] QUARTZ_BLOCK() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 325),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 155),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 258),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 276)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 276),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 325),
                 };
     }
 
     private static ItemIDMapping[] QUARTZ_BRICKS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 326)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 326),
                 };
     }
 
     private static ItemIDMapping[] QUARTZ_PILLAR() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 327),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 155, 2),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 259),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 277)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 277),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 327),
                 };
     }
 
     private static ItemIDMapping[] QUARTZ_SLAB() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 155),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 44, 7),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 125),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 130)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 130),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 155),
                 };
     }
 
     private static ItemIDMapping[] QUARTZ_STAIRS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 328),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 156),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 260),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 278)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 278),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 328),
                 };
     }
 
     private static ItemIDMapping[] RABBIT() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 854),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 786),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 411),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 721),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 787)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 786),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 787),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 854),
                 };
     }
 
     private static ItemIDMapping[] RABBIT_FOOT() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 857),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 789),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 414),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 724),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 790)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 789),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 790),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 857),
                 };
     }
 
     private static ItemIDMapping[] RABBIT_HIDE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 858),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 790),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 415),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 725),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 791)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 790),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 791),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 858),
                 };
     }
 
     private static ItemIDMapping[] RABBIT_SPAWN_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 794),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 729),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_8, 383, 101),
+                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 383, 101),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 667),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 730)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 729),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 730),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 794),
                 };
     }
 
     private static ItemIDMapping[] RABBIT_STEW() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 856),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 788),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 413),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 723),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 789)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 788),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 789),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 856),
                 };
     }
 
     private static ItemIDMapping[] RAIL() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 187),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 66),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 156),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 162)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 162),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 187),
                 };
     }
 
     private static ItemIDMapping[] RAVAGER_SPAWN_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 795),
                 new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 730),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 731)
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 731),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 795),
                 };
     }
 
     private static ItemIDMapping[] REDSTONE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 665),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 331),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 547),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 600)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 600),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 665),
                 };
     }
 
     private static ItemIDMapping[] REDSTONE_BLOCK() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 321),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 152),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 254),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 272)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 272),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 321),
                 };
     }
 
     private static ItemIDMapping[] REDSTONE_LAMP() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 274),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 123),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 228),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 234)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 234),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 274),
                 };
     }
 
     private static ItemIDMapping[] REDSTONE_ORE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 200),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 73),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 166),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 172)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 172),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 200),
                 };
     }
 
     private static ItemIDMapping[] REDSTONE_TORCH() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 201),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 76),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 167),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 173)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 173),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 201),
                 };
     }
 
     private static ItemIDMapping[] RED_BANNER() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 883),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 815),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 425, 1),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 749),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 816)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 815),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 816),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 883),
                 };
     }
 
     private static ItemIDMapping[] RED_BED() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 730),
-                new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 355, 14),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_11_1, 355),
+                new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 355, 14),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 610),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 668)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 668),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 730),
                 };
     }
 
     private static ItemIDMapping[] RED_CARPET() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 364),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 171, 14),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 296),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 314)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 314),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 364),
                 };
     }
 
     private static ItemIDMapping[] RED_CONCRETE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 478),
+                new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 251, 14),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 409),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 427)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 427),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 478),
                 };
     }
 
     private static ItemIDMapping[] RED_CONCRETE_POWDER() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 494),
+                new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 252, 14),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 425),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 443)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 443),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 494),
                 };
     }
 
     private static ItemIDMapping[] RED_DYE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 694),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 351, 1),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 578),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 632)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 632),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 694),
                 };
     }
 
     private static ItemIDMapping[] RED_GLAZED_TERRACOTTA() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 462),
                 new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 249),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 393),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 411)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 411),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 462),
                 };
     }
 
     private static ItemIDMapping[] RED_MUSHROOM() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 125),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 40),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 109),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 112)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 112),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 125),
                 };
     }
 
     private static ItemIDMapping[] RED_MUSHROOM_BLOCK() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 245),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 100),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 204),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 210)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 210),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 245),
                 };
     }
 
     private static ItemIDMapping[] RED_NETHER_BRICKS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 427),
+                new ItemIDMapping(MINECRAFT_1_11, MINECRAFT_1_12_2, 215),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 358),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 376)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 376),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 427),
                 };
     }
 
     private static ItemIDMapping[] RED_NETHER_BRICK_SLAB() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 502),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 553),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 502)
                 };
     }
 
     private static ItemIDMapping[] RED_NETHER_BRICK_STAIRS() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 489),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 540),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 489)
                 };
     }
 
     private static ItemIDMapping[] RED_NETHER_BRICK_WALL() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 255),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 297),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 255)
                 };
     }
 
     private static ItemIDMapping[] RED_SAND() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 31),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 12, 1),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 27)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 27),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 31),
                 };
     }
 
     private static ItemIDMapping[] RED_SANDSTONE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 418),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 179),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 350),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 368)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 368),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 418),
                 };
     }
 
     private static ItemIDMapping[] RED_SANDSTONE_SLAB() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 156),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 182),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 126),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 131)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 131),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 156),
                 };
     }
 
     private static ItemIDMapping[] RED_SANDSTONE_STAIRS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 421),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 180),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 353),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 371)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 371),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 421),
                 };
     }
 
     private static ItemIDMapping[] RED_SANDSTONE_WALL() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 249),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 291),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 249)
                 };
     }
 
     private static ItemIDMapping[] RED_SHULKER_BOX() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 446),
                 new ItemIDMapping(MINECRAFT_1_11, MINECRAFT_1_12_2, 233),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 377),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 395)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 395),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 446),
                 };
     }
 
     private static ItemIDMapping[] RED_STAINED_GLASS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 393),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 95, 14),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 325),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 343)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 343),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 393),
                 };
     }
 
     private static ItemIDMapping[] RED_STAINED_GLASS_PANE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 409),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 160, 14),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 341),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 359)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 359),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 409),
                 };
     }
 
     private static ItemIDMapping[] RED_TERRACOTTA() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 345),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 159, 14),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 277),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 295)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 295),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 345),
                 };
     }
 
     private static ItemIDMapping[] RED_TULIP() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 116),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 38, 4),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 103)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 103),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 116),
                 };
     }
 
     private static ItemIDMapping[] RED_WOOL() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 109),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 35, 14),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 96)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 96),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 109),
                 };
     }
 
     private static ItemIDMapping[] REPEATER() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 566),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 356),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 467),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 513)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 513),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 566),
                 };
     }
 
     private static ItemIDMapping[] REPEATING_COMMAND_BLOCK() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 422),
+                new ItemIDMapping(MINECRAFT_1_9, MINECRAFT_1_12_2, 210),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 354),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 372)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 372),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 422),
                 };
     }
 
     private static ItemIDMapping[] RESPAWN_ANCHOR() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 974)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 974),
                 };
     }
 
     private static ItemIDMapping[] ROSE_BUSH() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 375),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 175, 4),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 307),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 325)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 325),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 375),
                 };
     }
 
     private static ItemIDMapping[] ROTTEN_FLESH() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 743),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 367),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 623),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 681)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 681),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 743),
                 };
     }
 
     private static ItemIDMapping[] SADDLE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 664),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 329),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 546),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 599)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 599),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 664),
                 };
     }
 
     private static ItemIDMapping[] SALMON() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 688),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 349, 1),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 572),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 626)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 626),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 688),
                 };
     }
 
     private static ItemIDMapping[] SALMON_BUCKET() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 671),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 553),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 606)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 606),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 671),
                 };
     }
 
     private static ItemIDMapping[] SALMON_SPAWN_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 796),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 668),
                 new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 731),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 732)
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 732),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 796),
                 };
     }
 
     private static ItemIDMapping[] SAND() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 30),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 12),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 26)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 26),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 30),
                 };
     }
 
     private static ItemIDMapping[] SANDSTONE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 81),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 24),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 68)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 68),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 81),
                 };
     }
 
     private static ItemIDMapping[] SANDSTONE_SLAB() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 148),
                 new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 44, 1),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 119),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 123)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 123),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 148),
                 };
     }
 
     private static ItemIDMapping[] SANDSTONE_STAIRS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 275),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 128),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 229),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 235)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 235),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 275),
                 };
     }
 
     private static ItemIDMapping[] SANDSTONE_WALL() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 256),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 298),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 256)
                 };
     }
 
     private static ItemIDMapping[] SCAFFOLDING() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 505),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 556),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 505)
                 };
     }
 
     private static ItemIDMapping[] SCUTE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 571),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 471),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 519)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 519),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 571),
                 };
     }
 
     private static ItemIDMapping[] SEAGRASS() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 79),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 92),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 79)
                 };
     }
 
     private static ItemIDMapping[] SEA_LANTERN() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 417),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 169),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 349),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 367)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 367),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 417),
                 };
     }
 
     private static ItemIDMapping[] SEA_PICKLE() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 80),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 93),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 80)
                 };
     }
 
     private static ItemIDMapping[] SHEARS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 734),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 359),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 614),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 672)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 672),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 734),
                 };
     }
 
     private static ItemIDMapping[] SHEEP_SPAWN_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 797),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 732),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_8, 383, 91),
+                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 383, 91),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 669),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 733)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 732),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 733),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 797),
                 };
     }
 
     private static ItemIDMapping[] SHIELD() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 896),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 828),
                 new ItemIDMapping(MINECRAFT_1_9, MINECRAFT_1_12_2, 442),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 762),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 829)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 828),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 829),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 896),
                 };
     }
 
     private static ItemIDMapping[] SHROOMLIGHT() {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 950),
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 950)
                 };
     }
 
     private static ItemIDMapping[] SHULKER_BOX() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 431),
+                new ItemIDMapping(MINECRAFT_1_9, MINECRAFT_1_12_2, 229),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 362),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 380)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 380),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 431),
                 };
     }
 
     private static ItemIDMapping[] SHULKER_SHELL() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 904),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 836),
                 new ItemIDMapping(MINECRAFT_1_11, MINECRAFT_1_12_2, 450),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 770),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 837)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 836),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 837),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 904),
                 };
     }
 
     private static ItemIDMapping[] SHULKER_SPAWN_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 798),
+                new ItemIDMapping(MINECRAFT_1_9, MINECRAFT_1_12_2, 383, 69),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 670),
                 new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 733),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 734)
-                };
-    }
-
-    private static ItemIDMapping[] SIGN() {
-        return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 323), // TODO: 26/06/2020 move this to OAK_SIGN
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 541)
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 734),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 798),
                 };
     }
 
     private static ItemIDMapping[] SILVERFISH_SPAWN_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 799),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 734),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_8, 383, 60),
+                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 383, 60),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 671),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 735)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 734),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 735),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 799),
                 };
     }
 
     private static ItemIDMapping[] SKELETON_HORSE_SPAWN_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 801),
+                new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 383, 28),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 673),
                 new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 736),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 737)
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 737),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 801),
                 };
     }
 
     private static ItemIDMapping[] SKELETON_SKULL() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 835),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 768),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 397),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 703),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 769)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 768),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 769),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 835),
                 };
     }
 
     private static ItemIDMapping[] SKELETON_SPAWN_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 800),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 735),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_8, 383, 51),
+                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 383, 51),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 672),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 736)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 735),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 736),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 800),
                 };
     }
 
     private static ItemIDMapping[] SKULL_BANNER_PATTERN() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 861),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 862),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 930),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 862)
                 };
     }
 
     private static ItemIDMapping[] SLIME_BALL() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 679),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 341),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 563),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 617)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 617),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 679),
                 };
     }
 
     private static ItemIDMapping[] SLIME_BLOCK() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 371),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 165),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 303),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 321)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 321),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 371),
                 };
     }
 
     private static ItemIDMapping[] SLIME_SPAWN_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 802),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 737),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_8, 383, 55),
+                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 383, 55),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 674),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 738)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 737),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 738),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 802),
                 };
     }
 
     private static ItemIDMapping[] SMITHING_TABLE() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 871),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 872),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 942),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 872)
                 };
     }
 
     private static ItemIDMapping[] SMOKER() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 865),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 866),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 936),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 866)
                 };
     }
 
     private static ItemIDMapping[] SMOOTH_QUARTZ() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 162),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 131),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 137)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 137),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 162),
                 };
     }
 
     private static ItemIDMapping[] SMOOTH_QUARTZ_SLAB() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 499),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 550),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 499)
                 };
     }
 
     private static ItemIDMapping[] SMOOTH_QUARTZ_STAIRS() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 486),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 537),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 486)
                 };
     }
 
     private static ItemIDMapping[] SMOOTH_RED_SANDSTONE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 163),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 179, 2),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 132),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 138)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 138),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 163),
                 };
     }
 
     private static ItemIDMapping[] SMOOTH_RED_SANDSTONE_SLAB() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 493),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 544),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 493)
                 };
     }
 
     private static ItemIDMapping[] SMOOTH_RED_SANDSTONE_STAIRS() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 479),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 530),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 479)
                 };
     }
 
     private static ItemIDMapping[] SMOOTH_SANDSTONE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 164),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 24, 2),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 133),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 139)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 139),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 164),
                 };
     }
 
     private static ItemIDMapping[] SMOOTH_SANDSTONE_SLAB() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 498),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 549),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 498)
                 };
     }
 
     private static ItemIDMapping[] SMOOTH_SANDSTONE_STAIRS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 530),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 485)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 485),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 536),
                 };
     }
 
     private static ItemIDMapping[] SMOOTH_STONE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 165),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 134),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 140)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 140),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 165),
                 };
     }
 
     private static ItemIDMapping[] SMOOTH_STONE_SLAB() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 122),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 147),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 122)
                 };
     }
 
     private static ItemIDMapping[] SNOW() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 202),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 78),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 169),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 175)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 175),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 202),
                 };
     }
 
     private static ItemIDMapping[] SNOWBALL() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 666),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 332),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 548),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 601)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 601),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 666),
                 };
     }
 
     private static ItemIDMapping[] SNOW_BLOCK() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 204),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 80),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 171),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 177)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 177),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 204),
                 };
     }
 
     private static ItemIDMapping[] SOUL_CAMPFIRE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 949)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 949),
                 };
     }
 
     private static ItemIDMapping[] SOUL_LANTERN() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 946)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 946),
                 };
     }
 
     private static ItemIDMapping[] SOUL_SAND() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 219),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 88),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 184),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 190)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 190),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 219),
                 };
     }
 
     private static ItemIDMapping[] SOUL_SOIL() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 220)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 220),
                 };
     }
 
-    private static ItemIDMapping[] SOUL_TOUCH() {
+    private static ItemIDMapping[] SOUL_TORCH() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 223)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 223),
                 };
     }
 
     private static ItemIDMapping[] SPAWNER() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 178),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 52),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 147),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 153)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 153),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 178),
                 };
     }
 
     private static ItemIDMapping[] SPECTRAL_ARROW() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 893),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 825),
                 new ItemIDMapping(MINECRAFT_1_9, MINECRAFT_1_12_2, 439),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 759),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 826)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 825),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 826),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 893),
                 };
     }
 
     private static ItemIDMapping[] SPIDER_EYE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 751),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 375),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 631),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 689)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 689),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 751),
                 };
     }
 
     private static ItemIDMapping[] SPIDER_SPAWN_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 803),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 738),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_8, 383, 52),
+                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 383, 52),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 675),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 739)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 738),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 739),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 803),
                 };
     }
 
     private static ItemIDMapping[] SPLASH_POTION() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 892),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_8, 373),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 824),
                 new ItemIDMapping(MINECRAFT_1_9, MINECRAFT_1_12_2, 438),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 758),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 825)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 824),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 825),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 892),
                 };
     }
 
     private static ItemIDMapping[] SPONGE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 75),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 19),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 62)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 62),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 75),
                 };
     }
 
     private static ItemIDMapping[] SPRUCE_BOAT() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 898),
                 new ItemIDMapping(MINECRAFT_1_10, MINECRAFT_1_12_2, 444),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 764),
                 new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 830),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 831)
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 831),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 898),
                 };
     }
 
     private static ItemIDMapping[] SPRUCE_BUTTON() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 306),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 242),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 260)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 260),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 306),
                 };
     }
 
     private static ItemIDMapping[] SPRUCE_DOOR() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 559),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 427),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 193),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 462),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 508)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 508),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 559),
                 };
     }
 
     private static ItemIDMapping[] SPRUCE_FENCE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 209),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 188),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 176),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 182)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 182),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 209),
                 };
     }
 
     private static ItemIDMapping[] SPRUCE_FENCE_GATE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 253),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 183),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 211),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 217)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 217),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 253),
                 };
     }
 
     private static ItemIDMapping[] SPRUCE_LEAVES() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 70),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 18, 1),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 57)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 57),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 70),
                 };
     }
 
     private static ItemIDMapping[] SPRUCE_LOG() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 17, 1),
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 33),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 38),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 17, 1),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 17, 1),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 33)
                 };
     }
 
     private static ItemIDMapping[] SPRUCE_PLANKS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 16),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 5, 1),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 14)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 14),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 16),
                 };
     }
 
     private static ItemIDMapping[] SPRUCE_PRESSURE_PLATE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 192),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 161),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 167)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 167),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 192),
                 };
     }
 
     private static ItemIDMapping[] SPRUCE_SAPLING() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 24),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 6, 1),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 20)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 20),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 24),
                 };
     }
 
     private static ItemIDMapping[] SPRUCE_SIGN() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 590),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 653),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 590)
                 };
     }
 
     private static ItemIDMapping[] SPRUCE_SLAB() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 139),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 126, 1),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 113),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 116)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 116),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 139),
                 };
     }
 
     private static ItemIDMapping[] SPRUCE_STAIRS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 280),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 134),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 234),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 240)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 240),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 280),
                 };
     }
 
     private static ItemIDMapping[] SPRUCE_TRAPDOOR() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 227),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 188),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 194)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 194),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 227),
                 };
     }
 
     private static ItemIDMapping[] SPRUCE_WOOD() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 62),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 5, 1),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 51)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 51),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 62),
                 };
     }
 
     private static ItemIDMapping[] SQUID_SPAWN_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 804),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 739),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_8, 383, 94),
+                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 383, 94),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 676),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 740)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 739),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 740),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 804),
                 };
     }
 
     private static ItemIDMapping[] STICK() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 599),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 280),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 497),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 545)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 545),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 599),
                 };
     }
 
     private static ItemIDMapping[] STICKY_PISTON() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 87),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 29),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 74)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 74),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 87),
                 };
     }
 
     private static ItemIDMapping[] STONE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_LATEST, 1)
+                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_LATEST, 1),
                 };
     }
 
     private static ItemIDMapping[] STONECUTTER() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 872),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 873),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 943),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 873)
                 };
     }
 
     private static ItemIDMapping[] STONE_AXE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 594),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 275),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 492),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 540)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 540),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 594),
                 };
     }
 
     private static ItemIDMapping[] STONE_BRICKS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 240),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 98),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 199),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 205)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 205),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 240),
                 };
     }
 
     private static ItemIDMapping[] STONE_BRICK_SLAB() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 153),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 44, 5),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 123),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 128)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 128),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 153),
                 };
     }
 
     private static ItemIDMapping[] STONE_BRICK_STAIRS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 261),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 109),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 217),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 223)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 223),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 261),
                 };
     }
 
     private static ItemIDMapping[] STONE_BRICK_WALL() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 252),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 294),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 252)
                 };
     }
 
     private static ItemIDMapping[] STONE_BUTTON() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 304),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 77),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 168),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 174)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 174),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 304),
                 };
     }
 
     private static ItemIDMapping[] STONE_HOE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 614),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 291),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 508),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 556)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 556),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 614),
                 };
     }
 
     private static ItemIDMapping[] STONE_PICKAXE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 593),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 274),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 491),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 539)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 539),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 593),
                 };
     }
 
     private static ItemIDMapping[] STONE_PRESSURE_PLATE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 190),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 70),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 159),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 165)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 165),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 190),
                 };
     }
 
     private static ItemIDMapping[] STONE_SHOVEL() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 592),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 273),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 490),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 538)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 538),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 592),
                 };
     }
 
     private static ItemIDMapping[] STONE_SLAB() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 146),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 44),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 118),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 121)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 121),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 146),
                 };
     }
 
     private static ItemIDMapping[] STONE_STAIRS() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 484),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 535),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 484)
                 };
     }
 
     private static ItemIDMapping[] STONE_SWORD() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 591),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 272),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 489),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 537)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 537),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 591),
                 };
     }
 
     private static ItemIDMapping[] STRAY_SPAWN_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 805),
+                new ItemIDMapping(MINECRAFT_1_11, MINECRAFT_1_12_2, 383, 6),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 677),
                 new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 740),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 741)
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 741),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 805),
                 };
     }
 
     private static ItemIDMapping[] STRIDER_SPAWN_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 806)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 806),
                 };
     }
 
     private static ItemIDMapping[] STRING() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 610),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 287),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 504),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 552)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 552),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 610),
                 };
     }
 
     private static ItemIDMapping[] STRIPPED_ACACIA_LOG() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 42),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 49),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 42)
                 };
     }
 
     private static ItemIDMapping[] STRIPPED_ACACIA_WOOD() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 48),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 57),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 48)
                 };
     }
 
     private static ItemIDMapping[] STRIPPED_BIRCH_LOG() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 40),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 47),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 40)
                 };
     }
 
     private static ItemIDMapping[] STRIPPED_BIRCH_WOOD() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 46),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 55),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 46)
                 };
     }
 
     private static ItemIDMapping[] STRIPPED_CRIMSON_HYPHAE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 59)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 59),
                 };
     }
 
     private static ItemIDMapping[] STRIPPED_CRIMSON_STEM() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 51)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 51),
                 };
     }
 
     private static ItemIDMapping[] STRIPPED_DARK_OAK_LOG() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 43),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 50),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 43)
                 };
     }
 
     private static ItemIDMapping[] STRIPPED_DARK_OAK_WOOD() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 49),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 58),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 49)
                 };
     }
 
     private static ItemIDMapping[] STRIPPED_JUNGLE_LOG() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 41),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 48),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 41)
                 };
     }
 
     private static ItemIDMapping[] STRIPPED_JUNGLE_WOOD() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 47),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 56),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 47)
                 };
     }
 
     private static ItemIDMapping[] STRIPPED_OAK_LOG() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 38),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 45),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 38)
                 };
     }
 
     private static ItemIDMapping[] STRIPPED_OAK_WOOD() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 44),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 53),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 44)
                 };
     }
 
     private static ItemIDMapping[] STRIPPED_SPRUCE_LOG() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 39),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 46),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 39)
                 };
     }
 
     private static ItemIDMapping[] STRIPPED_SPRUCE_WOOD() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 45),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 54),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 45)
                 };
     }
 
     private static ItemIDMapping[] STRIPPED_WARPED_HYPHAE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 60)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 60),
                 };
     }
 
     private static ItemIDMapping[] STRIPPED_WARPED_STEM() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 52)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 52),
                 };
     }
 
     private static ItemIDMapping[] STRUCTURE_BLOCK() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 568),
                 new ItemIDMapping(MINECRAFT_1_10, MINECRAFT_1_12_2, 255),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 469),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 515)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 515),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 568),
                 };
     }
 
     private static ItemIDMapping[] STRUCTURE_VOID() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 429),
                 new ItemIDMapping(MINECRAFT_1_10, MINECRAFT_1_12_2, 217),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 360),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 378)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 378),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 429),
                 };
     }
 
     private static ItemIDMapping[] SUGAR() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 714),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 353),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 594),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 652)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 652),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 714),
                 };
     }
 
     private static ItemIDMapping[] SUGAR_CANE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 133),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 338),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 558),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 611)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 611),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 133),
                 };
     }
 
     private static ItemIDMapping[] SUNFLOWER() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 373),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 175),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 305),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 323)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 323),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 373),
                 };
     }
 
     private static ItemIDMapping[] SUSPICIOUS_STEW() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 857),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 858),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 926),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 858)
                 };
     }
 
     private static ItemIDMapping[] SWEET_BERRIES() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 875),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 876),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 947),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 876)
                 };
     }
 
     private static ItemIDMapping[] TALL_GRASS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 377),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 175),
+                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 175, 2),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 309),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 327)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 327),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 377),
                 };
     }
 
     private static ItemIDMapping[] TARGET() {
         return new ItemIDMapping[]{
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 960),
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 960)
                 };
     }
 
     private static ItemIDMapping[] TERRACOTTA() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 366),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 172),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 298),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 316)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 316),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 366),
                 };
     }
 
     private static ItemIDMapping[] TIPPED_ARROW() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 894),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 826),
                 new ItemIDMapping(MINECRAFT_1_9, MINECRAFT_1_12_2, 440),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 760),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 827)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 826),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 827),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 894),
                 };
     }
 
     private static ItemIDMapping[] TNT() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 167),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 46),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 136),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 142)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 142),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 167),
                 };
     }
 
     private static ItemIDMapping[] TNT_MINECART() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 850),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 782),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 407),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 717),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 783)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 782),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 783),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 850),
                 };
     }
 
     private static ItemIDMapping[] TORCH() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 171),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 50),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 140),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 146)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 146),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 171),
                 };
     }
 
     private static ItemIDMapping[] TOTEM_OF_UNDYING() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 903),
+                new ItemIDMapping(MINECRAFT_1_11, MINECRAFT_1_12_2, 449),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 769),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 836)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 835),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 836),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 903),
                 };
     }
 
     private static ItemIDMapping[] TRADER_LLAMA_SPAWN_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 807),
                 new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 741),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 742)
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 742),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 807),
                 };
     }
 
     private static ItemIDMapping[] TRAPPED_CHEST() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 317),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 146),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 250),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 268)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 268),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 317),
                 };
     }
 
     private static ItemIDMapping[] TRIDENT() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 921),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 786),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 853)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 852),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 853),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 921),
                 };
     }
 
     private static ItemIDMapping[] TRIPWIRE_HOOK() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 278),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 131),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 232),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 238)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 238),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 278),
                 };
     }
 
     private static ItemIDMapping[] TROPICAL_FISH() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 689),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 349, 2),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 573),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 627)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 627),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 689),
                 };
     }
 
     private static ItemIDMapping[] TROPICAL_FISH_BUCKET() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 673),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 555),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 608)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 608),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 673),
                 };
     }
 
     private static ItemIDMapping[] TROPICAL_FISH_SPAWN_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 808),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 678),
                 new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 742),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 743)
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 743),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 808),
                 };
     }
 
     private static ItemIDMapping[] TUBE_CORAL() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 507),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 438),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 456)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 456),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 507),
                 };
     }
 
     private static ItemIDMapping[] TUBE_CORAL_BLOCK() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 502),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 433),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 451)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 451),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 502),
                 };
     }
 
     private static ItemIDMapping[] TUBE_CORAL_FAN() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 517),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 448),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 466)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 466),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 517),
                 };
     }
 
     private static ItemIDMapping[] TURTLE_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 496),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 427),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 445)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 445),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 496),
                 };
     }
 
     private static ItemIDMapping[] TURTLE_HELMET() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 570),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 470),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 518)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 518),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 570),
                 };
     }
 
     private static ItemIDMapping[] TURTLE_SPAWN_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 809),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 679),
                 new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 743),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 744)
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 744),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 809),
                 };
     }
 
     private static ItemIDMapping[] TWISTING_VINES() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 132)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 132),
                 };
     }
 
     private static ItemIDMapping[] VEX_SPAWN_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 810),
+                new ItemIDMapping(MINECRAFT_1_11, MINECRAFT_1_12_2, 383, 35),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 680),
                 new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 744),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 745)
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 745),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 810),
                 };
     }
 
     private static ItemIDMapping[] VILLAGER_SPAWN_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 811),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 745),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_8, 383, 120),
+                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 383, 120),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 681),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 746)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 745),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 746),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 811),
                 };
     }
 
     private static ItemIDMapping[] VINDICATOR_SPAWN_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 812),
+                new ItemIDMapping(MINECRAFT_1_11, MINECRAFT_1_12_2, 383, 36),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 682),
                 new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 746),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 747)
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 747),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 812),
                 };
     }
 
     private static ItemIDMapping[] VINE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 251),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 106),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 209),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 215)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 215),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 251),
                 };
     }
 
     private static ItemIDMapping[] WANDERING_TRADER_SPAWN_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 813),
                 new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 747),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 748)
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 748),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 813),
                 };
     }
 
     private static ItemIDMapping[] WARPED_BUTTON() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 312)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 312),
                 };
     }
 
     private static ItemIDMapping[] WARPED_DOOR() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 565)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 565),
                 };
     }
 
     private static ItemIDMapping[] WARPED_FENCE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 215)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 215),
                 };
     }
 
     private static ItemIDMapping[] WARPED_FENCE_GATE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 259)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 259),
                 };
     }
 
     private static ItemIDMapping[] WARPED_FUNGUS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 127)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 127),
                 };
     }
 
     private static ItemIDMapping[] WARPED_FUNGUS_ON_A_STICK() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 842)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 842),
                 };
     }
 
     private static ItemIDMapping[] WARPED_HYPHAE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 68)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 68),
                 };
     }
 
     private static ItemIDMapping[] WARPED_NYLIUM() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 13)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 13),
                 };
     }
 
     private static ItemIDMapping[] WARPED_PLANKS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 22)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 22),
                 };
     }
 
     private static ItemIDMapping[] WARPED_PRESSURE_PLATE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 198)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 198),
                 };
     }
 
     private static ItemIDMapping[] WARPED_ROOTS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 129)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 129),
                 };
     }
 
     private static ItemIDMapping[] WARPED_SIGN() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 659)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 659),
                 };
     }
 
     private static ItemIDMapping[] WARPED_SLAB() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 145)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 145),
                 };
     }
 
     private static ItemIDMapping[] WARPED_STAIRS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 284)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 284),
                 };
     }
 
     private static ItemIDMapping[] WARPED_STEM() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 44)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 44),
                 };
     }
 
     private static ItemIDMapping[] WARPED_TRAPDOOR() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 233)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 233),
                 };
     }
 
     private static ItemIDMapping[] WARPED_WART_BLOCK() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 426)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 426),
                 };
     }
 
     private static ItemIDMapping[] WATER_BUCKET() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 661),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 326),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 543),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 596)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 596),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 661),
                 };
     }
 
     private static ItemIDMapping[] WEEPING_VINES() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 131)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 131),
                 };
     }
 
     private static ItemIDMapping[] WET_SPONGE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 76),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 19, 1),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 63)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 63),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 76),
                 };
     }
 
     private static ItemIDMapping[] WHEAT() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 620),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 296),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 513),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 561)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 561),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 620),
                 };
     }
 
     private static ItemIDMapping[] WHEAT_SEEDS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 619),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 295),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 512),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 560)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 560),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 619),
                 };
     }
 
     private static ItemIDMapping[] WHITE_BANNER() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 869),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 801),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 425, 15),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 735),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 802)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 801),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 802),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 869),
                 };
     }
 
     private static ItemIDMapping[] WHITE_BED() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 716),
                 new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 355),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 596),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 654)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 654),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 716),
                 };
     }
 
     private static ItemIDMapping[] WHITE_CARPET() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 350),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 171),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 282),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 300)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 300),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 350),
                 };
     }
 
     private static ItemIDMapping[] WHITE_CONCRETE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 464),
+                new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 251),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 395),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 413)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 413),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 464),
                 };
     }
 
     private static ItemIDMapping[] WHITE_CONCRETE_POWDER() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 480),
+                new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 252),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 411),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 429)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 429),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 480),
                 };
     }
 
     private static ItemIDMapping[] WHITE_DYE() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 650),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 712),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 650)
                 };
     }
 
     private static ItemIDMapping[] WHITE_GLAZED_TERRACOTTA() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 448),
                 new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 235),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 379),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 397)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 397),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 448),
                 };
     }
 
     private static ItemIDMapping[] WHITE_SHULKER_BOX() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 432),
                 new ItemIDMapping(MINECRAFT_1_11, MINECRAFT_1_12_2, 219),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 363),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 381)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 381),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 432),
                 };
     }
 
     private static ItemIDMapping[] WHITE_STAINED_GLASS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 379),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 95),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 311),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 329)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 329),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 379),
                 };
     }
 
     private static ItemIDMapping[] WHITE_STAINED_GLASS_PANE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 395),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 160),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 327),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 345)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 345),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 395),
                 };
     }
 
     private static ItemIDMapping[] WHITE_TERRACOTTA() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 331),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 159),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 263),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 281)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 281),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 331),
                 };
     }
 
     private static ItemIDMapping[] WHITE_TULIP() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 118),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 38, 6),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 105)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 105),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 118),
                 };
     }
 
     private static ItemIDMapping[] WHITE_WOOL() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 95),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 35),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 82)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 82),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 95),
                 };
     }
 
     private static ItemIDMapping[] WITCH_SPAWN_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 814),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 748),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_8, 383, 66),
+                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 383, 66),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 683),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 749)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 748),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 749),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 814),
                 };
     }
 
     private static ItemIDMapping[] WITHER_ROSE() {
         return new ItemIDMapping[]{
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 110),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 123),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 110)
                 };
     }
 
     private static ItemIDMapping[] WITHER_SKELETON_SKULL() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 815),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 769),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 397, 1),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 704),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 770)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 769),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 770),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 836),
                 };
     }
 
     private static ItemIDMapping[] WITHER_SKELETON_SPAWN_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 815),
+                new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 383, 5),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 684),
                 new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 749),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 750)
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 750),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 815),
                 };
     }
 
     private static ItemIDMapping[] WOLF_SPAWN_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 816),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 750),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_8, 383, 95),
+                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 383, 95),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 685),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 751)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 750),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 751),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 816),
                 };
     }
 
     private static ItemIDMapping[] WOODEN_AXE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 590),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 271),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 488),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 536)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 536),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 590),
                 };
     }
 
     private static ItemIDMapping[] WOODEN_HOE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 613),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 290),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 507),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 555)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 555),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 613),
                 };
     }
 
     private static ItemIDMapping[] WOODEN_PICKAXE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 589),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 270),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 487),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 535)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 535),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 589),
                 };
     }
 
     private static ItemIDMapping[] WOODEN_SHOVEL() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 588),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 269),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 486),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 534)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 534),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 588),
                 };
     }
 
     private static ItemIDMapping[] WOODEN_SWORD() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 587),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 268),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 485),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 533)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 533),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 587),
                 };
     }
 
     private static ItemIDMapping[] WRITABLE_BOOK() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 824),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 757),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 386),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 692),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 758)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 757),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 758),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 824),
                 };
     }
 
     private static ItemIDMapping[] WRITTEN_BOOK() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 825),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 758),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 387),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 693),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 759)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 758),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 759),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 825),
                 };
     }
 
     private static ItemIDMapping[] YELLOW_BANNER() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 873),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 805),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 425, 11),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 739),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 806)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 805),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 806),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 873),
                 };
     }
 
     private static ItemIDMapping[] YELLOW_BED() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 720),
                 new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 355, 4),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 600),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 658)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 658),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 720),
                 };
     }
 
     private static ItemIDMapping[] YELLOW_CARPET() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 354),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 171, 4),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 286),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 304)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 304),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 354),
                 };
     }
 
     private static ItemIDMapping[] YELLOW_CONCRETE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 468),
+                new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 251, 4),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 399),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 417)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 417),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 468),
                 };
     }
 
     private static ItemIDMapping[] YELLOW_CONCRETE_POWDER() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 484),
+                new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 252, 4),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 415),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 433)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 433),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 484),
                 };
     }
 
     private static ItemIDMapping[] YELLOW_DYE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 704),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 351, 11),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 642)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 642),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 704),
                 };
     }
 
     private static ItemIDMapping[] YELLOW_GLAZED_TERRACOTTA() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 452),
                 new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 239),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 383),
                 new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 401),
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 452)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 452),
                 };
     }
 
     private static ItemIDMapping[] YELLOW_SHULKER_BOX() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 436),
                 new ItemIDMapping(MINECRAFT_1_11, MINECRAFT_1_12_2, 223),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 367),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 385)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 385),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 436),
                 };
     }
 
     private static ItemIDMapping[] YELLOW_STAINED_GLASS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 383),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 95, 4),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 315),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 333)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 333),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 383),
                 };
     }
 
     private static ItemIDMapping[] YELLOW_STAINED_GLASS_PANE() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST,399),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 160, 4),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 331),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 349)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 349),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST,399),
                 };
     }
 
     private static ItemIDMapping[] YELLOW_TERRACOTTA() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 335),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 159, 4),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 267),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 285)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 285),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 335),
                 };
     }
 
     private static ItemIDMapping[] YELLOW_WOOL() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 99),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 35, 4),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 86)
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_15_2, 86),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 99),
                 };
     }
 
     private static ItemIDMapping[] ZOGLIN_SPAWN_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 817)
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 817),
                 };
     }
 
     private static ItemIDMapping[] ZOMBIE_HEAD() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 838),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 771),
                 new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 397, 2),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 706),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 772)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 771),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 772),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 838),
                 };
     }
 
     private static ItemIDMapping[] ZOMBIE_HORSE_SPAWN_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 819),
+                new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 383, 29),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 687),
                 new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 752),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 753)
-                };
-    }
-
-    private static ItemIDMapping[] ZOMBIE_PIGMAN_SPAWN_EGG() {// TODO: 26/06/2020 merge into ZOMBIFIED_PIGLN_SPAWN_EGG
-        return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 753),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_8, 383, 57),
-                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 688),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 754)
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 753),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 819),
                 };
     }
 
     private static ItemIDMapping[] ZOMBIE_SPAWN_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 818),
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 751),
-                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_8, 383, 54),
+                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 383, 54),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 686),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 752)
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 751),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 752),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 818),
                 };
     }
 
     private static ItemIDMapping[] ZOMBIE_VILLAGER_SPAWN_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 820),
+                new ItemIDMapping(MINECRAFT_1_12, MINECRAFT_1_12_2, 383, 27),
                 new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 689),
                 new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 754),
-                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 755)
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 755),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 820),
                 };
     }
 
     private static ItemIDMapping[] ZOMBIFIED_PIGLIN_SPAWN_EGG() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 821)
+                new ItemIDMapping(MINECRAFT_1_8, MINECRAFT_1_12_2, 383, 57),
+                new ItemIDMapping(MINECRAFT_1_13, MINECRAFT_1_13_2, 688),
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_14_4, 753),
+                new ItemIDMapping(MINECRAFT_1_15, MINECRAFT_1_15_2, 754),
+                new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 821),
                 };
     }
 
