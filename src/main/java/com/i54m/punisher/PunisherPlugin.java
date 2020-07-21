@@ -13,8 +13,8 @@ import com.i54m.punisher.managers.PlayerDataManager;
 import com.i54m.punisher.managers.PunishmentManager;
 import com.i54m.punisher.managers.ReputationManager;
 import com.i54m.punisher.managers.WorkerManager;
-import com.i54m.punisher.managers.storage.FlatFileManager;
 import com.i54m.punisher.managers.storage.StorageManager;
+import com.i54m.punisher.managers.storage.StorageType;
 import com.i54m.punisher.objects.gui.ConfirmationGUI;
 import com.i54m.punisher.objects.gui.punishgui.LevelOne;
 import com.i54m.punisher.objects.gui.punishgui.LevelThree;
@@ -42,6 +42,7 @@ import java.nio.file.StandardCopyOption;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.logging.*;
@@ -66,6 +67,8 @@ public class PunisherPlugin extends Plugin {
      */
     @Getter(AccessLevel.PUBLIC)
     private StorageManager storageManager;
+    @Getter(AccessLevel.PUBLIC)
+    private StorageType storageType;
     private static final PlayerDataManager PLAYER_DATA_MANAGER = PlayerDataManager.getINSTANCE();
     private static final ReputationManager REPUTATION_MANAGER = ReputationManager.getINSTANCE();
     private static final PunishmentManager PUNISHMENT_MANAGER = PunishmentManager.getINSTANCE();
@@ -236,22 +239,11 @@ public class PunisherPlugin extends Plugin {
 
             //start selected storage manager, this must be started first to allow other managers to save and load data correctly
             getLogger().info(ChatColor.GREEN + "Starting Storage Manager...");
-            switch (config.getString("Storage-Type").toUpperCase().replace(" ", "_")){
-                case "FLAT_FILE": {
-                    storageManager = FlatFileManager.getINSTANCE();
-                    break;
-                }
-//                case "SQLITE": {
-//                    //sqlite storage manager
-//                    break;
-//                }
-//                case "MY_SQL": {
-//                    //mysql storage manager
-//                    break;
-//                }
-                default: {
-                    throw new IllegalArgumentException(config.getString("Storage-Type") + " is not a supported storage type, choices are: FLAT_FILE, SQLITE or MY_SQL!");
-                }
+            try {
+                storageType = StorageType.valueOf(config.getString("Storage-Type").toUpperCase().replace(" ", "_"));
+                storageManager = storageType.getStorageManager();
+            } catch (Exception e) {
+                throw new IllegalArgumentException(config.getString("Storage-Type") + " is not a supported storage type, choices are one of the following: " + Arrays.toString(StorageType.values()));
             }
             storageManager.start();
             //start player data manager, this must be started next as the reputation manager depends on this for data
