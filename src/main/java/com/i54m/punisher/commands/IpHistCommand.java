@@ -19,6 +19,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.TreeMap;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -32,7 +33,7 @@ public class IpHistCommand extends Command {
 
     private final PunisherPlugin plugin = PunisherPlugin.getInstance();
     private final DatabaseManager dbManager = DatabaseManager.getINSTANCE();
-    private String targetuuid;
+    private UUID targetuuid;
 
     @Override
     public void execute(CommandSender commandSender, String[] strings) {
@@ -43,10 +44,10 @@ public class IpHistCommand extends Command {
                 return;
             }
             ProxiedPlayer findTarget = ProxyServer.getInstance().getPlayer(strings[0]);
-            Future<String> future = null;
+            Future<UUID> future = null;
             ExecutorService executorService = null;
             if (findTarget != null) {
-                targetuuid = findTarget.getUniqueId().toString().replace("-", "");
+                targetuuid = findTarget.getUniqueId();
             } else {
                 UUIDFetcher uuidFetcher = new UUIDFetcher();
                 uuidFetcher.fetch(strings[0]);

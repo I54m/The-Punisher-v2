@@ -16,6 +16,7 @@ import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 
 import java.sql.SQLException;
+import java.util.UUID;
 
 public class WarnCommand extends Command {
     private final PunisherPlugin plugin = PunisherPlugin.getInstance();
@@ -41,7 +42,7 @@ public class WarnCommand extends Command {
             player.sendMessage(new ComponentBuilder("That is not a player's name!").color(ChatColor.RED).create());
             return;
         }
-        String targetuuid = target.getUniqueId().toString().replace("-", "");
+        UUID targetuuid = target.getUniqueId();
         StringBuilder sb = new StringBuilder();
         if (strings.length == 1) {
             sb.append("Manually Warned");
@@ -65,7 +66,7 @@ public class WarnCommand extends Command {
             }
         }
         try {
-            Punishment warn = new Punishment(Punishment.Type.WARN, Punishment.Reason.Custom, null, targetuuid, target.getName(), player.getUniqueId().toString().replace("-", ""), sb.toString());
+            Punishment warn = new Punishment(Punishment.Type.WARN, "CUSTOM", null, targetuuid, target.getName(), player.getUniqueId(), sb.toString());
             punishMnger.issue(warn, player, true, true, true);
         } catch (SQLException e) {
             try {

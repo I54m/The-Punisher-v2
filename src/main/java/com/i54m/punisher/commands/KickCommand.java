@@ -34,7 +34,7 @@ public class KickCommand extends Command {
                 return;
             }
             try {
-                if (!Permissions.higher(player, target.getUniqueId().toString().replace("-", ""))) {
+                if (!Permissions.higher(player, target.getUniqueId())) {
                     player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("You cannot punish that player!").color(ChatColor.RED).create());
                     return;
                 }

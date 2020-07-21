@@ -15,6 +15,7 @@ import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 
 import java.text.DecimalFormat;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -22,8 +23,9 @@ import java.util.concurrent.TimeUnit;
 
 public class ReputationCommand extends Command {
 
-    private String uuid;
+    private UUID uuid;
     private final PunisherPlugin plugin = PunisherPlugin.getInstance();
+    private final ReputationManager reputationManager = ReputationManager.getINSTANCE();
 
     public ReputationCommand() {
         super("reputation", "punisher.reputation", "rep");
@@ -41,10 +43,10 @@ public class ReputationCommand extends Command {
             return;
         }
         ProxiedPlayer findTarget = ProxyServer.getInstance().getPlayer(strings[0]);
-        Future<String> future = null;
+        Future<UUID> future = null;
         ExecutorService executorService = null;
         if (findTarget != null){
-            uuid = findTarget.getUniqueId().toString().replace("-", "");
+            uuid = findTarget.getUniqueId();
         }else {
             UUIDFetcher uuidFetcher = new UUIDFetcher();
             uuidFetcher.fetch(strings[0]);
@@ -78,8 +80,8 @@ public class ReputationCommand extends Command {
         if (strings[1].equalsIgnoreCase("add")) {
             try {
                 double amount = Double.parseDouble(strings[2]);
-                ReputationManager.addRep(name, uuid, amount);
-                String currentRep = ReputationManager.getRep(uuid);
+                reputationManager.addRep(uuid, amount);
+                String currentRep = reputationManager.getRep(uuid);
                 player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Added: " + new DecimalFormat("##.##").format(amount) + " to: " + name + "'s reputation").color(ChatColor.RED).create());
                 player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("New Reputation: " + new DecimalFormat("##.##").format(currentRep)).color(ChatColor.RED).create());
             }catch (NumberFormatException e){
@@ -89,8 +91,8 @@ public class ReputationCommand extends Command {
         } else if (strings[1].equalsIgnoreCase("minus")) {
             try {
                 double amount = Double.parseDouble(strings[2]);
-                ReputationManager.minusRep(name, uuid, amount);
-                String currentRep = ReputationManager.getRep(uuid);
+                reputationManager.minusRep(uuid, amount);
+                String currentRep = reputationManager.getRep(uuid);
                 player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Removed: " + new DecimalFormat("##.##").format(amount) + " from: " + name + "'s reputation").color(ChatColor.RED).create());
                 player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("New Reputation: " + new DecimalFormat("##.##").format(currentRep)).color(ChatColor.RED).create());
             }catch (NumberFormatException e){
@@ -100,7 +102,7 @@ public class ReputationCommand extends Command {
         } else if (strings[1].equalsIgnoreCase("set")) {
             try {
                 double amount = Double.parseDouble(strings[2]);
-                ReputationManager.setRep(name, uuid, amount);
+                reputationManager.setRep(uuid, amount);
                 player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Set: " + name + "'s reputation to: " + new DecimalFormat("##.##").format(amount)).color(ChatColor.RED).create());
                 player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("New Reputation: " + new DecimalFormat("##.##").format(amount)).color(ChatColor.RED).create());
             } catch (NumberFormatException e) {

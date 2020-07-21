@@ -14,13 +14,14 @@ import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 public class viewRepCommand extends Command {
-    private String targetuuid;
+    private UUID targetuuid;
     private final PunisherPlugin plugin = PunisherPlugin.getInstance();
 
     public viewRepCommand() {
@@ -36,10 +37,10 @@ public class viewRepCommand extends Command {
                 return;
             }
             ProxiedPlayer findTarget = ProxyServer.getInstance().getPlayer(strings[0]);
-            Future<String> future = null;
+            Future<UUID> future = null;
             ExecutorService executorService = null;
             if (findTarget != null){
-                targetuuid = findTarget.getUniqueId().toString().replace("-", "");
+                targetuuid = findTarget.getUniqueId();
             }else {
                 UUIDFetcher uuidFetcher = new UUIDFetcher();
                 uuidFetcher.fetch(strings[0]);
@@ -68,7 +69,7 @@ public class viewRepCommand extends Command {
                     targetname = strings[0];
                 }
                 StringBuilder reputation = new StringBuilder();
-                String rep = ReputationManager.getRep(targetuuid);
+                String rep = ReputationManager.getINSTANCE().getRep(targetuuid);
                 if (!(rep == null)) {
                     double repDouble;
                     try {

@@ -12,6 +12,7 @@ import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -22,7 +23,7 @@ public class NotesCommand extends Command {
         super("notes", "punisher.notes", "playernotes", "playernote", "note");
     }
 
-    private String targetuuid;
+    private UUID targetuuid;
     private final PunisherPlugin plugin = PunisherPlugin.getInstance();
 
     @Override
@@ -33,10 +34,10 @@ public class NotesCommand extends Command {
             return;
         }
         ProxiedPlayer findTarget = ProxyServer.getInstance().getPlayer(strings[1]);
-        Future<String> future = null;
+        Future<UUID> future = null;
         ExecutorService executorService = null;
         if (findTarget != null) {
-            targetuuid = findTarget.getUniqueId().toString().replace("-", "");
+            targetuuid = findTarget.getUniqueId();
         } else {
             UUIDFetcher uuidFetcher = new UUIDFetcher();
             uuidFetcher.fetch(strings[1]);

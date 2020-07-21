@@ -48,7 +48,7 @@ public class PlayerChat implements Listener {
             return;
         }
         UUID uuid = player.getUniqueId();
-        String fetcheduuid = uuid.toString().replace("-", "");
+        UUID fetcheduuid = uuid;
         String targetname = player.getName();
         try {
             if (punishmentManager.isMuted(fetcheduuid)) {

@@ -18,6 +18,7 @@ import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 
 import java.sql.SQLException;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -27,7 +28,7 @@ public class MuteCommand extends Command {
 
     private final PunisherPlugin plugin = PunisherPlugin.getInstance();
     private long length;
-    private String targetuuid;
+    private UUID targetuuid;
     private String targetname;
     private final PunishmentManager punishMnger = PunishmentManager.getINSTANCE();
 
@@ -51,10 +52,10 @@ public class MuteCommand extends Command {
             targetname = null;
         }
         ProxiedPlayer findTarget = ProxyServer.getInstance().getPlayer(strings[0]);
-        Future<String> future = null;
+        Future<UUID> future = null;
         ExecutorService executorService = null;
         if (findTarget != null) {
-            targetuuid = findTarget.getUniqueId().toString().replace("-", "");
+            targetuuid = findTarget.getUniqueId();
         } else {
             UUIDFetcher uuidFetcher = new UUIDFetcher();
             uuidFetcher.fetch(strings[0]);
@@ -148,7 +149,7 @@ public class MuteCommand extends Command {
             }
         }
         try {
-            Punishment mute = new Punishment(Punishment.Type.MUTE, Punishment.Reason.Custom, length, targetuuid, targetname, player.getUniqueId().toString().replace("-", ""), reason.toString());
+            Punishment mute = new Punishment(Punishment.Type.MUTE, "CUSTOM", length, targetuuid, targetname, player.getUniqueId(), reason.toString());
             punishMnger.issue(mute, player, true, true, true);
         } catch (SQLException e) {
             try {

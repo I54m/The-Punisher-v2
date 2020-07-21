@@ -20,6 +20,7 @@ import net.md_5.bungee.api.plugin.Command;
 
 import java.util.ArrayList;
 import java.util.TreeMap;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -27,7 +28,7 @@ import java.util.concurrent.TimeUnit;
 
 public class HistoryCommand extends Command {
     private final PunisherPlugin plugin = PunisherPlugin.getInstance();
-    private String targetuuid;
+    private UUID targetuuid;
     private final PunishmentManager punishmentManager = PunishmentManager.getINSTANCE();
 
     public HistoryCommand() {
@@ -43,10 +44,10 @@ public class HistoryCommand extends Command {
                 return;
             }
             ProxiedPlayer findTarget = ProxyServer.getInstance().getPlayer(strings[0]);
-            Future<String> future = null;
+            Future<UUID> future = null;
             ExecutorService executorService = null;
             if (findTarget != null)
-                targetuuid = findTarget.getUniqueId().toString().replace("-", "");
+                targetuuid = findTarget.getUniqueId();
             else {
                 UUIDFetcher uuidFetcher = new UUIDFetcher();
                 uuidFetcher.fetch(strings[0]);
@@ -112,7 +113,7 @@ public class HistoryCommand extends Command {
                                 reasonmessage = punishment.getMessage();
                             else
                                 reasonmessage = punishment.getReason().toString().replace("_", " ");
-                            String punishername = punishment.getPunisherUUID().equals("CONSOLE") ? punishment.getPunisherUUID() : NameFetcher.getName(punishment.getPunisherUUID());
+                            String punishername = punishment.getPunisherUUID().equals("CONSOLE") ? punishment.getPunisherUUID().toString() : NameFetcher.getName(punishment.getPunisherUUID());
                             HoverEvent hoverEvent = punishment.getHoverEvent();
                             BaseComponent[] message = new ComponentBuilder("#" + id).event(hoverEvent).append(" " + punishment.getIssueDate() + ": ").event(hoverEvent)
                                     .append(type).event(hoverEvent).append(" for " + reasonmessage + " by " + punishername).event(hoverEvent).create();

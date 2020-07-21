@@ -321,8 +321,8 @@ public class AdminCommands extends Command {
     private void reloadRecovery() {
         dbManager.resetCache();
         for (ProxiedPlayer players : plugin.getProxy().getPlayers()) {
-            if (punisher.isBanned(players.getUniqueId().toString().replace("-", ""))) {
-                Punishment ban = punisher.getBan(players.getUniqueId().toString().replace("-", ""));
+            if (punisher.isBanned(players.getUniqueId())) {
+                Punishment ban = punisher.getBan(players.getUniqueId());
                 String timeLeft = punisher.getTimeLeft(ban);
                 String reason = ban.getMessage();
                 if (ban.isPermanent()) {

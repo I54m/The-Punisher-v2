@@ -7,7 +7,6 @@ import com.i54m.punisher.handlers.ErrorHandler;
 import com.i54m.punisher.managers.storage.DatabaseManager;
 import com.i54m.punisher.utils.NameFetcher;
 import com.i54m.punisher.utils.Permissions;
-import com.i54m.punisher.utils.UUIDFetcher;
 import com.i54m.punisher.utils.UserFetcher;
 import net.luckperms.api.cacheddata.CachedPermissionData;
 import net.luckperms.api.context.ContextManager;
@@ -19,16 +18,17 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.*;
 
 public class PlayerInfo implements Callable<Map<String, String>> {
 
-    private String targetuuid;
+    private UUID targetuuid;
     private String targetName;
     private final PunisherPlugin plugin = PunisherPlugin.getInstance();
     private final DatabaseManager dbManager = DatabaseManager.getINSTANCE();
 
-    public void setTargetuuid(String targetuuid) {
+    public void setTargetuuid(UUID targetuuid) {
         this.targetuuid = targetuuid;
     }
 
@@ -40,11 +40,11 @@ public class PlayerInfo implements Callable<Map<String, String>> {
     @Override
     public Map<String, String> call() throws Exception {
         Map<String, String> info = new HashMap<>();
-        info.put("uuid", UUIDFetcher.formatUUID(targetuuid).toString());
+        info.put("uuid", targetuuid.toString());
         User user = plugin.getLuckPermsHook().getApi().getUserManager().getUser(targetName);
         if (user == null) {
             UserFetcher userFetcher = new UserFetcher();
-            userFetcher.setUuid(UUIDFetcher.formatUUID(targetuuid));
+            userFetcher.setUuid(targetuuid);
             ExecutorService executorService = Executors.newSingleThreadExecutor();
             Future<User> userFuture = executorService.submit(userFetcher);
             try {

@@ -15,6 +15,7 @@ import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 
 import java.sql.SQLException;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -22,7 +23,7 @@ import java.util.concurrent.TimeUnit;
 
 public class UnmuteCommand extends Command {
     private final PunisherPlugin plugin = PunisherPlugin.getInstance();
-    private String targetuuid;
+    private UUID targetuuid;
     private final PunishmentManager punishMnger = PunishmentManager.getINSTANCE();
 
     public UnmuteCommand() {
@@ -38,10 +39,10 @@ public class UnmuteCommand extends Command {
                 return;
             }
             ProxiedPlayer findTarget = ProxyServer.getInstance().getPlayer(strings[0]);
-            Future<String> future = null;
+            Future<UUID> future = null;
             ExecutorService executorService = null;
             if (findTarget != null) {
-                targetuuid = findTarget.getUniqueId().toString().replace("-", "");
+                targetuuid = findTarget.getUniqueId();
             } else {
                 UUIDFetcher uuidFetcher = new UUIDFetcher();
                 uuidFetcher.fetch(strings[0]);
@@ -94,10 +95,10 @@ public class UnmuteCommand extends Command {
                 return;
             }
             ProxiedPlayer findTarget = ProxyServer.getInstance().getPlayer(strings[0]);
-            Future<String> future = null;
+            Future<UUID> future = null;
             ExecutorService executorService = null;
             if (findTarget != null) {
-                targetuuid = findTarget.getUniqueId().toString().replace("-", "");
+                targetuuid = findTarget.getUniqueId();
             } else {
                 UUIDFetcher uuidFetcher = new UUIDFetcher();
                 uuidFetcher.fetch(strings[0]);

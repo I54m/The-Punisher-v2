@@ -18,6 +18,7 @@ import net.md_5.bungee.api.plugin.Command;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -25,7 +26,7 @@ import java.util.concurrent.TimeUnit;
 
 public class UnpunishCommand extends Command {
     private final PunisherPlugin plugin = PunisherPlugin.getInstance();
-    private String targetuuid;
+    private UUID targetuuid;
     private final PunishmentManager punishmentManager = PunishmentManager.getINSTANCE();
 
     public UnpunishCommand() {
@@ -42,10 +43,10 @@ public class UnpunishCommand extends Command {
                 return;
             }
             ProxiedPlayer findTarget = ProxyServer.getInstance().getPlayer(strings[0]);
-            Future<String> future = null;
+            Future<UUID> future = null;
             ExecutorService executorService = null;
             if (findTarget != null) {
-                targetuuid = findTarget.getUniqueId().toString().replace("-", "");
+                targetuuid = findTarget.getUniqueId();
             } else {
                 UUIDFetcher uuidFetcher = new UUIDFetcher();
                 uuidFetcher.fetch(strings[0]);
@@ -64,12 +65,12 @@ public class UnpunishCommand extends Command {
             }
             ArrayList<String> reasonslist = new ArrayList<>();
             StringBuilder reasons = new StringBuilder();
-            for (Punishment.Reason reason1 : Punishment.Reason.values()) {
-                if (!reason1.toString().contains("Manual")) {
-                    reasons.append(reason1.toString()).append(" ");
-                }
-                reasonslist.add(reason1.toString());
-            }
+//            for (Punishment.Reason reason1 : Punishment.Reason.values()) {
+//                if (!reason1.toString().contains("Manual")) {
+//                    reasons.append(reason1.toString()).append(" ");
+//                }
+//                reasonslist.add(reason1.toString());
+//            }
             if (!reasonslist.contains(reasonString)) {
                 player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("That is not a punishment reason!").color(ChatColor.RED).create());
                 player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Reasons are as follows (Case Sensitive):").color(ChatColor.RED).create());
@@ -98,9 +99,9 @@ public class UnpunishCommand extends Command {
                     targetname = strings[0];
                 }
                 try {
-                    Punishment.Reason Reason = Punishment.Reason.valueOf(reasonString);
+//                    Punishment.Reason Reason = Punishment.Reason.valueOf(reasonString);
                     //todo NEED to find out type & issuedate third or maybe just get them to give an id?
-                    punishmentManager.remove(punishmentManager.punishmentLookup(null, Punishment.Type.ALL, Reason, "test", (long) 123456789, targetuuid), player, true, true, true);
+                    punishmentManager.remove(punishmentManager.punishmentLookup(null, Punishment.Type.ALL, "Reason", "test", (long) 123456789, targetuuid), player, true, true, true);
                 } catch (SQLException e) {
                     try {
                         throw new PunishmentsDatabaseException("Unpunishing a player", targetname, this.getName(), e, "/unpunish", strings);

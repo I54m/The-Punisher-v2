@@ -13,6 +13,7 @@ import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -83,12 +84,12 @@ public class SeenCommand extends Command {
 //            return;
         }
         ProxiedPlayer findTarget = ProxyServer.getInstance().getPlayer(strings[0]);
-        Future<String> future;
+        Future<UUID> future;
         ExecutorService executorService;
-        String targetuuid;
+        UUID targetuuid;
         String targetname = null;
         if (findTarget != null) {
-            targetuuid = findTarget.getUniqueId().toString().replace("-", "");
+            targetuuid = findTarget.getUniqueId();
             targetname = findTarget.getName();
         } else {
             UUIDFetcher uuidFetcher = new UUIDFetcher();

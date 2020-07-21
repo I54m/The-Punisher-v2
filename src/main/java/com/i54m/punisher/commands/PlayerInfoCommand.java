@@ -19,6 +19,7 @@ import net.md_5.bungee.api.plugin.Command;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -30,7 +31,7 @@ public class PlayerInfoCommand extends Command {
     }
 
     private final PunisherPlugin plugin = PunisherPlugin.getInstance();
-    private String targetuuid;
+    private UUID targetuuid;
 
     @Override
     public void execute(CommandSender commandSender, String[] strings) {
@@ -46,10 +47,10 @@ public class PlayerInfoCommand extends Command {
         }
         player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Collecting info on: " + strings[0] + ". Please wait...").color(ChatColor.GREEN).create());
         ProxiedPlayer findTarget = ProxyServer.getInstance().getPlayer(strings[0]);
-        Future<String> future = null;
+        Future<UUID> future = null;
         ExecutorService executorService = null;
         if (findTarget != null) {
-            targetuuid = findTarget.getUniqueId().toString().replace("-", "");
+            targetuuid = findTarget.getUniqueId();
         } else {
             UUIDFetcher uuidFetcher = new UUIDFetcher();
             uuidFetcher.fetch(strings[0]);

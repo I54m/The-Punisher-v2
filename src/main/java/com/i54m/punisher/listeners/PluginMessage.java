@@ -9,6 +9,7 @@ import com.i54m.punisher.managers.PunishmentManager;
 import com.i54m.punisher.managers.ReputationManager;
 import com.i54m.punisher.managers.WorkerManager;
 import com.i54m.punisher.objects.Punishment;
+import com.i54m.punisher.utils.UUIDFetcher;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.config.ServerInfo;
@@ -57,7 +58,7 @@ public class PluginMessage implements Listener {
                     }
                     case "getrep": {
                         uuid = in.readUTF();
-                        String rep = ReputationManager.getRep(uuid);
+                        String rep = ReputationManager.getINSTANCE().getRep(UUIDFetcher.formatUUID(uuid));
                         if (rep == null) {
                             rep = "5.0";
                         }
@@ -85,24 +86,24 @@ public class PluginMessage implements Listener {
                         try {
                             String[] properties = punishmngr.translate(slot, item);
                             Punishment.Type type;
-                            Punishment.Reason reason;
+                            String reason;
                             String message;
                             long expiration = 0;
                             if (properties[0].equals("Custom")) {
-                                reason = Punishment.Reason.Custom;
+                                reason = "Punishment.Reason.Custom";
                                 type = Punishment.Type.valueOf(properties[1]);
                                 message = properties[2];
                                 expiration = Long.parseLong(properties[3]);
                             } else if (properties[0].contains("Other")) {
-                                reason = Punishment.Reason.valueOf(properties[0]);
+                                reason = "Punishment.Reason.valueOf(properties[0])";
                                 type = Punishment.Type.BAN;
                                 message = properties[1];
                             } else {
-                                reason = Punishment.Reason.valueOf(properties[0]);
-                                type = punishmngr.calculateType(uuid, reason);
+                                reason = "Punishment.Reason.valueOf(properties[0])";
+                                type = punishmngr.calculateType(UUIDFetcher.formatUUID(uuid), reason);
                                 message = properties[1];
                             }
-                            final Punishment punishment = new Punishment(type, reason, expiration > 0 ? expiration : null, uuid, name, punisher.getUniqueId().toString().replace("-", ""), message);
+                            final Punishment punishment = new Punishment(type, reason, expiration > 0 ? expiration : null, UUIDFetcher.formatUUID(uuid), name, punisher.getUniqueId(), message);
                             workerManager.runWorker(new WorkerManager.Worker(() ->{
                                 try {
                                     punishmngr.issue(punishment, punisher, true, true, true);
@@ -151,7 +152,7 @@ public class PluginMessage implements Listener {
                 action = in.readUTF();
                 if (action.equals("getrepcache")) {
                     uuid = in.readUTF();
-                    String rep = ReputationManager.getRep(uuid);
+                    String rep = ReputationManager.getINSTANCE().getRep(UUIDFetcher.formatUUID(uuid));
                     if (rep == null) {
                         rep = "5.0";
                     }

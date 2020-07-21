@@ -39,13 +39,13 @@ public class PostPlayerLogin implements Listener {
         final UUID uuid = player.getUniqueId();
         final String fetcheduuid = uuid.toString().replace("-", "");
         final String targetName = player.getName();
-        if (punishmngr.hasPendingPunishment(fetcheduuid)){
+        if (punishmngr.hasPendingPunishment(uuid)){
             ProxyServer.getInstance().getScheduler().schedule(plugin, () -> {
                 try {
-                    punishmngr.issue(punishmngr.getPendingPunishment(fetcheduuid), null, false, true, false);
+                    punishmngr.issue(punishmngr.getPendingPunishment(uuid), null, false, true, false);
                 }catch (SQLException sqle){
                     try{
-                        throw new PunishmentIssueException("SQL Exception Caused punishment reissue on login to fail", punishmngr.getPendingPunishment(fetcheduuid), sqle);
+                        throw new PunishmentIssueException("SQL Exception Caused punishment reissue on login to fail", punishmngr.getPendingPunishment(uuid), sqle);
                     }catch (PunishmentIssueException pie){
                         ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
                         errorHandler.log(pie);
@@ -64,17 +64,17 @@ public class PostPlayerLogin implements Listener {
         }));
 
         try {
-            if (punishmngr.isBanned(fetcheduuid)) {
+            if (punishmngr.isBanned(uuid)) {
                 if (player.hasPermission("punisher.bypass")) {
-                    punishmngr.remove(punishmngr.getBan(fetcheduuid), null, true, true, false);
+                    punishmngr.remove(punishmngr.getBan(uuid), null, true, true, false);
                     PunisherPlugin.getLOGS().info(player.getName() + " Bypassed their ban and were unbanned");
                     plugin.getProxy().getScheduler().schedule(plugin, () ->
-                                    StaffChat.sendMessage(new ComponentBuilder(targetName + " Bypassed their ban, Unbanning...").color(ChatColor.RED).event(punishmngr.getBan(fetcheduuid).getHoverEvent()).create(), true)
+                                    StaffChat.sendMessage(new ComponentBuilder(targetName + " Bypassed their ban, Unbanning...").color(ChatColor.RED).event(punishmngr.getBan(uuid).getHoverEvent()).create(), true)
                             , 5, TimeUnit.SECONDS);
                 } else {
-                    Punishment ban = punishmngr.getBan(fetcheduuid);
+                    Punishment ban = punishmngr.getBan(uuid);
                     if (System.currentTimeMillis() > ban.getExpiration()) {
-                        punishmngr.remove(punishmngr.getBan(fetcheduuid), null, false, false, false);
+                        punishmngr.remove(punishmngr.getBan(uuid), null, false, false, false);
                         PunisherPlugin.getLOGS().info(player.getName() + "'s ban expired so they were unbanned");
                     } else {
                         String timeleft = punishmngr.getTimeLeft(ban);
@@ -116,7 +116,7 @@ public class PostPlayerLogin implements Listener {
                 resultsip1.close();
                 altslist.remove(uuid.toString().replace("-", ""));
                 if (!altslist.isEmpty()) {
-                    altslist.removeIf((String alt) -> !punishmngr.isBanned(alt));
+                    altslist.removeIf((String alt) -> !punishmngr.isBanned(UUIDFetcher.formatUUID(alt)));
                     StringBuilder bannedalts = new StringBuilder();
                     int i = 0;
                     for (String alts : altslist) {

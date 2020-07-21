@@ -319,7 +319,7 @@ public class DatabaseManager {
             if (!PunishmentCache.containsValue(punishment))
                 PunishmentCache.put(resultspunishment.getInt("id"), punishment);
             if (punishment.isActive()) {
-                if (!punishmentManager.hasActivePunishment(punishment.getTargetUUID().toString())) {
+                if (!punishmentManager.hasActivePunishment(punishment.getTargetUUID())) {
                     ArrayList<Integer> activePunishments = new ArrayList<>();
                     activePunishments.add(punishment.getId());
                     ActivePunishmentCache.put(punishment.getTargetUUID().toString(), activePunishments);

@@ -19,6 +19,7 @@ import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 
 import java.sql.SQLException;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -28,7 +29,7 @@ public class BanCommand extends Command {
     private final PunisherPlugin plugin = PunisherPlugin.getInstance();
     private long length;
     private String targetname;
-    private String targetuuid;
+    private UUID targetuuid;
     private final PunishmentManager punishMngr = PunishmentManager.getINSTANCE();
 
     public BanCommand() {
@@ -51,10 +52,10 @@ public class BanCommand extends Command {
             targetname = null;
         }
         ProxiedPlayer findTarget = ProxyServer.getInstance().getPlayer(strings[0]);
-        Future<String> future = null;
+        Future<UUID> future = null;
         ExecutorService executorService = null;
         if (findTarget != null) {
-            targetuuid = findTarget.getUniqueId().toString().replace("-", "");
+            targetuuid = findTarget.getUniqueId();
         } else {
             UUIDFetcher uuidFetcher = new UUIDFetcher();
             uuidFetcher.fetch(strings[0]);
@@ -148,7 +149,7 @@ public class BanCommand extends Command {
             }
         }
         try {
-            Punishment ban = new Punishment(Punishment.Type.BAN, Punishment.Reason.Custom, length, targetuuid, targetname, player.getUniqueId().toString().replace("-", ""), reasonString);
+            Punishment ban = new Punishment(Punishment.Type.BAN, "CUSTOM", length, targetuuid, targetname, player.getUniqueId(), reasonString);
             punishMngr.issue(ban, player, true, true, true);
         } catch (SQLException e) {
             try {
