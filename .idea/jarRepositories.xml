@@ -2,9 +2,24 @@
 <project version="4">
   <component name="RemoteRepositoriesConfiguration">
     <remote-repository>
+      <option name="id" value="mvdw-software" />
+      <option name="name" value="MVdW Public Repositories" />
+      <option name="url" value="https://repo.mvdw-software.com/content/repositories/public/" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="exceptionflug" />
+      <option name="name" value="exceptionflug" />
+      <option name="url" value="https://mvn.exceptionflug.de/repository/exceptionflug-public/" />
+    </remote-repository>
+    <remote-repository>
       <option name="id" value="spigot-repo" />
       <option name="name" value="spigotmc" />
       <option name="url" value="https://hub.spigotmc.org/nexus/content/repositories/snapshots/" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="central" />
+      <option name="name" value="Central Repository" />
+      <option name="url" value="https://repo.maven.apache.org/maven2" />
     </remote-repository>
     <remote-repository>
       <option name="id" value="jcenter" />
@@ -18,28 +33,13 @@
     </remote-repository>
     <remote-repository>
       <option name="id" value="central" />
-      <option name="name" value="Central Repository" />
-      <option name="url" value="https://repo.maven.apache.org/maven2" />
-    </remote-repository>
-    <remote-repository>
-      <option name="id" value="central" />
       <option name="name" value="Maven Central repository" />
       <option name="url" value="https://repo1.maven.org/maven2" />
-    </remote-repository>
-    <remote-repository>
-      <option name="id" value="exceptionflug" />
-      <option name="name" value="exceptionflug" />
-      <option name="url" value="https://mvn.exceptionflug.de/repository/exceptionflug-public/" />
     </remote-repository>
     <remote-repository>
       <option name="id" value="jboss.community" />
       <option name="name" value="JBoss Community repository" />
       <option name="url" value="https://repository.jboss.org/nexus/content/repositories/public/" />
-    </remote-repository>
-    <remote-repository>
-      <option name="id" value="mvdw-software" />
-      <option name="name" value="MVdW Public Repositories" />
-      <option name="url" value="https://repo.mvdw-software.com/content/repositories/public/" />
     </remote-repository>
     <remote-repository>
       <option name="id" value="BungeeCord-repo" />

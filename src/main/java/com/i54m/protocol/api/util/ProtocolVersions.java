@@ -35,10 +35,10 @@ public final class ProtocolVersions {
     public final static int MINECRAFT_1_15_2 = 578;
     public final static int MINECRAFT_1_16 = 735;
     public final static int MINECRAFT_1_16_1 = 736;// https://wiki.vg/Pre-release_protocol https://wiki.vg/Protocol_version_numbers
-    public static final int MINECRAFT_1_16_2 = 0;
+    public static final int MINECRAFT_1_16_2 = 751;
 
 
-    public final static int MINECRAFT_LATEST = MINECRAFT_1_16_1;
+    public final static int MINECRAFT_LATEST = MINECRAFT_1_16_2;
 
     private ProtocolVersions() {}
 
@@ -68,6 +68,7 @@ public final class ProtocolVersions {
         supportedVersions.add(MINECRAFT_1_15_2);
         supportedVersions.add(MINECRAFT_1_16);
         supportedVersions.add(MINECRAFT_1_16_1);
+        supportedVersions.add(MINECRAFT_1_16_2);
         return supportedVersions;
     }
 
