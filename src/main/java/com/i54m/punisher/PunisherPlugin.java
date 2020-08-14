@@ -266,7 +266,7 @@ public class PunisherPlugin extends Plugin {
             //plugin loading/enabling is now complete so we announce it
             setLoaded(true);
             long duration = (System.nanoTime() - startTime) / 1000000;
-            getLogger().info(ChatColor.GREEN + "Successfully enabled The Punisher v" + this.getDescription().getVersion() + " By 54mpenguin (took " + duration + "ms)");
+            getLogger().info(ChatColor.GREEN + "Successfully enabled The Punisher v" + this.getDescription().getVersion() + " By I54m (took " + duration + "ms)");
         } catch (Exception e) {
             //if we get any errors on startup we shutdown and alert the user
             onDisable();
