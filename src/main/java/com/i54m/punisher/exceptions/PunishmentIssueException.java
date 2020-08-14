@@ -4,8 +4,8 @@ import com.i54m.punisher.objects.Punishment;
 
 public class PunishmentIssueException extends Exception {
 
-    private String reasonForFailure;
-    private Punishment punishment;
+    private final String reasonForFailure;
+    private final Punishment punishment;
     private Throwable cause;
 
     public PunishmentIssueException(String reasonForFailure, Punishment punishment, Throwable cause){
@@ -25,5 +25,21 @@ public class PunishmentIssueException extends Exception {
         return cause != null ?
                 "Punishment: " + punishment.toString() + " Was unable to be Issued because: " + reasonForFailure + ". This Error was caused by " + cause
                 : "Punishment: " + punishment.toString() + " Was unable to be Issued because: " + reasonForFailure + ". Cause was unknown.";
+    }
+
+    @Override
+    public void printStackTrace() {
+        if (cause != null)
+            cause.printStackTrace();
+        else
+            super.printStackTrace();
+    }
+
+    @Override
+    public StackTraceElement[] getStackTrace() {
+        if (cause != null)
+            return cause.getStackTrace();
+        else
+            return super.getStackTrace();
     }
 }

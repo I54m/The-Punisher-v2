@@ -26,6 +26,6 @@ public class IpCommand extends Command {
             commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("That is not an online player's name!").color(ChatColor.RED).create());
             return;
         }
-        commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append(target.getName() + "'s ip address is: " + target.getAddress().getAddress().toString()).color(ChatColor.RED).create());
+        commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append(target.getName() + "'s ip address is: " + target.getSocketAddress().toString()).color(ChatColor.RED).create());
     }
 }

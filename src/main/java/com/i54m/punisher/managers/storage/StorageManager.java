@@ -60,6 +60,7 @@ public interface StorageManager extends Manager {
     TreeMap<Integer, Punishment> getHistory(@NotNull UUID uuid) throws PunishmentsDatabaseException;
     TreeMap<Integer, Punishment> getStaffHistory(@NotNull UUID uuid) throws PunishmentsDatabaseException;
     ArrayList<UUID> getAlts(@NotNull UUID uuid) throws PunishmentsDatabaseException;
+    ArrayList<UUID> getAlts(@NotNull String ip) throws PunishmentsDatabaseException;
     TreeMap<Long, String> getIpHist(@NotNull UUID uuid) throws PunishmentsDatabaseException;
     int getNextID();
 }

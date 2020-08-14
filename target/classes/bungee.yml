@@ -1,0 +1,224 @@
+name: The-Punisher
+author: i54m
+website: https://i54m.com
+version: 2.1-BASIC
+main: com.i54m.punisher.PunisherPlugin
+softdepend: [LuckPerms, Votifier, NuVotifier]
+description: The Bungeecord side of the Punisher plugin.
+
+###################################################################################### Commands ###########################################################################################################
+
+commands:
+
+  punish:
+    description: opens the punishment menu.
+    aliases: [pun, p]
+  clearchat:
+    description: Clears chat.
+    aliases: [cc, chatclear]
+  togglechat:
+    description: Toggles chat.
+    aliases: [tc, chattoggle]
+
+  adminchat:
+    description: Sends a message to admin chat.
+    aliases: [ac]
+  alts:
+    description: Check or reset a player's ip address from the logs.
+  ban:
+    description: Ban a player.
+  global:
+    description: similar to superbroadcast but not as powerful.
+    aliases: [g, broadcast]
+  history:
+    description: View a player's punishment history.
+    aliases: [hist]
+  ip:
+    description: View an online player's ip.
+  iphist:
+    description: Get a player's ip history.
+    aliases: [iphistory]
+  kickall:
+    description: kick all players from your current server or all servers.
+  kick:
+    description: kick a player from the server.
+  mute:
+    description: Mute a player.
+  notes:
+    description: Add, remove or view notes on a player.
+  ping:
+    description: View a user's ping in ms.
+  playerinfo:
+    description: View useful information on a player.
+    aliases: [info, pi, player]
+  punisher:
+    description: Administrative command for the punishments plugin.
+  punisherhelp:
+    description: Shows the user all the commands they can use for the punisher.
+    aliases: [punhelp, phelp]
+  report:
+    description: Report a player to staff or admins.
+  reputation:
+    description: Add, minus or set a player's reputation score.
+    aliases: [rep]
+  seen:
+    description: View the last login, logout and first join times of a player aswell as the last server they were on.
+  staff:
+    description: view all online staff.
+  staffhide:
+    description: hide from /staff.
+  staffhistory:
+    description: View a staff member's punishment history.
+  superbroadcast:
+    description: Sends a broadcast to the entire server with a title displayed to everyone aswell.
+  unban:
+    description: unban a player who is banned.
+  unmute:
+    description: unmute a player who is muted.
+  unpunish:
+    description: Remove a punishment from a player's history.
+  viewrep:
+    description: view a player's reputation.
+  warn:
+    description: warn a player on the server.
+
+
+
+###################################################################################### Permissions ###########################################################################################################
+
+permissions:
+
+  punisher.punish.level.0:
+    description: allows the player to open the punish gui and issue minimal punishments.
+
+  punisher.punish.level.1:
+    description: allows the player to issue low level punishments.
+
+  punisher.punish.level.2:
+    description: allows the player to issue medium level punishments.
+
+  punisher.punish.level.3:
+    description: allows the player to issue high level, manual punishments.
+
+  punisher.clearchat:
+    description: allows the player to clear the chat.
+
+  punisher.clearchat.bypass:
+    description: allows the player's chat not to be cleared on clear chat.
+
+  punisher.togglechat:
+    description: allows the player to toggle the chat.
+
+  punisher.togglechat.bypass:
+    description: allows the player to talk when the chat is toggled off.
+
+  punisher.bypass:
+    description: allows the player to bypass all punishments.
+
+  punisher.bold:
+    description: allows the player to make their chat appear bold.
+
+  punisher.bold.red:
+    description: allows the player to make their chat appear red bold.
+
+  punisher.bukkit.admin:
+    description: allows the player to use bukkit admin commands relating to the punisher.
+
+  punisher.unmute:
+    description: Allows the player to unmute a player who is muted.
+
+  punisher.unban:
+    description: Allows the player to unban a player who is banned.
+
+  punisher.kick:
+    description: Allows the player to kick a player from the server.
+
+  punisher.kick.all:
+    description: Allows the player to kick everyone from the server.
+
+  punisher.warn:
+    description: Allows the player to issue a manual warn.
+
+  punisher.staffchat:
+    description: Allows the player to talk in and see messages in staff chat.
+
+  punisher.notify:
+    description: Allows the player to receive punishment notifications.
+
+  punisher.adminchat:
+    description: Allows the player to talk in and see messages in admin chat.
+
+  punisher.superbroadcast:
+    description: Allows the player to issue a superbroadcast to the entire server.
+
+  punisher.admin:
+    description: Allows the player to issue administrative commands.
+
+  punisher.history:
+    description: Allows the player to view other player's punishment history.
+
+  punisher.staffhistory:
+    description: Allows the player to view staff member's punishment history.
+
+  punisher.unpunish:
+    description: Allows the player to remove a punishmnet from a player's punishment history.
+
+  punisher.alts:
+    description: Allows the player to view other player's connected accounts.
+
+  punisher.alts.ip:
+    description: Allows the player to view other player's connected accounts with their ip as well as their iphist.
+
+  punisher.alts.reset:
+    description: Allows the player to reset a player's stored ip address.
+
+  punisher.reputation:
+    description: Allows the player to do stuff with another player's reputation.
+
+  punisher.mute:
+    description: Allows the player to mute a player.
+
+  punisher.ban:
+    description: Allows the player to ban a player.
+
+  punisher.report:
+    description: Allows the player to report another player to staff or admins.
+
+  punisher.report.bypass:
+    description: Allows the player to bypass all reports made against them.
+
+  punisher.report.staff:
+    description: Means the player will not be reported to other staff but to admins instead.
+
+  punisher.broadcast:
+    description: allows the player to use /broadcast and /global
+
+  punisher.viewrep:
+    description: allows the player to view a player's reputation.
+
+  punisher.cooldowns.override:
+    description: allows the player to override cooldowns on /global and punishments.
+
+  punisher.staff:
+    description: allows the player to appear on /staff.
+
+  punisher.staff.hide:
+    description: allows the player to hide on /staff.
+
+  punisher.staff.hide.others:
+    description: allows the player to hide other people on /staff.
+
+  punisher.discord:
+    description: allows the player to use /discord commands.
+
+  punisher.discord.admin:
+    description: allows the players to use discord admin commands.
+
+  punisher.playerinfo:
+    description: allows the player to use /playerinfo commands.
+
+  punisher.seen:
+    description: allows the player to use /seen.
+
+  punisher.notes:
+    description: allows the player to add, remove and view notes.

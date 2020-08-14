@@ -26,7 +26,7 @@ public class PlayerChat implements Listener {
     public void onChat(ChatEvent event) {
         ProxiedPlayer player = (ProxiedPlayer) event.getSender();
         ServerInfo server = player.getServer().getInfo();
-        if (PluginMessage.chatOffServers.contains(server)) {
+        if (plugin.chatOffServers.contains(server)) {
             if (!player.hasPermission("punisher.togglechat.bypass")) {
                 if (event.isCommand()) {
                     String[] args = event.getMessage().split(" ");
@@ -48,14 +48,13 @@ public class PlayerChat implements Listener {
             return;
         }
         UUID uuid = player.getUniqueId();
-        UUID fetcheduuid = uuid;
         String targetname = player.getName();
         try {
-            if (punishmentManager.isMuted(fetcheduuid)) {
-                Punishment mute = punishmentManager.getMute(fetcheduuid);
+            if (punishmentManager.isMuted(uuid)) {
+                Punishment mute = punishmentManager.getMute(uuid);
                 if (player.hasPermission("punisher.bypass")) {
                     punishmentManager.remove(mute, null, true, true, false);
-                    StaffChat.sendMessage(new ComponentBuilder(player.getName() + " Bypassed their mute, Unmuting...").color(ChatColor.RED).event(mute.getHoverEvent()).create(), true);
+                    StaffChat.sendMessage(new ComponentBuilder(player.getName() + " Bypassed their mute, Unmuting...").color(ChatColor.RED).event(mute.getHoverEvent()).create());
                     return;
                 }
                 if (System.currentTimeMillis() > mute.getExpiration()) {
@@ -87,9 +86,9 @@ public class PlayerChat implements Listener {
                             muteMessage = plugin.getConfig().getString("TempMute Deny Message").replace("%reason%", mute.getMessage()).replace("%timeleft%", timeLeft);
                         player.sendMessage(new ComponentBuilder(ChatColor.translateAlternateColorCodes('&', muteMessage)).create());
                         if (plugin.getConfig().getBoolean("SendPlayersMessageToStaffChatOnMuteDeny"))
-                            StaffChat.sendMessage(player.getName() + " Tried to speak but is muted: " + event.getMessage(), true);
+                            StaffChat.sendMessage(player.getName() + " Tried to speak but is muted: " + event.getMessage());
                         else if (plugin.getConfig().getBoolean("StaffChatOnMuteDeny"))
-                            StaffChat.sendMessage(player.getName() + " Tried to speak but is muted!", true);
+                            StaffChat.sendMessage(player.getName() + " Tried to speak but is muted!");
                     }
                 }
             }

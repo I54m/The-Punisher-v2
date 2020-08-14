@@ -29,7 +29,9 @@ Plugin-prefixes:
   Plugin-Wide: "&7[&cPunisher&7] "
   #%server% will be replaced with server that the player is on & %player% with the player's name and prefix in the below options
   Staff-Chat: "&7[&cSC&7] &7[%server%&7] %player%: "
+  Staff-Chat-Raw: "&7[&cSC&7] "
   Admin-Chat: "&7[&3AC&7] &7[%server%&7] %player%: "
+  Admin-Chat-Raw: "&7[&3AC&7] "
   broadcast-prefix: "&7[&e&lShout&7] &7[&b%server%&7] %player%: "
   superbroadcast-prefix: "&b&lAnnouncement: &r"
 
@@ -71,10 +73,10 @@ Warn Title:
   Stay: 100
   Fade Out: 10
 
-Warn Sound:
-  Enabled: true
-  #       SOUNDNAME:VOLUME:PITCH
-  Sound: "UI_TOAST_CHALLENGE_COMPLETE:100:0.5"
+  Warn Sound:
+    Enabled: true
+    #       SOUNDNAME:VOLUME:PITCH
+    Sound: "UI_TOAST_CHALLENGE_COMPLETE:100:0.5"
 
 Warn Message:
   "\n&cYou have been Warned, Reason: %reason%!
@@ -91,14 +93,14 @@ Mute Title:
   Stay: 100
   Fade Out: 10
 
-Mute Sound:
-  Enabled: true
-  #       SOUNDNAME:VOLUME:PITCH
-  Sound: "UI_TOAST_CHALLENGE_COMPLETE:100:0.5"
+  Mute Sound:
+    Enabled: true
+    #       SOUNDNAME:VOLUME:PITCH
+    Sound: "UI_TOAST_CHALLENGE_COMPLETE:100:0.5"
 
 TempMute Message:
   "\n&cYou have been Muted, reason: &f%reason%!
-  \n&cThis mute expires in: %timeleft%!
+  \n&cThis mute %timeleft%!
   \n&cYou have done something against our server rules!
   \n&cSome of our punishments result in a mute with no warning!\n"
 
@@ -110,7 +112,7 @@ PermMute Message:
 
 TempMute Deny Message:
   "\n&cYou cannot speak! You are Muted! Reason: &f%reason%!
-  \n&cThis mute expires in: %timeleft%!
+  \n&cThis mute %timeleft%!
   \n&cYou have done something against our server rules!
   \n&cSome of our punishments result in a mute with no warning!\n"
 
@@ -135,7 +137,7 @@ Kick Message:
 TempBan Message:
   "&cYou have been Banned from the server!
   \n&cYou were Banned for the reason: &f%reason%!
-  \n&cThis ban expires in: %timeleft%!
+  \n&cThis ban %timeleft%!
   \n&cYou have done something against our server rules!
   \n&cSome of our punishments result in a ban with no warning!"
 

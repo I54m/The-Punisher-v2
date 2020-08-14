@@ -18,4 +18,20 @@ public class DataFecthException extends Exception {
     public String getMessage() {
         return causingClass + ".class has failed to fetch " + requestedInfo + " on user " + user + ", this was caused by " + cause + ". Reason for data request: " + reason;
     }
+
+    @Override
+    public void printStackTrace() {
+        if (cause != null)
+            cause.printStackTrace();
+        else
+            super.printStackTrace();
+    }
+
+    @Override
+    public StackTraceElement[] getStackTrace() {
+        if (cause != null)
+            return cause.getStackTrace();
+        else
+            return super.getStackTrace();
+    }
 }

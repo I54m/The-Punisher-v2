@@ -30,7 +30,7 @@ public class KickAllCommand extends Command {
                     for (ProxiedPlayer all : ProxyServer.getInstance().getPlayers()) {
                         if (!player.equals(all)) {
                             all.disconnect(new TextComponent(ChatColor.RED + "You have been Kicked from the server!\nYou were kicked for the reason: Manually Kicked!\nYou may reconnect at anytime, but make sure to read the /rules!"));
-                            StaffChat.sendMessage(player.getName() + " Kicked: " + all.getName() + " for: Manually Kicked", true);
+                            StaffChat.sendMessage(player.getName() + " Kicked: " + all.getName() + " for: Manually Kicked");
                         }
                     }
                 }else{
@@ -40,7 +40,7 @@ public class KickAllCommand extends Command {
                 for (ProxiedPlayer all : ProxyServer.getInstance().getPlayers()) {
                     if (!player.equals(all)  && player.getServer().getInfo().getName().equals(all.getServer().getInfo().getName())) {
                         all.disconnect(new TextComponent(ChatColor.RED + "You have been Kicked from the server!\nYou were kicked for the reason: Manually Kicked!\nYou may reconnect at anytime, but make sure to read the /rules!"));
-                        StaffChat.sendMessage(player.getName() + " Kicked: " + all.getName() + " for: Manually Kicked", true);
+                        StaffChat.sendMessage(player.getName() + " Kicked: " + all.getName() + " for: Manually Kicked");
                     }
                 }
             }

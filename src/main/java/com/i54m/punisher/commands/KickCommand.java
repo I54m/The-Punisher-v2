@@ -1,9 +1,10 @@
 package com.i54m.punisher.commands;
 
 import com.i54m.punisher.PunisherPlugin;
-import com.i54m.punisher.chats.StaffChat;
 import com.i54m.punisher.exceptions.DataFecthException;
 import com.i54m.punisher.handlers.ErrorHandler;
+import com.i54m.punisher.managers.PunishmentManager;
+import com.i54m.punisher.objects.Punishment;
 import com.i54m.punisher.utils.Permissions;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
@@ -16,6 +17,8 @@ import net.md_5.bungee.api.plugin.Command;
 public class KickCommand extends Command {
 
     private final PunisherPlugin plugin = PunisherPlugin.getInstance();
+    private final PunishmentManager punishmentManager = PunishmentManager.getINSTANCE();
+
     public KickCommand() {
         super("kick", "punisher.kick");
     }
@@ -38,7 +41,7 @@ public class KickCommand extends Command {
                     player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("You cannot punish that player!").color(ChatColor.RED).create());
                     return;
                 }
-            }catch (Exception e){
+            } catch (Exception e) {
                 try {
                     throw new DataFecthException("User instance required for punishment level checking", player.getName(), "User Instance", Permissions.class.getName(), e);
                 } catch (DataFecthException dfe) {
@@ -50,17 +53,43 @@ public class KickCommand extends Command {
             }
             StringBuilder sb = new StringBuilder();
             if (strings.length == 1) {
-                target.disconnect(new TextComponent(ChatColor.RED + "You have been Kicked from the server!\nYou were kicked for the reason: Manually Kicked!\nYou may reconnect at anytime, but make sure to read the /rules!"));
-                StaffChat.sendMessage(player.getName() + " Kicked: " + target.getName() + " for: Manually Kicked", true);
+                Punishment kick = new Punishment(
+                        Punishment.Type.KICK,
+                        "CUSTOM",
+                        null,
+                        target.getUniqueId(),
+                        target.getName(),
+                        player.getUniqueId(),
+                        ChatColor.RED + "You have been Kicked from the server!" +
+                                "\nYou were kicked for the reason: Manually Kicked!" +
+                                "\nYou may reconnect at anytime, but make sure to read the /rules!");
+                try {
+                    punishmentManager.issue(kick, player, true, true, true);
+                } catch (Exception e) {
+                    ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
+                    errorHandler.log(e);
+                    errorHandler.alert(e, commandSender);
+                }
             } else {
                 for (int i = 1; i < strings.length; i++)
                     sb.append(strings[i]).append(" ");
-                StaffChat.sendMessage(player.getName() + " Kicked: " + target.getName() + " for: " + sb.toString(), true);
-                target.disconnect(new TextComponent(ChatColor.translateAlternateColorCodes('&', sb.toString())));
+                Punishment kick = new Punishment(
+                        Punishment.Type.KICK,
+                        "CUSTOM",
+                        null,
+                        target.getUniqueId(),
+                        target.getName(),
+                        player.getUniqueId(),
+                        ChatColor.translateAlternateColorCodes('&', sb.toString()));
+                try {
+                    punishmentManager.issue(kick, player, true, true, true);
+                } catch (Exception e) {
+                    ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
+                    errorHandler.log(e);
+                    errorHandler.alert(e, commandSender);
+                }
             }
-            PunisherPlugin.getLOGS().info(target.getName() + " was kicked by: " + player.getName() + " for: " + sb.toString());
-        } else {
+        } else
             commandSender.sendMessage(new TextComponent("You must be a player to use this command!"));
-        }
     }
 }

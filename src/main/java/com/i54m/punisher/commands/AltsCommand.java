@@ -5,7 +5,6 @@ import com.i54m.punisher.exceptions.DataFecthException;
 import com.i54m.punisher.exceptions.PunishmentsDatabaseException;
 import com.i54m.punisher.fetchers.Status;
 import com.i54m.punisher.handlers.ErrorHandler;
-import com.i54m.punisher.managers.storage.DatabaseManager;
 import com.i54m.punisher.utils.NameFetcher;
 import com.i54m.punisher.utils.UUIDFetcher;
 import net.md_5.bungee.api.ChatColor;
@@ -19,7 +18,7 @@ import net.md_5.bungee.api.plugin.Command;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -28,7 +27,6 @@ import java.util.concurrent.TimeUnit;
 
 public class AltsCommand extends Command {
     private final PunisherPlugin plugin = PunisherPlugin.getInstance();
-    private final DatabaseManager dbManager = DatabaseManager.getINSTANCE();
     private UUID targetuuid;
 
     public AltsCommand() {
@@ -82,28 +80,8 @@ public class AltsCommand extends Command {
                         targetname = strings[1];
                     }
                     if (strings[0].equalsIgnoreCase("reset") && player.hasPermission("punisher.alts.reset")) {
-                        String sql = "SELECT * FROM `altlist` WHERE UUID='" + targetuuid + "'";
-                        PreparedStatement stmt = dbManager.connection.prepareStatement(sql);
-                        ResultSet results = stmt.executeQuery();
-                        if (results.next()) {
-                            String sql1 = "DELETE FROM `altlist` WHERE `UUID`='" + targetuuid + "' ;";
-                            PreparedStatement stmt1 = dbManager.connection.prepareStatement(sql1);
-                            stmt1.executeUpdate();
-                            stmt1.close();
-                            player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append(targetname + "'s stored ip address has been reset!").color(ChatColor.RED).create());
-                            PunisherPlugin.getLOGS().info(player.getName() + " reset " + targetname + "'s stored ip address");
-                            ProxiedPlayer target = ProxyServer.getInstance().getPlayer(targetuuid);
-                            if (target != null) {
-                                String sql2 = "INSERT INTO `altlist` (`UUID`, `ip`) VALUES ('" + targetuuid + "', '" + target.getAddress().getHostString() + "');";
-                                PreparedStatement stmt2 = dbManager.connection.prepareStatement(sql2);
-                                stmt2.executeUpdate();
-                                stmt2.close();
-                            }
-                        } else {
-                            player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("That player has no stored ip address!").color(ChatColor.RED).create());
-                        }
-                        stmt.close();
-                        results.close();
+                        commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Command not yet available!").color(ChatColor.RED).create());
+                        return;
                     } else if (strings[0].equalsIgnoreCase("get")) {
                         ExecutorService executorService1;
                         Future<BaseComponent[]> futurestatus;
@@ -111,78 +89,92 @@ public class AltsCommand extends Command {
                         statusClass.setTargetuuid(targetuuid);
                         executorService1 = Executors.newSingleThreadExecutor();
                         futurestatus = executorService1.submit(statusClass);
-                        StringBuilder altslist = new StringBuilder();
-                        String sql = "SELECT * FROM `altlist` WHERE UUID='" + targetuuid + "'";
-                        PreparedStatement stmt = dbManager.connection.prepareStatement(sql);
-                        ResultSet results = stmt.executeQuery();
-                        if (results.next()) {
-                            String ip = results.getString("ip");
-                            String sql1 = "SELECT * FROM `altlist` WHERE ip='" + ip + "'";
-                            PreparedStatement stmt1 = dbManager.connection.prepareStatement(sql1);
-                            ResultSet results1 = stmt1.executeQuery();
-                            while (results1.next()) {
-                                String concacc = NameFetcher.getName(results1.getString("uuid"));
-                                if (concacc != null && !concacc.equals(targetname)) {
-                                    altslist.append(ChatColor.RED).append(concacc).append(" ");
-                                }
-                            }
-                            stmt1.close();
-                            results1.close();
-                            if (altslist.toString().isEmpty()) {
-                                player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("That player has no connected accounts!").color(ChatColor.RED).create());
-                                return;
-                            }
-                            if (player.hasPermission("punisher.alts.ip")) {
-                                player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Accounts connected to " + targetname + " on the ip " + ip + ": ").color(ChatColor.RED).create());
-                            } else {
-                                player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Accounts connected to " + targetname + ": ").color(ChatColor.RED).create());
-                            }
-                            player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append(altslist.toString()).color(ChatColor.RED).create());
-                            BaseComponent[] status;
+                        ArrayList<UUID> altslist = plugin.getStorageManager().getAlts(targetuuid);
+                        if (altslist.isEmpty()) {
+                            player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("That player has no connected accounts!").color(ChatColor.RED).create());
+                            return;
+                        }
+                        String ip = plugin.getStorageManager().getIpHist(targetuuid).firstEntry().getValue();
+                        StringBuilder alts = new StringBuilder();
+                        for (UUID alt : altslist) {
+                            String concacc = NameFetcher.getName(alt);
+                            if (concacc != null && !concacc.equals(targetname))
+                                alts.append(ChatColor.RED).append(concacc).append(" ");
+                        }
+                        if (player.hasPermission("punisher.alts.ip")) {
+                            player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Accounts connected to " + targetname + " on the ip " + ip + ": ").color(ChatColor.RED).create());
+                        } else {
+                            player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Accounts connected to " + targetname + ": ").color(ChatColor.RED).create());
+                        }
+                        player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append(alts.toString()).color(ChatColor.RED).create());
+                        BaseComponent[] status;
+                        try {
+                            status = futurestatus.get(500, TimeUnit.MILLISECONDS);
+                        } catch (Exception e) {
                             try {
-                                status = futurestatus.get(500, TimeUnit.MILLISECONDS);
-                            } catch (Exception e) {
-                                try {
-                                    throw new DataFecthException("Status was required for alts check", targetname, "Punishment Status", this.getName(), e);
-                                } catch (DataFecthException dfe) {
-                                    ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
-                                    errorHandler.log(dfe);
-                                    errorHandler.alert(dfe, commandSender);
-                                }
-                                executorService1.shutdown();
-                                return;
+                                throw new DataFecthException("Status was required for alts check", targetname, "Punishment Status", this.getName(), e);
+                            } catch (DataFecthException dfe) {
+                                ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
+                                errorHandler.log(dfe);
+                                errorHandler.alert(dfe, commandSender);
                             }
                             executorService1.shutdown();
-                            player.sendMessage(status);
-                            PunisherPlugin.getLOGS().info(player.getName() + " looked at " + targetname + "'s connected accounts, at the time of logging they were: " + altslist.toString());
-                        } else {
-                            player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("That player has no connected accounts!").color(ChatColor.RED).create());
+                            return;
                         }
-                        stmt.close();
-                        results.close();
+                        executorService1.shutdown();
+                        player.sendMessage(status);
+                        PunisherPlugin.getLOGS().info(player.getName() + " looked at " + targetname + "'s connected accounts, at the time of logging they were: " + altslist.toString());
                     } else {
                         player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Check a players alt or reset their stored ip").color(ChatColor.RED).append("\nUsage: /alts <reset|get> <player>").color(ChatColor.WHITE).create());
                     }
                 } else {
                     if (strings[1].contains(".") && player.hasPermission("punisher.alts.ip")) {
-                        String ip = strings[1];
-                        StringBuilder altslist = new StringBuilder();
-                        String sql = "SELECT * FROM `altlist` WHERE ip='" + ip + "'";
-                        PreparedStatement stmt = dbManager.connection.prepareStatement(sql);
-                        ResultSet results = stmt.executeQuery();
-                        while (results.next()) {
-                            String concacc = NameFetcher.getName(results.getString("uuid"));
-                            altslist.append(ChatColor.RED).append(concacc).append(" ");
-                        }
-                        stmt.close();
-                        results.close();
-                        if (altslist.toString().isEmpty()) {
-                            player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("That ip is not stored in our database!").color(ChatColor.RED).create());
+                        ExecutorService executorService1;
+                        Future<BaseComponent[]> futurestatus;
+                        Status statusClass = new Status();
+                        statusClass.setTargetuuid(targetuuid);
+                        executorService1 = Executors.newSingleThreadExecutor();
+                        futurestatus = executorService1.submit(statusClass);
+                        ArrayList<UUID> altslist = plugin.getStorageManager().getAlts(strings[1]);
+                        if (altslist.isEmpty()) {
+                            player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("That player has no connected accounts!").color(ChatColor.RED).create());
                             return;
                         }
-                        player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Accounts connected to the ip: " + ip + ": ").color(ChatColor.RED).create());
-                        player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append(altslist.toString()).color(ChatColor.RED).create());
-                        PunisherPlugin.getLOGS().info(player.getName() + " Looked at accounts connected to ip: " + ip + " Accounts connected at time of logging: " + altslist.toString());
+                        targetname = NameFetcher.getName(altslist.get(0));
+                        String ip = plugin.getStorageManager().getIpHist(targetuuid).firstEntry().getValue();
+                        StringBuilder alts = new StringBuilder();
+                        for (UUID alt : altslist) {
+                            String concacc = NameFetcher.getName(alt);
+                            if (concacc != null && !concacc.equals(targetname))
+                                alts.append(ChatColor.RED).append(concacc).append(" ");
+                        }
+                        if (altslist.toString().isEmpty()) {
+                            player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("That player has no connected accounts!").color(ChatColor.RED).create());
+                            return;
+                        }
+                        if (player.hasPermission("punisher.alts.ip")) {
+                            player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Accounts connected to " + targetname + " on the ip " + ip + ": ").color(ChatColor.RED).create());
+                        } else {
+                            player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Accounts connected to " + targetname + ": ").color(ChatColor.RED).create());
+                        }
+                        player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append(alts.toString()).color(ChatColor.RED).create());
+                        BaseComponent[] status;
+                        try {
+                            status = futurestatus.get(500, TimeUnit.MILLISECONDS);
+                        } catch (Exception e) {
+                            try {
+                                throw new DataFecthException("Status was required for alts check", targetname, "Punishment Status", this.getName(), e);
+                            } catch (DataFecthException dfe) {
+                                ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
+                                errorHandler.log(dfe);
+                                errorHandler.alert(dfe, commandSender);
+                            }
+                            executorService1.shutdown();
+                            return;
+                        }
+                        executorService1.shutdown();
+                        player.sendMessage(status);
+                        PunisherPlugin.getLOGS().info(player.getName() + " looked at " + targetname + "'s connected accounts, at the time of logging they were: " + altslist.toString());
                     } else if (!player.hasPermission("punisher.alts.ip")) {
                         player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("You do not have permission to do that!").color(ChatColor.RED).create());
                     } else {
@@ -192,7 +184,7 @@ public class AltsCommand extends Command {
             } else {
                 commandSender.sendMessage(new TextComponent("You must be a player to use this command!"));
             }
-        } catch (SQLException e) {
+        } catch (Exception e) {
             try {
                 throw new PunishmentsDatabaseException("Alts command (/alts" + strings[0] + strings[1] + ")", targetname, this.getName(), e);
             } catch (PunishmentsDatabaseException pde) {

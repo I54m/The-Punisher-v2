@@ -3,6 +3,7 @@ package com.i54m.punisher.fetchers;
 import com.i54m.punisher.managers.PunishmentManager;
 import com.i54m.punisher.objects.Punishment;
 import com.i54m.punisher.utils.NameFetcher;
+import com.i54m.punisher.utils.UUIDFetcher;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
@@ -26,8 +27,8 @@ public class Status implements Callable<BaseComponent[]> {
             if (punishMnger.isMuted(targetuuid)) {
                 Punishment punishment = punishMnger.getMute(targetuuid);
                 String timeLeft = punishMnger.getTimeLeft(punishment);
-                String reasonMessage = punishment.getMessage() == null ? punishment.getReason().toString().replace("_", " ") : punishment.getMessage();
-                String punisher = punishment.getPunisherUUID().equals("CONSOLE") ? punishment.getPunisherUUID().toString() : NameFetcher.getName(punishment.getPunisherUUID());
+                String reasonMessage = punishment.getMessage() == null ? punishment.getReason().replace("_", " ") : punishment.getMessage();
+                String punisher = punishment.getPunisherUUID().equals(UUIDFetcher.getBLANK_UUID()) ? "CONSOLE" : NameFetcher.getName(punishment.getPunisherUUID());
                 status.append("Muted for " + timeLeft + ". Reason: " + reasonMessage + " by: " + punisher).color(ChatColor.YELLOW).event(punishment.getHoverEvent());
             }
             if (punishMnger.isBanned(targetuuid)) {
@@ -35,8 +36,8 @@ public class Status implements Callable<BaseComponent[]> {
                     status.append(" & ").color(ChatColor.WHITE);
                 Punishment punishment = punishMnger.getBan(targetuuid);
                 String timeLeft = punishMnger.getTimeLeft(punishment);
-                String reasonMessage = punishment.getMessage() == null ? punishment.getReason().toString().replace("_", " ") : punishment.getMessage();
-                String punisher = punishment.getPunisherUUID().equals("CONSOLE") ? punishment.getPunisherUUID().toString() : NameFetcher.getName(punishment.getPunisherUUID());
+                String reasonMessage = punishment.getMessage() == null ? punishment.getReason().replace("_", " ") : punishment.getMessage();
+                String punisher = punishment.getPunisherUUID().equals(UUIDFetcher.getBLANK_UUID()) ? "CONSOLE" : NameFetcher.getName(punishment.getPunisherUUID());
                 status.append("Banned for " + timeLeft + ". Reason: " + reasonMessage + " by: " + punisher).color(ChatColor.RED).event(punishment.getHoverEvent());
             }
         } else status.append("No currently active punishments!").color(ChatColor.GREEN);
