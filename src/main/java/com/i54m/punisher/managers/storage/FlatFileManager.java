@@ -109,6 +109,10 @@ public class FlatFileManager implements StorageManager {
 
     @Override
     public void startCaching() {
+        if (locked) {
+            ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
+            return;
+        }
         if (cacheTask == null) {
             try {
                 cache();
@@ -118,7 +122,7 @@ public class FlatFileManager implements StorageManager {
             }
             cacheTask = PLUGIN.getProxy().getScheduler().schedule(PLUGIN, () -> {
                 if (PLUGIN.getConfig().getBoolean("MySql.debugMode"))
-                    PLUGIN.getLogger().info(PLUGIN.getPrefix() + ChatColor.GREEN + "Caching Punishments...");
+                    PLUGIN.getLogger().info(ChatColor.GREEN + "Caching Punishments...");
                 try {
                     WORKER_MANAGER.runWorker(new WorkerManager.Worker(this::resetCache));
                 } catch (Exception e) {
@@ -133,7 +137,6 @@ public class FlatFileManager implements StorageManager {
         }
     }
 
-
     @Override
     public void cache() throws PunishmentsDatabaseException {
         if (locked) {
@@ -147,7 +150,6 @@ public class FlatFileManager implements StorageManager {
         } catch (Exception e) {
             throw new PunishmentsDatabaseException("Caching punishments", "CONSOLE", this.getClass().getName(), e);
         }
-
     }
 
     @Override
@@ -174,6 +176,10 @@ public class FlatFileManager implements StorageManager {
 
     @Override
     public int getNextID() {
+        if (locked) {
+            ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
+            return -1;
+        }
         lastPunishmentId++;
         mainDataConfig.set("lastPunishmentId", lastPunishmentId);
         saveMainDataConfig();
@@ -182,6 +188,10 @@ public class FlatFileManager implements StorageManager {
 
     @Override
     public void NewPunishment(@NotNull Punishment punishment) {
+        if (locked) {
+            ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
+            return;
+        }
         String message = punishment.getMessage();
         if (message.contains("%sinquo%"))
             message = message.replaceAll("%sinquo%", "'");
