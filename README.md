@@ -1,7 +1,7 @@
 # The-Punisher-v2
 **WIP Source Code for The Punisher v2**
 
-This plugin is a WIP revamp of my old punisher plugin that I have had in production on and off for the past 3 or 4 years now.
+This plugin is a WIP revamp of my old punisher plugin that I have had in development on and off for the past 3 or 4 years now.
 I have finally decided to focus on developing this plugin fully and have realised that there are some critical errors/mistakes
 that I have made in the previous code structure that I would like to hopefully amend in this new revamp of the plugin. 
 I also hope to add in a tonne of new features to it that will help with customizability and just make it more stable overall.
