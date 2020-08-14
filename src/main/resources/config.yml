@@ -1,4 +1,0 @@
-bungeecord: false
-
-#this can be either "FLAT_FILE", "MY_SQL" OR
-storage-type:
