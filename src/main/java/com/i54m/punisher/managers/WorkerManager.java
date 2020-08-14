@@ -27,7 +27,7 @@ public class WorkerManager implements Manager {
         }
         mainThread = Thread.currentThread();
         locked = false;
-        PLUGIN.getLogger().info(PLUGIN.getPrefix() + ChatColor.GREEN + "Started Worker Manager!");
+        PLUGIN.getLogger().info(ChatColor.GREEN + "Started Worker Manager!");
     }
 
     @Override
@@ -67,7 +67,7 @@ public class WorkerManager implements Manager {
             return;
         }
         workers.add(worker);
-        worker.setName("The-Punisher - Worker Thread #" + workers.indexOf(worker));
+        worker.setName("The-Punisher - Worker Thread #" + (workers.indexOf(worker) + 1));
         worker.start();
     }
 
@@ -95,9 +95,7 @@ public class WorkerManager implements Manager {
             try {
                 runnable.run();
             } catch (Exception e) {
-                ERROR_HANDLER.log(new WorkerException(e, this));
-                status = Status.FINISHED;
-                WorkerManager.getINSTANCE().finishedWorker(this);
+                ERROR_HANDLER.log(new WorkerException(this, e));
             }
             status = Status.FINISHED;
             WorkerManager.getINSTANCE().finishedWorker(this);

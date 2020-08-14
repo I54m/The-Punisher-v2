@@ -4,7 +4,6 @@ import com.i54m.punisher.PunisherPlugin;
 import com.i54m.punisher.exceptions.DataFecthException;
 import com.i54m.punisher.exceptions.PunishmentsDatabaseException;
 import com.i54m.punisher.handlers.ErrorHandler;
-import com.i54m.punisher.managers.storage.DatabaseManager;
 import com.i54m.punisher.utils.NameFetcher;
 import com.i54m.punisher.utils.UUIDFetcher;
 import net.md_5.bungee.api.ChatColor;
@@ -32,7 +31,6 @@ public class IpHistCommand extends Command {
     }
 
     private final PunisherPlugin plugin = PunisherPlugin.getInstance();
-    private final DatabaseManager dbManager = DatabaseManager.getINSTANCE();
     private UUID targetuuid;
 
     @Override
@@ -79,13 +77,7 @@ public class IpHistCommand extends Command {
                 targetName = strings[0];
             }
             try {
-                String sql = "SELECT * FROM `iphist` WHERE UUID='" + targetuuid + "'"; // TODO: 14/03/2020 make a method in db manager for this
-                PreparedStatement stmt = dbManager.connection.prepareStatement(sql);
-                ResultSet results = stmt.executeQuery();
-                TreeMap<Long, String> iphist = new TreeMap<>();
-                while (results.next()) {
-                    iphist.put(results.getLong("date"), results.getString("ip"));
-                }
+                TreeMap<Long, String> iphist = plugin.getStorageManager().getIpHist(targetuuid);
                 if (iphist.isEmpty()) {
                     player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append(targetName + " does not have any ips stored in the database").color(ChatColor.RED).create());
                     return;
@@ -108,7 +100,7 @@ public class IpHistCommand extends Command {
                     }
                     iphist.remove(iphist.firstKey());
                 }
-            } catch (SQLException sqle) {
+            } catch (Exception sqle) {
                 try {
                     throw new PunishmentsDatabaseException("Checking ip history", targetName, this.getName(), sqle, "/iphist", strings);
                 } catch (PunishmentsDatabaseException pde) {

@@ -9,7 +9,7 @@ public class LuckPermsHook {
 
     public LuckPermsHook hook() {
         if (LuckPermsInstance != null) return this;
-        try { // TODO: 15/05/2020 luckperms not hooking correctly :/
+        try {
             LuckPermsInstance = LuckPermsProvider.get();
         } catch (Exception e) {
             return null;

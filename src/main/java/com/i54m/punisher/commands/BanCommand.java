@@ -1,9 +1,7 @@
 package com.i54m.punisher.commands;
 
-import com.google.gson.Gson;
 import com.i54m.punisher.PunisherPlugin;
 import com.i54m.punisher.exceptions.DataFecthException;
-import com.i54m.punisher.exceptions.PunishmentsDatabaseException;
 import com.i54m.punisher.handlers.ErrorHandler;
 import com.i54m.punisher.managers.PunishmentManager;
 import com.i54m.punisher.objects.Punishment;
@@ -18,7 +16,6 @@ import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 
-import java.sql.SQLException;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -103,9 +100,7 @@ public class BanCommand extends Command {
             length = (long) 3.154e+12 + System.currentTimeMillis();
         } else if (reason.toString().isEmpty())
             reason.append("Manually Banned");
-        String reasonString = reason.toString().replace("\"", "'");
         if (future != null && targetuuid == null) {
-            Gson g = new Gson();// TODO: 22/04/2020 make sure bungee has a gson version
             try {
                 targetuuid = future.get(1, TimeUnit.SECONDS);
             } catch (Exception e) {
@@ -149,16 +144,12 @@ public class BanCommand extends Command {
             }
         }
         try {
-            Punishment ban = new Punishment(Punishment.Type.BAN, "CUSTOM", length, targetuuid, targetname, player.getUniqueId(), reasonString);
-            punishMngr.issue(ban, player, true, true, true);
-        } catch (SQLException e) {
-            try {
-                throw new PunishmentsDatabaseException("Issuing ban on a player ", targetname, this.getName(), e, "/ban", strings);
-            } catch (PunishmentsDatabaseException pde) {
-                ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
-                errorHandler.log(pde);
-                errorHandler.alert(pde, commandSender);
-            }
+            Punishment ban = new Punishment(Punishment.Type.BAN, "CUSTOM", length, targetuuid, targetname, player.getUniqueId(), reason.toString());
+            punishMngr.issue(ban, player, true, true, false);
+        } catch (Exception e) {
+            ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
+            errorHandler.log(e);
+            errorHandler.alert(e, commandSender);
         }
     }
 }

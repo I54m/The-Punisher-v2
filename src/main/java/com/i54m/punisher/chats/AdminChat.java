@@ -12,8 +12,6 @@ import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 
-import java.util.UUID;
-
 public class AdminChat extends Command {
 
     public AdminChat() {
@@ -21,53 +19,57 @@ public class AdminChat extends Command {
     }
 
     public static String prefix;
+    public static String prefixRaw;
     public static ChatColor color;
-    private final PunisherPlugin plugin = PunisherPlugin.getInstance();
+    private static final PunisherPlugin plugin = PunisherPlugin.getInstance();
 
     @Override
     public void execute(CommandSender commandSender, String[] strings) {
         if (commandSender instanceof ProxiedPlayer) {
             ProxiedPlayer player = (ProxiedPlayer) commandSender;
             if (strings.length == 0) {
-                player.sendMessage(new ComponentBuilder("Send a message to all admin members").color(ChatColor.RED).append("\nUsage: /adminchat <message>").color(ChatColor.WHITE).create());
+                player.sendMessage(new ComponentBuilder("Send a message to all admins").color(ChatColor.RED).append("\nUsage: /adminchat <message>").color(ChatColor.WHITE).create());
                 return;
             }
-            int staff = 0;
-//            plugin.staff.get(player.getServer().getInfo()).size();
-            HoverEvent hover = new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(player.getServer().getInfo().getPlayers().size() + " players on this server!").color(ChatColor.RED)
-                    .append("\n" + staff + " Staff on this server!").color(ChatColor.RED).create());
             StringBuilder sb = new StringBuilder();
             for (String arg : strings)
                 sb.append(arg).append(" ");
-            UUID uuid = player.getUniqueId();
-            String prefix = Permissions.getPrefix(uuid);
-            sendMessage(new ComponentBuilder(ChatColor.translateAlternateColorCodes('&', prefix.replace("%server%", player.getServer().getInfo().getName()).replace("%player%", player.getName()) + " "))
-                    .append(sb.toString()).color(color).event(hover).create(), true);
+            sendChatMessage(new ComponentBuilder(sb.toString()).color(color).create(), player);
         } else {
             commandSender.sendMessage(new TextComponent("You must be a player to use this command!"));
         }
     }
 
-    public static void sendMessage(String message, boolean prefix){sendMessage(new ComponentBuilder(message).create(), prefix);}
+    public static void sendMessage(String message){sendMessage(new ComponentBuilder(message).color(ChatColor.RED).create());}
 
-    public static void sendMessage(BaseComponent message, boolean prefix){sendMessage(new ComponentBuilder(message).create(), prefix);}
+    public static void sendMessage(BaseComponent message){sendMessage(new ComponentBuilder(message).create());}
 
-    public static void sendMessage(BaseComponent[] message, boolean prefix) {
+    public static void sendChatMessage(BaseComponent[] message, ProxiedPlayer player){
         BaseComponent[] messagetosend;
-        if (prefix)
-            messagetosend = new ComponentBuilder(AdminChat.prefix).append(message).color(color).create();
-        else
-            messagetosend = new ComponentBuilder("").append(message).color(color).create();
+        int staff = plugin.getStaff(player.getServer().getInfo()).size();
+        HoverEvent hover = new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(player.getServer().getInfo().getPlayers().size() + " players on this server!").color(ChatColor.RED)
+                .append("\n" + staff + " Staff on this server!").color(ChatColor.RED).create());
+        String userPrefix = Permissions.getPrefix(player.getUniqueId());
+        messagetosend = new ComponentBuilder(ChatColor.translateAlternateColorCodes('&', prefix.replace("%server%", player.getServer().getInfo().getName()).replace("%player%", userPrefix + " " + player.getName()))).event(hover).append(message).color(color).create();
         for (ProxiedPlayer all : ProxyServer.getInstance().getPlayers()) {
             if (all.hasPermission("punisher.adminchat")) {
                 all.sendMessage(messagetosend);
             }
         }
     }
-//todo go back through and re-choose the prefix formatting for this and staffchat
-    public static void sendMessages(boolean prefix, String... messages){
-        for (String message : messages) {
-            sendMessage(message, prefix);
+
+    public static void sendMessage(BaseComponent[] message){
+        BaseComponent[] messagetosend = new ComponentBuilder(ChatColor.translateAlternateColorCodes('&', prefixRaw)).append(message).color(color).create();
+        for (ProxiedPlayer all : ProxyServer.getInstance().getPlayers()) {
+            if (all.hasPermission("punisher.adminchat")) {
+                all.sendMessage(messagetosend);
+            }
+        }
+    }
+
+    public static void sendMessages(BaseComponent... messages){
+        for (BaseComponent message : messages) {
+            sendMessage(message);
         }
     }
 }

@@ -83,8 +83,8 @@ public class ErrorHandler {
             return;
         else
             previousException = e;
-        AdminChat.sendMessage(sender.getName() + " ENCOUNTERED AN ERROR: " + e.getMessage(), false);
-        AdminChat.sendMessage("This error will be logged! Please inform a dev asap, this plugin may no longer function as intended!", false);
+        AdminChat.sendMessage(sender.getName() + " ENCOUNTERED AN ERROR: " + e.getMessage());
+        AdminChat.sendMessage("This error will be logged! Please inform a dev asap, this plugin may no longer function as intended!");
     }
 
     public void loginError(PreLoginEvent event){
@@ -104,7 +104,7 @@ public class ErrorHandler {
     public boolean isExceptionCausedByPunisher(final Throwable e) {
         final List<StackTraceElement> all = getEverything(e, new ArrayList<>());
         for (final StackTraceElement element : all) {
-            if (element.getClassName().toLowerCase().contains("com.i54m.punisher"))
+            if (element.getClassName().toLowerCase().contains("com.i54m.punisher") || element.getClassName().toLowerCase().contains("com.i54m.protocol"))
                 return true;
         }
         return false;

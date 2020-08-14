@@ -10,6 +10,7 @@ import com.i54m.punisher.utils.UUIDFetcher;
 import lombok.Getter;
 import lombok.ToString;
 import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
 import org.jetbrains.annotations.NotNull;
@@ -98,7 +99,7 @@ public class Punishment {
         this.targetName = targetName;
         this.punisherUUID = punisherUUID;
         this.message = message;
-
+        this.removerUUID = null;
         this.status = Status.Created;
         storageManager.NewPunishment(this);
     }
@@ -411,7 +412,17 @@ public class Punishment {
      */
     public ComponentBuilder getHoverText() {
         PunishmentManager punishmentManager = PunishmentManager.getINSTANCE();
-        ComponentBuilder text = new ComponentBuilder(" on: " + targetName).color(ChatColor.RED)
+        BaseComponent[] type;
+        if (isBan())
+            type = new ComponentBuilder("Ban").color(ChatColor.RED).create();
+        else if (isMute())
+            type = new ComponentBuilder("Mute").color(ChatColor.GOLD).create();
+        else if (isKick())
+            type = new ComponentBuilder("Kick").color(ChatColor.YELLOW).create();
+        else if (isWarn())
+            type = new ComponentBuilder("Warn").color(ChatColor.YELLOW).create();
+        else type = new ComponentBuilder(getType().toString()).create();
+        ComponentBuilder text = new ComponentBuilder("").append(type).append(" on: " + targetName).color(ChatColor.RED)
                 .append("\nId: ").color(ChatColor.RED).append("#" + id).color(ChatColor.WHITE)
                 .append("\nPunished By: ").color(ChatColor.RED).append(NameFetcher.getName(punisherUUID)).color(ChatColor.WHITE)
                 .append("\nDate: ").color(ChatColor.RED).append(getIssueDate()).color(ChatColor.WHITE)
