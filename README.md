@@ -1,5 +1,7 @@
-# The-Punisher-v2
-**WIP Source Code for The Punisher v2**
+# The-Punisher-v2-BASIC
+**WIP Source Code for The Punisher v2-BASIC**
+
+--------**This branch controls the source code for the basic version of the plugin.**-------
 
 This plugin is a WIP revamp of my old punisher plugin that I have had in production on and off for the past 3 or 4 years now.
 I have finally decided to focus on developing this plugin fully and have realised that there are some critical errors/mistakes
