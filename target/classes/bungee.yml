@@ -1,7 +1,7 @@
 name: The-Punisher
 author: i54m
 website: https://i54m.com
-version: 2.1-BASIC
+version: 2.0-SNAPSHOT
 main: com.i54m.punisher.PunisherPlugin
 softdepend: [LuckPerms, Votifier, NuVotifier]
 description: The Bungeecord side of the Punisher plugin.
