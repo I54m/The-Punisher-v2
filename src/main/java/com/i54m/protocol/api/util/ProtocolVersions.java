@@ -83,7 +83,7 @@ public final class ProtocolVersions {
         supportedVersions.put("1_14", MINECRAFT_1_14);
         supportedVersions.put("1_15", MINECRAFT_1_15);
         supportedVersions.put("1_16", MINECRAFT_1_16);
-        supportedVersions.put("1_16_2", MINECRAFT_1_16_2); // minor version but due to the piglin brute item that was added
+        supportedVersions.put("1_16_2", MINECRAFT_1_16_2); // considered a major version due to the piglin brute spawn egg and some other id changes
         return supportedVersions;
     }
 
