@@ -30,6 +30,7 @@ import java.util.*;
 public class PunishmentManager implements Manager {
 
     private static final WorkerManager WORKER_MANAGER = WorkerManager.getINSTANCE();
+    private static final ReputationManager REPUTATION_MANAGER = ReputationManager.getINSTANCE();
     @Getter
     private static final PunishmentManager INSTANCE = new PunishmentManager();
     private static StorageManager storageManager;
@@ -80,7 +81,7 @@ public class PunishmentManager implements Manager {
         if (player != null && player.isConnected() && punishment.getPunisherUUID() == null)
             storageManager.updatePunishment(punishment.setPunisherUUID(player.getUniqueId()));
         if ((punishment.isMute() || punishment.isBan()) && !punishment.hasExpiration())
-            storageManager.updatePunishment(punishment.setExpiration((long) 5.256e+7));
+            storageManager.updatePunishment(punishment.setExpiration(calculateExpiration(punishment)));
 
         punishment.verify();
 
@@ -96,6 +97,7 @@ public class PunishmentManager implements Manager {
         String targetname = punishment.getTargetName();
         UUID punisherUUID = punishment.getPunisherUUID();
         long expiration = punishment.getExpiration();
+        double repLoss = calculateRepLoss(punishment);
         ProxiedPlayer target;
         try {
             target = PLUGIN.getProxy().getPlayer(targetuuid);
@@ -214,6 +216,7 @@ public class PunishmentManager implements Manager {
                     storageManager.incrementHistory(punishment);
                     storageManager.incrementStaffHistory(punishment);
                 }
+                if (minusRep) REPUTATION_MANAGER.minusRep(targetuuid, repLoss);
                 return;
             }
             case KICK: {
@@ -245,6 +248,7 @@ public class PunishmentManager implements Manager {
                     else
                         PLUGIN.getProxy().getConsole().sendMessage(new ComponentBuilder(PLUGIN.getPrefix()).append("CONSOLE Kicked: " + targetname + " for: " + reasonMessage).color(ChatColor.RED).event(punishment.getHoverEvent()).create());
                 }
+                if (minusRep) REPUTATION_MANAGER.minusRep(targetuuid, repLoss);
                 return;
             }
             case MUTE: {
@@ -314,6 +318,7 @@ public class PunishmentManager implements Manager {
                     else
                         PLUGIN.getProxy().getConsole().sendMessage(new ComponentBuilder(PLUGIN.getPrefix()).append("CONSOLE Muted: " + targetname + " for: " + reasonMessage).event(punishment.getHoverEvent()).color(ChatColor.RED).create());
                 }
+                if (minusRep) REPUTATION_MANAGER.minusRep(targetuuid, repLoss);
                 return;
             }
             case BAN: {
@@ -359,6 +364,7 @@ public class PunishmentManager implements Manager {
                         PLUGIN.getProxy().getConsole().sendMessage(new ComponentBuilder(PLUGIN.getPrefix()).append("CONSOLE Banned: " + targetname + " for: " + reasonMessage).event(punishment.getHoverEvent()).color(ChatColor.RED).create());
                 }
             }
+            if (minusRep) REPUTATION_MANAGER.minusRep(targetuuid, repLoss);
         }
     }
 
@@ -446,38 +452,38 @@ public class PunishmentManager implements Manager {
 //                stmthistupdate.executeUpdate();
 //                stmthistupdate.close();
 
-//            if (player != null) {
-//                PunisherPlugin.getLOGS().info(player.getName() + " removed punishment: " + reason + " on player: " + targetname + " Through unpunish");
-//                player.sendMessage(new ComponentBuilder(PLUGIN.getPrefix()).append("The punishment: " + reason + " on: " + targetname + " has been removed!").color(ChatColor.RED).event(punishment.getHoverEvent()).create());
-//                if (announce)
-//                    StaffChat.sendMessage(new ComponentBuilder(player.getName() + " Unpunished: " + targetname + " for the offence: " + reason).color(ChatColor.RED).event(punishment.getHoverEvent()).create(), true);
-//            }
+            if (player != null) {
+                PunisherPlugin.getLOGS().info(player.getName() + " removed punishment: " + reason + " on player: " + targetname + " Through unpunish");
+                player.sendMessage(new ComponentBuilder(PLUGIN.getPrefix()).append("The punishment: " + reason + " on: " + targetname + " has been removed!").color(ChatColor.RED).event(punishment.getHoverEvent()).create());
+                if (announce)
+                    StaffChat.sendMessage(new ComponentBuilder(player.getName() + " Unpunished: " + targetname + " for the offence: " + reason).color(ChatColor.RED).event(punishment.getHoverEvent()).create());
+            }
         }
     }
 
-//    public long calculateExpiration(Punishment punishment) throws PunishmentsDatabaseException {//todo verify that this is actually calculating correctly
-//        switch (punishment.getReason()) {
-//            case "Other_Minor_Offence":
-//                return (long) 6.048e+8 + System.currentTimeMillis();
-//            case "Other_Major_Offence":
-//                return (long) 2.628e+9 + System.currentTimeMillis();
-//            case "Other_Offence":
-//                return (long) 1.8e+6 + System.currentTimeMillis();
-//        }
-//        int punishmentno = storageManager.getOffences(punishment.getTargetUUID(), punishment.getReason());
-//        punishmentno++;
-//        if (punishmentno > 5) punishmentno = 5;
-//        return (long) (60000 * PLUGIN.getPunishments().getDouble(punishment.getReason() + "." + punishmentno + ".length")) + System.currentTimeMillis();
-//    }
+    public long calculateExpiration(Punishment punishment) throws PunishmentsDatabaseException {//todo verify that this is actually calculating correctly
+        switch (punishment.getReason()) {
+            case "Other_Minor_Offence":
+                return (long) 6.048e+8 + System.currentTimeMillis();
+            case "Other_Major_Offence":
+                return (long) 2.628e+9 + System.currentTimeMillis();
+            case "Other_Offence":
+                return (long) 1.8e+6 + System.currentTimeMillis();
+        }
+        int punishmentno = storageManager.getOffences(punishment.getTargetUUID(), punishment.getReason());
+        punishmentno++;
+        if (punishmentno > 5) punishmentno = 5;
+        return (long) (60000 * PLUGIN.getPunishments().getDouble(punishment.getReason() + "." + punishmentno + ".length")) + System.currentTimeMillis();
+    }
 
-//    public Punishment.Type calculateType(UUID targetuuid, String reason) throws PunishmentCalculationException, PunishmentsDatabaseException {
-//        if (reason.contains("Manual") || reason.equals("Custom") || reason.contains("Other"))
-//            throw new PunishmentCalculationException("Punishment reason must be an automatic punishment type when calculating punishment type!", "type");
-//        int punishmentno = storageManager.getOffences(targetuuid, reason);
-//        punishmentno++;
-//        if (punishmentno > 5) punishmentno = 5;
-//        return Punishment.Type.valueOf(PLUGIN.getPunishments().getString(reason + "." + punishmentno + ".type").toUpperCase());
-//    }
+    public Punishment.Type calculateType(UUID targetuuid, String reason) throws PunishmentCalculationException, PunishmentsDatabaseException {
+        if (reason.contains("Manual") || reason.equals("Custom") || reason.contains("Other"))
+            throw new PunishmentCalculationException("Punishment reason must be an automatic punishment type when calculating punishment type!", "type");
+        int punishmentno = storageManager.getOffences(targetuuid, reason);
+        punishmentno++;
+        if (punishmentno > 5) punishmentno = 5;
+        return Punishment.Type.valueOf(PLUGIN.getPunishments().getString(reason + "." + punishmentno + ".type").toUpperCase());
+    }
 
     public double calculateRepLoss(@NotNull Punishment punishment) throws PunishmentsDatabaseException {
         if (punishment.isManual() && (punishment.isBan() || punishment.isMute()))
@@ -693,7 +699,8 @@ public class PunishmentManager implements Manager {
         ActivePunishments activePunishments = hasActivePunishment(targetuuid) ? getActivePunishments(targetuuid) : new ActivePunishments();
         if (punishment.getType() == Punishment.Type.BAN) activePunishments.setBan(punishment);
         else if (punishment.getType() == Punishment.Type.MUTE) activePunishments.setMute(punishment);
-        if (!hasActivePunishment(targetuuid)) storageManager.getActivePunishmentCache().put(targetuuid, activePunishments);
+        if (!hasActivePunishment(targetuuid))
+            storageManager.getActivePunishmentCache().put(targetuuid, activePunishments);
     }
 
     public String getTimeLeftRaw(@NotNull Punishment punishment) {
