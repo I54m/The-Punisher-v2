@@ -51,7 +51,7 @@ public class ReputationManager implements Manager {
     }
 
     public void minusRep(UUID uuid, double amount) {
-        Configuration config = PLAYER_DATA_MANAGER.getPlayerData(uuid);
+        Configuration config = PLAYER_DATA_MANAGER.getPlayerData(uuid, false);
         double currentRep = config.getDouble("Reputation", startingRep);
         currentRep = currentRep - amount;
         if (currentRep > 10.0)
@@ -63,7 +63,7 @@ public class ReputationManager implements Manager {
     }
 
     public void addRep(UUID uuid, double amount) {
-        Configuration config = PLAYER_DATA_MANAGER.getPlayerData(uuid);
+        Configuration config = PLAYER_DATA_MANAGER.getPlayerData(uuid, false);
         double currentRep = config.getDouble("Reputation", startingRep);
         currentRep = currentRep + amount;
         if (currentRep > 10.0)
@@ -77,7 +77,7 @@ public class ReputationManager implements Manager {
     public void setRep(UUID uuid, double amount) {
         if (amount > 10.0)
             amount = 10.0;
-        PLAYER_DATA_MANAGER.getPlayerData(uuid).set("Reputation", amount);
+        PLAYER_DATA_MANAGER.getPlayerData(uuid, false).set("Reputation", amount);
         PLAYER_DATA_MANAGER.savePlayerData(uuid);
         if (PLUGIN.getConfig().getBoolean("Reputation.Rep-Ban.enabled") && amount <= banAt)
             repBan(uuid);
@@ -85,7 +85,7 @@ public class ReputationManager implements Manager {
     }
 
     public String getRep(UUID uuid) {
-        return String.valueOf(PLAYER_DATA_MANAGER.getPlayerData(uuid).getDouble("Reputation", startingRep));
+        return String.valueOf(PLAYER_DATA_MANAGER.getPlayerData(uuid, false).getDouble("Reputation", startingRep));
     }
 
     private void repBan(UUID targetUUID) {

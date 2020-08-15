@@ -58,7 +58,7 @@ public class ReportCommand extends Command {
                 for (int i = 1; i < strings.length; i++) {
                     reason.append(strings[i]).append(" ");
                 }
-                AdminChat.sendMessage(player.getName() + " has Reported: " + target.getName() + " for: " + reason, true);
+                AdminChat.sendMessage(player.getName() + " has Reported: " + target.getName() + " for: " + reason);
                 cooldowns.put(player.getName(), System.currentTimeMillis());
             } else {
                 if (!(player.hasPermission("punisher.report.bypass"))) {
@@ -77,7 +77,7 @@ public class ReportCommand extends Command {
                 for (int i = 1; i < strings.length; i++) {
                     reason.append(strings[i]).append(" ");
                 }
-                StaffChat.sendMessage(player.getName() + " has Reported: " + target.getName() + " for: " + reason, true);
+                StaffChat.sendMessage(player.getName() + " has Reported: " + target.getName() + " for: " + reason);
                 cooldowns.put(player.getName(), System.currentTimeMillis());
             }
         }

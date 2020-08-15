@@ -29,7 +29,10 @@ import lombok.Setter;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.md_5.bungee.api.config.ServerInfo;
+import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Plugin;
+import net.md_5.bungee.api.scheduler.ScheduledTask;
 import net.md_5.bungee.config.Configuration;
 import net.md_5.bungee.config.ConfigurationProvider;
 import net.md_5.bungee.config.YamlConfiguration;
@@ -42,10 +45,10 @@ import java.nio.file.StandardCopyOption;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.*;
+import java.util.logging.Formatter;
 
 public class PunisherPlugin extends Plugin {
 
@@ -73,6 +76,12 @@ public class PunisherPlugin extends Plugin {
     private static final ReputationManager REPUTATION_MANAGER = ReputationManager.getINSTANCE();
     private static final PunishmentManager PUNISHMENT_MANAGER = PunishmentManager.getINSTANCE();
     private static final WorkerManager WORKER_MANAGER = WorkerManager.getINSTANCE();
+
+    /**
+     * Staff monitoring system, this helps the plugin to track how many staff are on each server.
+     * THIS DOES NOT GIVE THEM STAFF PERMS THIS IS JUST USED FOR STAFF COUNTS AND /STAFF LIST.
+     */
+    private final Map<ServerInfo, ArrayList<ProxiedPlayer>> staff = new HashMap<>();
 
     /*
      * Config variables
@@ -102,7 +111,49 @@ public class PunisherPlugin extends Plugin {
     private LuckPermsHook luckPermsHook;
     @Getter
     private final NettyPipelineInjector nettyPipelineInjector = new NettyPipelineInjector();
+    private ScheduledTask staffFlagging;
+    public final ArrayList<ServerInfo> chatOffServers = new ArrayList<>();
 
+    /**
+     * @param server server to get a staff list for
+     * @return a list of staff on that server
+     */
+    public ArrayList<ProxiedPlayer> getStaff(ServerInfo server) {
+        if (staff.containsKey(server)) return staff.get(server);
+        else return new ArrayList<>();
+    }
+
+    /**
+     * @return a list of servers that have staff on them
+     */
+    public Set<ServerInfo> getStaffServers() {
+        return staff.keySet();
+    }
+
+    /**
+     * @param server server to add a staff member to
+     * @param player player to flag as staff on that server
+     */
+    public void addStaff(ServerInfo server, ProxiedPlayer player) {
+        removeStaff(player);
+        ArrayList<ProxiedPlayer> staff = new ArrayList<>(this.staff.get(server));
+        staff.remove(player);
+        staff.add(player);
+        this.staff.put(server, staff);
+    }
+
+    /**
+     * @param player player to remove as being flagged as a staff member on all servers
+     */
+    public void removeStaff(ProxiedPlayer player) {
+        for (ServerInfo server : getProxy().getServers().values()) {
+            if (!this.staff.get(server).isEmpty() && this.staff.get(server).contains(player)) {
+                ArrayList<ProxiedPlayer> staff = this.staff.get(server);
+                staff.remove(player);
+                this.staff.put(server, staff);
+            }
+        }
+    }
 
     /**
      * This method is used to pre load the protocol side of the plugin and setup the plugin instance.
@@ -262,6 +313,7 @@ public class PunisherPlugin extends Plugin {
             WORKER_MANAGER.start();
             //storage manager can only start caching data once we have started all the other managers up
             storageManager.startCaching();
+            startStaffFlagging();
 
             //plugin loading/enabling is now complete so we announce it
             setLoaded(true);
@@ -285,6 +337,8 @@ public class PunisherPlugin extends Plugin {
     @Override
     public void onDisable() {
         try {
+            if (staffFlagging != null)
+                staffFlagging.cancel();
             //unregister all commands and listeners in an attempt to limit operations that use the managers.
             getProxy().getPluginManager().unregisterListeners(this);
             getProxy().getPluginManager().unregisterCommands(this);
@@ -350,7 +404,6 @@ public class PunisherPlugin extends Plugin {
         getProxy().getPluginManager().registerListener(this, new PlayerLogin());
         getProxy().getPluginManager().registerListener(this, new PlayerVote());
         getProxy().getPluginManager().registerListener(this, new PostPlayerLogin());
-        getProxy().getPluginManager().registerListener(this, new PluginMessage());
         getProxy().getPluginManager().registerListener(this, new TabComplete());
         getProxy().getPluginManager().registerListener(this, new ServerConnect());
         getProxy().getPluginManager().registerListener(this, new PlayerDisconnect());
@@ -501,4 +554,32 @@ public class PunisherPlugin extends Plugin {
         }
     }
 
+    private void startStaffFlagging() {
+        staff.clear();
+        for (ServerInfo servers : getProxy().getServers().values()) {
+            ArrayList<ProxiedPlayer> staffPlayers = new ArrayList<>();
+            for (ProxiedPlayer players : getProxy().getPlayers()) {
+                if (players.hasPermission("punisher.staff") &&
+                        players.isConnected() &&
+                        players.getServer() != null &&
+                        players.getServer().getInfo().equals(servers))
+                    staffPlayers.add(players);
+            }
+            staff.put(servers, staffPlayers);
+        }
+        staffFlagging = getProxy().getScheduler().schedule(this, () -> WORKER_MANAGER.runWorker(new WorkerManager.Worker(() -> {
+            staff.clear();
+            for (ServerInfo servers : getProxy().getServers().values()) {
+                ArrayList<ProxiedPlayer> staffPlayers = new ArrayList<>();
+                for (ProxiedPlayer players : getProxy().getPlayers()) {
+                    if (players.hasPermission("punisher.staff") &&
+                            players.isConnected() &&
+                            players.getServer() != null &&
+                            players.getServer().getInfo().equals(servers))
+                        staffPlayers.add(players);
+                }
+                staff.put(servers, staffPlayers);
+            }
+        })), 5, 3, TimeUnit.SECONDS);
+    }
 }

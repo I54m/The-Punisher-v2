@@ -460,6 +460,11 @@ public class SQLManager implements StorageManager {
     }
 
     @Override
+    public ArrayList<UUID> getAlts(@NotNull String ip) throws PunishmentsDatabaseException {
+        return null;
+    }
+
+    @Override
     public TreeMap<Long, String> getIpHist(@NotNull UUID uuid) throws PunishmentsDatabaseException {
         return null;
     }
