@@ -78,9 +78,11 @@ class ItemTypeTest {
     @Test
     void checkForCorrectID() {
         //set this to true to show warnings as a warning is sent if the item is not defined in a previous version of minecraft's item list and it can be quite spammy
-        boolean showWarnings = false;
+        boolean showWarnings = true;
         boolean errors = false;
         boolean warnings = false;
+        int warningsNumber = 0;
+        int errorsNumber = 0;
         Map<String, Integer> supportedMajorVersions = new HashMap<>(ProtocolVersions.getSupportedMajorVersions());
         for (Map.Entry<String, Integer> protocolVersion : ProtocolVersions.getSupportedMajorVersions().entrySet()) {
             //remove all versions lower than 1.12 as the ids don't change with a new version but 1.12 has the most
@@ -115,6 +117,7 @@ class ItemTypeTest {
                                     correctIDIncorrectData.add("[ItemType Testing] [ERROR] Item: " + itemType.toString() + " has incorrect data BUT correct id for major version: "
                                             + protocolVersion + ", Correct data is: " + data);
                                     errors = true;
+                                    errorsNumber++;
                                 }
                             } else {
                                 //incorrect id defined
@@ -125,6 +128,7 @@ class ItemTypeTest {
                                     incorrectID.add("[ItemType Testing] [ERROR] Item: " + itemType.toString() + " has an incorrect id for major version: " + protocolVersion +
                                             ", correct id is: " + id + " data is: " + data);
                                 errors = true;
+                                errorsNumber++;
                             }
                         } else {
                             //item defined in minecraft lists but no id was defined in ItemType
@@ -135,31 +139,44 @@ class ItemTypeTest {
                                 missingID.add("[ItemType Testing] [ERROR] Item: " + itemType.toString() + " was defined in minecraft lists but was missing id for major version: "
                                         + protocolVersion + ", correct id is: " + id + " data is: " + data);
                             errors = true;
+                            errorsNumber++;
                         }
-                    } else {
+                    } else if (ProtocolVersions.getSupportedMajorVersions().get(protocolVersion) >= ProtocolVersions.MINECRAFT_LATEST) {
                         if (showWarnings)
                             //item not defined in minecraft lists, newer or renamed item?
                             System.out.println("[ItemType Testing] [WARNING] Item: " + itemType.toString() + " was not defined in minecraft lists for major version: " + protocolVersion +
                                     ", this could possibly be an item for a newer version, renamed item or a typo!");
                         warnings = true;
+                        warningsNumber++;
                     }
                 }
-                //the below sorts the error messages into categories and prints them out so that they are a lot easier to read
-                if (!correctIDIncorrectData.isEmpty()) {
+                if (warnings)
                     System.out.println("---------------------------------------------------------------------------------------------------------------------------------");
+                //the below sorts the error messages into categories and prints them out so that they are a lot easier to read
+                boolean first = true;
+                if (!correctIDIncorrectData.isEmpty()) {
+                    first = false;
                     correctIDIncorrectData.sort(String::compareToIgnoreCase);
                     correctIDIncorrectData.forEach(System.out::println);
                 }
                 if (!incorrectID.isEmpty()) {
-                    System.out.println("---------------------------------------------------------------------------------------------------------------------------------");
+                    if (!first) {
+                        System.out.println("---------------------------------------------------------------------------------------------------------------------------------");
+                        first = false;
+                    }
                     incorrectID.sort(String::compareToIgnoreCase);
                     incorrectID.forEach(System.out::println);
                 }
                 if (!missingID.isEmpty()) {
-                    System.out.println("---------------------------------------------------------------------------------------------------------------------------------");
+                    if (!first)
+                        System.out.println("---------------------------------------------------------------------------------------------------------------------------------");
                     missingID.sort(String::compareToIgnoreCase);
                     missingID.forEach(System.out::println);
                 }
+                System.out.println("\n ");
+                System.out.println("Total Errors: " + errorsNumber);
+                System.out.println("Total Warnings: " + warningsNumber);
+                System.out.println("\n");
             } catch (Exception e) {
                 System.out.println("[ItemType Testing] [ERROR] Error occurred on major version " + protocolVersion + ". \nStackTrace: ");
                 e.printStackTrace();
@@ -174,7 +191,7 @@ class ItemTypeTest {
     @AllArgsConstructor
     @NoArgsConstructor
     @ToString
-    private class ProtocolItem {
+    private static class ProtocolItem {
         @Getter
         @Setter
         String name;
