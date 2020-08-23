@@ -5977,7 +5977,7 @@ public enum ItemType {
 
     private static ItemIDMapping[] MOSSY_STONE_BRICK_STAIRS() {
         return new ItemIDMapping[]{
-                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 4800),
+                new ItemIDMapping(MINECRAFT_1_14, MINECRAFT_1_15_2, 480),
                 new ItemIDMapping(MINECRAFT_1_16, MINECRAFT_LATEST, 531),
                 };
     }
