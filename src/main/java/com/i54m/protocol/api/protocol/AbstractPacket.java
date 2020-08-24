@@ -26,7 +26,7 @@ public abstract class AbstractPacket extends DefinedPacket {
      * If set to true, the packet handler will throw an instance of {@link CancelSendSignal}. Since this is deprecated,
      * use the setCancelled(boolean cancelled) method of the {@link com.i54m.protocol.api.event.PacketReceiveEvent}
      * or {@link com.i54m.protocol.api.event.PacketSendEvent} instead.
-     * @param cancelSend
+     * @param cancelSend whether to set the cancel send to true or false
      */
     @Deprecated
     public void setCancelSend(final boolean cancelSend) {

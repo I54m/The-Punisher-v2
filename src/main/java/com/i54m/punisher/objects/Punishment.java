@@ -109,6 +109,7 @@ public class Punishment {
      * @param id The Id of the punishment, this is unique to each punishment.
      * @param type The type of punishment that this is.
      * @param reason The reason for this punishment.
+     * @param issueDate The date and time the punishement was issued.
      * @param expiration The date in milliseconds that this punishment expires (not required for warns or kicks).
      * @param targetUUID The UUID of the person to be punished.
      * @param targetName The name (with capitalization) of the person to be punished.
@@ -323,7 +324,7 @@ public class Punishment {
     }
 
     /**
-     * This will set the issue date of the punishment to the current date & time in the local timezone.
+     * This will set the issue date of the punishment to the current date and time in the local timezone.
      * This can only be set once and will throw an error and make no change if you try to set it again.
      * When you set it twice this method will throw a {@link PunishmentIssueException} telling you that
      * you cannot set the issue date more than once. To make sure that things still run smoothly it will

@@ -196,6 +196,7 @@ public class PlayerDataManager implements Listener, Manager {
      * Fetch the player's data configuration file.
      *
      * @param player the player to fetch the data for
+     * @param create whether to create the player's data file if not found
      * @return a configuration file of the stored data
      */
     public Configuration getPlayerData(@NotNull ProxiedPlayer player, boolean create) {
@@ -225,6 +226,7 @@ public class PlayerDataManager implements Listener, Manager {
      * If the player's data is not already loaded we will load it into the cache and return it
      *
      * @param uuid the uuid of the player to fetch the data for
+     * @param create whether to create the player's data file if not found
      * @return a configuration file of the stored data
      */
     public Configuration getPlayerData(@NotNull UUID uuid, boolean create) {
