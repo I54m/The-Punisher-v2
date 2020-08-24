@@ -194,15 +194,15 @@
                                     <outputDirectory>F:\Test server\BUNGEE\plugins\</outputDirectory>
                                     <destFileName>The-Punisher-${project.version}-${maven.build.timestamp}.jar</destFileName>
                                 </artifactItem>
-<!--                                <artifactItem>-->
-<!--                                    <groupId>${project.groupId}</groupId>-->
-<!--                                    <artifactId>${project.artifactId}</artifactId>-->
-<!--                                    <version>${project.version}</version>-->
-<!--                                    <type>${project.packaging}</type>-->
-<!--                                    <overWrite>true</overWrite>-->
-<!--                                    <outputDirectory>F:\Test server\SPIGOT_2\plugins\</outputDirectory>-->
-<!--                                    <destFileName>The-Punisher-${project.version}DEVBUILD.jar</destFileName>-->
-<!--                                </artifactItem>-->
+                                <!--                                <artifactItem>-->
+                                <!--                                    <groupId>${project.groupId}</groupId>-->
+                                <!--                                    <artifactId>${project.artifactId}</artifactId>-->
+                                <!--                                    <version>${project.version}</version>-->
+                                <!--                                    <type>${project.packaging}</type>-->
+                                <!--                                    <overWrite>true</overWrite>-->
+                                <!--                                    <outputDirectory>F:\Test server\SPIGOT_2\plugins\</outputDirectory>-->
+                                <!--                                    <destFileName>The-Punisher-${project.version}DEVBUILD.jar</destFileName>-->
+                                <!--                                </artifactItem>-->
                             </artifactItems>
 
                         </configuration>
@@ -211,16 +211,28 @@
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.0</version>
-                <configuration>
-                    <source>8</source>
-                    <target>8</target>
-                </configuration>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
         <pluginManagement>
             <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.8.0</version>
+                    <configuration>
+                        <source>8</source>
+                        <target>8</target>
+                    </configuration>
+                </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-assembly-plugin</artifactId>
