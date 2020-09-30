@@ -44,6 +44,7 @@ public class NamedSoundEffect extends AbstractPacket {
         MAPPING.put(MINECRAFT_1_16, 0x18);
         MAPPING.put(MINECRAFT_1_16_1, 0x18);
         MAPPING.put(MINECRAFT_1_16_2, 0x18);
+        MAPPING.put(MINECRAFT_1_16_3, 0x18);
     }
 
     private String sound;
@@ -169,7 +170,7 @@ public class NamedSoundEffect extends AbstractPacket {
                 Double.compare(that.z, z) == 0 &&
                 Float.compare(that.volume, volume) == 0 &&
                 Float.compare(that.pitch, pitch) == 0 &&
-                sound == that.sound &&
+                sound.equals(that.sound) &&
                 category == that.category;
     }
 
