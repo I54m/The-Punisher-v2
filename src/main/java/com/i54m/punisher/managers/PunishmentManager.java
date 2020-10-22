@@ -376,21 +376,12 @@ public class PunishmentManager implements Manager {
         if (targetname == null)
             targetname = NameFetcher.getName(punishment.getTargetUUID());
 
-        if (isMuted(targetuuid) && punishment.getType() == Punishment.Type.MUTE) {
+        if (isMuted(targetuuid) && punishment.isMute()) {
             UUID oldPunisherID = getMute(targetuuid).getPunisherUUID();
             if (!Permissions.higher(removeruuid, oldPunisherID) && player != null) {
                 player.sendMessage(new ComponentBuilder(PLUGIN.getPrefix()).append("You cannot unmute: " + targetname + " as they have an active mute by someone with higher permissions than you!").color(ChatColor.RED).create());
                 return;
             }
-        } else if (isBanned(targetuuid) && punishment.getType() == Punishment.Type.BAN) {
-            UUID oldPunisherID = getMute(targetuuid).getPunisherUUID();
-            if (!Permissions.higher(removeruuid, oldPunisherID) && player != null) {
-                player.sendMessage(new ComponentBuilder(PLUGIN.getPrefix()).append("You cannot unban: " + targetname + " as they have an active ban by someone with higher permissions than you!").color(ChatColor.RED).create());
-                return;
-            }
-        }
-
-        if (isMuted(targetuuid) && punishment.getType() == Punishment.Type.MUTE) {
             if (player != null && player.isConnected()) {
                 if (announce)
                     StaffChat.sendMessage(new ComponentBuilder(player.getName() + " Unmuted: " + targetname).color(ChatColor.RED).event(punishment.getHoverEvent()).create());
@@ -402,8 +393,12 @@ public class PunishmentManager implements Manager {
                     StaffChat.sendMessage(new ComponentBuilder("CONSOLE Unmuted: " + targetname).color(ChatColor.RED).event(punishment.getHoverEvent()).create());
                 PunisherPlugin.getLOGS().info(targetname + " Was Unmuted by: " + NameFetcher.getName(targetuuid));
             }
-        }
-        if (isBanned(targetuuid) && punishment.getType() == Punishment.Type.BAN) {
+        } else if (isBanned(targetuuid) && punishment.isBan()) {
+            UUID oldPunisherID = getBan(targetuuid).getPunisherUUID();
+            if (!Permissions.higher(removeruuid, oldPunisherID) && player != null) {
+                player.sendMessage(new ComponentBuilder(PLUGIN.getPrefix()).append("You cannot unban: " + targetname + " as they have an active ban by someone with higher permissions than you!").color(ChatColor.RED).create());
+                return;
+            }
             if (player != null && player.isConnected()) {
                 if (announce)
                     StaffChat.sendMessage(new ComponentBuilder(player.getName() + " Unbanned: " + targetname).color(ChatColor.RED).event(punishment.getHoverEvent()).create());
