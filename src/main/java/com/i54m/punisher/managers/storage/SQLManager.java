@@ -232,7 +232,7 @@ public class SQLManager implements StorageManager {
         }
         try {
             for (ProxiedPlayer player : PLUGIN.getProxy().getPlayers()) {
-                loadUser(player.getUniqueId());
+                loadUser(player.getUniqueId(), false);
             }
         } catch (Exception e) {
             throw new PunishmentsDatabaseException("Caching punishments", "CONSOLE", this.getClass().getName(), e);
@@ -401,7 +401,7 @@ public class SQLManager implements StorageManager {
     }
 
     @Override
-    public void loadUser(@NotNull UUID uuid) throws PunishmentsDatabaseException {
+    public void loadUser(@NotNull UUID uuid, boolean onlyLoadActive) throws PunishmentsDatabaseException {
         if (locked) {
             ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
             return;
