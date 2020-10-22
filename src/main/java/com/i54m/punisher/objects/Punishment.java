@@ -160,12 +160,9 @@ public class Punishment {
      * A punishment is considered permanent if it is 10 or more years.
      * @return true if the punishment is 10 or more years long, false if it is less than 10 years.
      */
-    public boolean isPermanent() {
-        if (getStatus() != Status.Active) return false;
-        long millis;
-        millis = expiration - System.currentTimeMillis();
-        int yearsleft = (int) (millis / 3.154e+10);
-        return yearsleft >= 10;
+    public boolean isPermanent() {// TODO: 21/10/2020 look into this not returning true for bans
+        if (isExpired() || isOverridden() || isIssued() || isRemoved()) return false;
+        return (int) ((expiration - System.currentTimeMillis()) / 3.154e+10) >= 10;
     }
 
     /**
@@ -185,7 +182,7 @@ public class Punishment {
     /**
      * @return true if the punishment is a permanent ban that was made by console and contains the message "Overly Toxic", these are the main signs of a reputation ban.
      */
-    public boolean isRepBan() {
+    public boolean isRepBan() {// TODO: 22/10/2020 punishment metadata class to supply booleans for things like this?
         return isBan() && punisherUUID.equals(UUIDFetcher.getBLANK_UUID()) && isPermanent() && message.contains("Overly Toxic");
     }
 

@@ -329,13 +329,13 @@ public class PunishmentManager implements Manager {
                     reasonMessage = reason;
                 String timeleft = getTimeLeft(punishment);
                 if (target != null && target.isConnected()) {
-                    String banMessage;
-                    if (punishment.isPermanent())
-                        banMessage = PLUGIN.getConfig().getString("PermBan Message").replace("%timeleft%", timeleft);
-                    else
-                        banMessage = PLUGIN.getConfig().getString("TempBan Message").replace("%timeleft%", timeleft);
-                    banMessage = banMessage.replace("%reason%", reasonMessage);
-                    target.disconnect(new TextComponent(ChatColor.translateAlternateColorCodes('&', banMessage)));
+                    if (punishment.isPermanent()) {
+                        String banMessage = PLUGIN.getConfig().getString("PermBan Message").replace("%timeleft%", timeleft).replace("%reason%", reason);
+                        target.disconnect(new TextComponent(ChatColor.translateAlternateColorCodes('&', banMessage)));
+                    } else {
+                        String banMessage = PLUGIN.getConfig().getString("TempBan Message").replace("%timeleft%", timeleft).replace("%reason%", reason);
+                        target.disconnect(new TextComponent(ChatColor.translateAlternateColorCodes('&', banMessage)));
+                    }
                 }
                 if (addHistory) {
                     storageManager.incrementHistory(punishment);
@@ -370,6 +370,7 @@ public class PunishmentManager implements Manager {
 
     public void remove(@NotNull Punishment punishment, @Nullable ProxiedPlayer player, boolean removed, boolean removeHistory, boolean announce) throws PunishmentsDatabaseException {// TODO: 12/03/2020  need to rewrite this
         UUID targetuuid = punishment.getTargetUUID();
+        storageManager.loadUser(targetuuid, true);
         String reason = punishment.getReason();
         String targetname = punishment.getTargetName();
         UUID removeruuid = player != null ? player.getUniqueId() : UUIDFetcher.getBLANK_UUID();

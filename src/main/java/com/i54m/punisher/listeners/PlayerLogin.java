@@ -22,15 +22,6 @@ public class PlayerLogin implements Listener {
     public void onPlayerLogin(LoginEvent event) {
         PendingConnection connection = event.getConnection();
         UUID uuid = event.getConnection().getUniqueId();
-
-        workerManager.runWorker(new WorkerManager.Worker(() -> {
-            try {
-                plugin.getStorageManager().loadUser(uuid);
-            } catch (PunishmentsDatabaseException pde) {
-                errorHandler.log(pde);
-                errorHandler.loginError(event);
-            }
-        }));
         workerManager.runWorker(new WorkerManager.Worker(() -> {
             try {
                 plugin.getStorageManager().updateAlts(uuid, connection.getSocketAddress().toString());

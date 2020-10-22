@@ -5,6 +5,7 @@ import com.i54m.punisher.exceptions.DataFecthException;
 import com.i54m.punisher.exceptions.PunishmentsDatabaseException;
 import com.i54m.punisher.handlers.ErrorHandler;
 import com.i54m.punisher.managers.PunishmentManager;
+import com.i54m.punisher.managers.WorkerManager;
 import com.i54m.punisher.objects.Punishment;
 import com.i54m.punisher.utils.NameFetcher;
 import com.i54m.punisher.utils.Permissions;
@@ -129,6 +130,15 @@ public class MuteCommand extends Command {
             player.sendMessage(new ComponentBuilder("That is not a player's name!").color(ChatColor.RED).create());
             return;
         }
+        WorkerManager.getINSTANCE().runWorker(new WorkerManager.Worker(() -> {
+            try {
+                plugin.getStorageManager().loadUser(targetuuid, true);
+            } catch (Exception e) {
+                ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
+                errorHandler.log(e);
+                errorHandler.alert(e, commandSender);
+            }
+        }));
         targetname = NameFetcher.getName(targetuuid);
         if (targetname == null) {
             targetname = strings[0];

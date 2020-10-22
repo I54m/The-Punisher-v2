@@ -148,7 +148,7 @@ public class FlatFileManager implements StorageManager {
         }
         try {
             for (ProxiedPlayer player : PLUGIN.getProxy().getPlayers()) {
-                loadUser(player.getUniqueId());
+                loadUser(player.getUniqueId(), false);
             }
         } catch (Exception e) {
             throw new PunishmentsDatabaseException("Caching punishments", "CONSOLE", this.getClass().getName(), e);
@@ -340,16 +340,17 @@ public class FlatFileManager implements StorageManager {
     }
 
     @Override
-    public void loadUser(@NotNull UUID uuid) throws PunishmentsDatabaseException {
+    public void loadUser(@NotNull UUID uuid, boolean onlyLoadActive) throws PunishmentsDatabaseException {
         if (locked) {
             ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
             return;
         }
+        if (getActivePunishmentCache().containsKey(uuid)) return;
         try {
-            loadPunishmentsFromFile(new File(historyDir, uuid.toString() + ".yml"), false);
-            loadPunishmentsFromFile(new File(staffHistoryDir, uuid.toString() + ".yml"), false);
+            loadPunishmentsFromFile(new File(historyDir, uuid.toString() + ".yml"), onlyLoadActive);
+            loadPunishmentsFromFile(new File(staffHistoryDir, uuid.toString() + ".yml"), onlyLoadActive);
             for (UUID alts : getAlts(uuid)) {
-                loadPunishmentsFromFile(new File(historyDir, alts.toString() + ".yml"), true);
+                loadPunishmentsFromFile(new File(historyDir, alts.toString() + ".yml"), true);//always only load active punishments for alts as this could fill the cache very fast
             }
         } catch (Exception e) {
             throw new PunishmentsDatabaseException("Loading User: " + uuid.toString(), "CONSOLE", this.getClass().getName(), e);

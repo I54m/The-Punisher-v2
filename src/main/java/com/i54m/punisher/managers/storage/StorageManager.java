@@ -52,7 +52,7 @@ public interface StorageManager extends Manager {
     void createStaffHistory(@NotNull UUID uuid) throws PunishmentsDatabaseException;
     void incrementHistory(@NotNull Punishment punishment) throws PunishmentsDatabaseException;
     void incrementStaffHistory(@NotNull Punishment punishment) throws PunishmentsDatabaseException;
-    void loadUser(@NotNull UUID uuid) throws PunishmentsDatabaseException;
+    void loadUser(@NotNull UUID uuid, boolean onlyLoadActive) throws PunishmentsDatabaseException;
     void updateAlts(@NotNull UUID uuid, @NotNull String ip) throws PunishmentsDatabaseException;
     void updateIpHist(@NotNull UUID uuid, @NotNull  String ip) throws PunishmentsDatabaseException;
     Punishment getPunishmentFromId(int id) throws PunishmentsDatabaseException;
