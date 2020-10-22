@@ -236,9 +236,9 @@ public class PunisherPlugin extends Plugin {
                     SuperBroadcast.title = ProxyServer.getInstance().createTitle().subTitle(new ComponentBuilder(titleargs[0]).create())
                             .fadeIn(Integer.parseInt(titleargs[1])).stay(Integer.parseInt(titleargs[2])).fadeOut(Integer.parseInt(titleargs[3]));
                 } catch (NumberFormatException nfe){
-                    throw new NumberFormatException("One of you superbroadcast-title numbers is not a number! (fade in, stay or fade out");
+                    throw new NumberFormatException("One of your superbroadcast-title numbers is not a number! (fade in, stay or fade out");
                 } catch (IndexOutOfBoundsException ioobe){
-                    throw new IndexOutOfBoundsException("You have no supplied enough arguments in the superbroadcast-title!");
+                    throw new IndexOutOfBoundsException("You have not supplied enough arguments in the superbroadcast-title!");
                 }
             }
 
