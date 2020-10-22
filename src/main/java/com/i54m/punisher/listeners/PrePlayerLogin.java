@@ -27,7 +27,7 @@ public class PrePlayerLogin implements Listener {
             uuidFetcher.fetch(targetName);
             try {
                 UUID uuid = uuidFetcher.call();
-                plugin.getStorageManager().loadUser(uuid);
+                plugin.getStorageManager().loadUser(uuid, false);
             } catch (Exception pde) {
                 errorHandler.log(pde);
                 errorHandler.loginError(event);
