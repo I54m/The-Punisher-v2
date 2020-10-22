@@ -160,11 +160,8 @@ public class Punishment {
      * @return true if the punishment is 10 or more years long, false if it is less than 10 years.
      */
     public boolean isPermanent() {// TODO: 21/10/2020 look into this not returning true for bans
-        if (!isActive()) return false;
-        long millis;
-        millis = expiration - System.currentTimeMillis();
-        int yearsleft = (int) (millis / 3.154e+10);
-        return yearsleft >= 10;
+        if (isExpired() || isOverridden() || isIssued() || isRemoved()) return false;
+        return (int) ((expiration - System.currentTimeMillis()) / 3.154e+10) >= 10;
     }
 
     /**
