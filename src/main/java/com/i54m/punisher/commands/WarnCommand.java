@@ -39,7 +39,7 @@ public class WarnCommand extends Command {
         }
         ProxiedPlayer target = ProxyServer.getInstance().getPlayer(strings[0]);
         if (target == null) {
-            player.sendMessage(new ComponentBuilder("That is not a player's name!").color(ChatColor.RED).create());
+            player.sendMessage(new ComponentBuilder("That is not an online player's name!").color(ChatColor.RED).create());
             return;
         }
         UUID targetuuid = target.getUniqueId();
