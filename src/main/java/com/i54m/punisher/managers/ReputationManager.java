@@ -1,7 +1,7 @@
 package com.i54m.punisher.managers;
 
 import com.i54m.punisher.exceptions.ManagerNotStartedException;
-import com.i54m.punisher.exceptions.PunishmentsDatabaseException;
+import com.i54m.punisher.exceptions.PunishmentsStorageException;
 import com.i54m.punisher.objects.Punishment;
 import com.i54m.punisher.utils.NameFetcher;
 import com.i54m.punisher.utils.UUIDFetcher;
@@ -102,7 +102,7 @@ public class ReputationManager implements Manager {
                         "Overly Toxic (Rep dropped below " + banAt + ")");
                 PUNISHMENT_MANAGER.issue(ban, null, false, true, false);
             } catch (Exception e) {
-                ERROR_HANDLER.log(new PunishmentsDatabaseException("Issuing rep ban", NameFetcher.getName(targetUUID), ReputationManager.class.getName(), e));
+                ERROR_HANDLER.log(new PunishmentsStorageException("Issuing rep ban", NameFetcher.getName(targetUUID), ReputationManager.class.getName(), e));
             }
         }, 2, TimeUnit.SECONDS);
     }

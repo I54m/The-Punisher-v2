@@ -1,7 +1,7 @@
 package com.i54m.punisher.listeners;
 
 import com.i54m.punisher.PunisherPlugin;
-import com.i54m.punisher.exceptions.PunishmentsDatabaseException;
+import com.i54m.punisher.exceptions.PunishmentsStorageException;
 import com.i54m.punisher.handlers.ErrorHandler;
 import com.i54m.punisher.managers.WorkerManager;
 import net.md_5.bungee.api.connection.PendingConnection;
@@ -26,7 +26,7 @@ public class PlayerLogin implements Listener {
             try {
                 plugin.getStorageManager().updateAlts(uuid, connection.getSocketAddress().toString());
                 plugin.getStorageManager().updateIpHist(uuid, connection.getSocketAddress().toString());
-            } catch (PunishmentsDatabaseException pde) {
+            } catch (PunishmentsStorageException pde) {
                 errorHandler.log(pde);
                 errorHandler.loginError(event);
             }
@@ -75,8 +75,8 @@ public class PlayerLogin implements Listener {
 //            } catch (SQLException sqle) {
 //                try {
 //                    String targetName = NameFetcher.getName(fetcheduuid);
-//                    throw new PunishmentsDatabaseException("Updating ip in iphist", targetName, PlayerLogin.class.getName(), sqle);
-//                } catch (PunishmentsDatabaseException pde) {
+//                    throw new PunishmentsStorageException("Updating ip in iphist", targetName, PlayerLogin.class.getName(), sqle);
+//                } catch (PunishmentsStorageException pde) {
 //                    ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
 //                    errorHandler.log(pde);
 //                    errorHandler.loginError(event);

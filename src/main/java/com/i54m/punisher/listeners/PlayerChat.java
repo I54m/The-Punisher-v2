@@ -2,10 +2,10 @@ package com.i54m.punisher.listeners;
 
 import com.i54m.punisher.PunisherPlugin;
 import com.i54m.punisher.chats.StaffChat;
+import com.i54m.punisher.exceptions.PunishmentsStorageException;
 import com.i54m.punisher.handlers.ErrorHandler;
 import com.i54m.punisher.managers.PunishmentManager;
 import com.i54m.punisher.objects.Punishment;
-import com.i54m.punisher.exceptions.PunishmentsDatabaseException;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.config.ServerInfo;
@@ -94,8 +94,8 @@ public class PlayerChat implements Listener {
             }
         } catch (SQLException e) {
             try {
-                throw new PunishmentsDatabaseException("Removing mute on a player", targetname, this.getClass().getName(), e);
-            } catch (PunishmentsDatabaseException pde) {
+                throw new PunishmentsStorageException("Removing mute on a player", targetname, this.getClass().getName(), e);
+            } catch (PunishmentsStorageException pde) {
                 ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
                 errorHandler.log(pde);
                 errorHandler.alert(pde, player);

@@ -2,7 +2,7 @@ package com.i54m.punisher.managers.storage;
 
 import com.i54m.punisher.PunisherPlugin;
 import com.i54m.punisher.exceptions.ManagerNotStartedException;
-import com.i54m.punisher.exceptions.PunishmentsDatabaseException;
+import com.i54m.punisher.exceptions.PunishmentsStorageException;
 import com.i54m.punisher.managers.WorkerManager;
 import com.i54m.punisher.objects.ActivePunishments;
 import com.i54m.punisher.objects.Punishment;
@@ -203,7 +203,7 @@ public class SQLManager implements StorageManager {
         if (cacheTask == null) {
             try {
                 cache();
-            } catch (PunishmentsDatabaseException pde) {
+            } catch (PunishmentsStorageException pde) {
                 ERROR_HANDLER.log(pde);
                 ERROR_HANDLER.adminChatAlert(pde, PLUGIN.getProxy().getConsole());
             }
@@ -214,8 +214,8 @@ public class SQLManager implements StorageManager {
                     WORKER_MANAGER.runWorker(new WorkerManager.Worker(this::resetCache));
                 } catch (Exception e) {
                     try {
-                        throw new PunishmentsDatabaseException("Caching punishments", "CONSOLE", this.getClass().getName(), e);
-                    } catch (PunishmentsDatabaseException pde) {
+                        throw new PunishmentsStorageException("Caching punishments", "CONSOLE", this.getClass().getName(), e);
+                    } catch (PunishmentsStorageException pde) {
                         ERROR_HANDLER.log(pde);
                         ERROR_HANDLER.adminChatAlert(pde, PLUGIN.getProxy().getConsole());
                     }
@@ -225,7 +225,7 @@ public class SQLManager implements StorageManager {
     }
 
     @Override
-    public void cache() throws PunishmentsDatabaseException {
+    public void cache() throws PunishmentsStorageException {
         if (locked) {
             ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
             return;
@@ -235,12 +235,12 @@ public class SQLManager implements StorageManager {
                 loadUser(player.getUniqueId(), false);
             }
         } catch (Exception e) {
-            throw new PunishmentsDatabaseException("Caching punishments", "CONSOLE", this.getClass().getName(), e);
+            throw new PunishmentsStorageException("Caching punishments", "CONSOLE", this.getClass().getName(), e);
         }
     }
 
     @Override
-    public void dumpNew() throws PunishmentsDatabaseException {
+    public void dumpNew() throws PunishmentsStorageException {
         if (locked) {
             ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
             return;
@@ -272,13 +272,13 @@ public class SQLManager implements StorageManager {
                         stmt1.executeUpdate();
                         stmt1.close();
                     } catch (SQLException sqle) {
-                        throw new PunishmentsDatabaseException("Dumping Punishment: " + punishment.toString(), "CONSOLE", this.getClass().getName(), sqle);
+                        throw new PunishmentsStorageException("Dumping Punishment: " + punishment.toString(), "CONSOLE", this.getClass().getName(), sqle);
                     }
             }
             resultspunishment.close();
             stmtpunishment.close();
         } catch (SQLException sqle) {
-            throw new PunishmentsDatabaseException("Caching punishments", "CONSOLE", this.getClass().getName(), sqle);
+            throw new PunishmentsStorageException("Caching punishments", "CONSOLE", this.getClass().getName(), sqle);
         }
     }
 
@@ -314,14 +314,14 @@ public class SQLManager implements StorageManager {
             PUNISHMENT_CACHE.put(punishment.getId(), punishment);
         try {
             updatePunishment(punishment);
-        } catch (PunishmentsDatabaseException pde) {
+        } catch (PunishmentsStorageException pde) {
             ERROR_HANDLER.log(pde);
             ERROR_HANDLER.adminChatAlert(pde, PLUGIN.getProxy().getConsole());
         }
     }
 
     @Override
-    public void updatePunishment(@NotNull Punishment punishment) throws PunishmentsDatabaseException {
+    public void updatePunishment(@NotNull Punishment punishment) throws PunishmentsStorageException {
         if (locked) {
             ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
             return;
@@ -350,17 +350,17 @@ public class SQLManager implements StorageManager {
             stmt.executeUpdate();
             stmt.close();
         } catch (Exception e) {
-            throw new PunishmentsDatabaseException("Updating Punishment: " + punishment.toString(), "CONSOLE", this.getClass().getName(), e);
+            throw new PunishmentsStorageException("Updating Punishment: " + punishment.toString(), "CONSOLE", this.getClass().getName(), e);
         }
     }
 
     @Override
-    public void createHistory(@NotNull UUID uuid) throws PunishmentsDatabaseException {
+    public void createHistory(@NotNull UUID uuid) throws PunishmentsStorageException {
         //these do nothing as history is done by the punishments database.
     }
 
     @Override
-    public void createStaffHistory(@NotNull UUID uuid) throws PunishmentsDatabaseException {
+    public void createStaffHistory(@NotNull UUID uuid) throws PunishmentsStorageException {
 
     }
 
@@ -391,17 +391,17 @@ public class SQLManager implements StorageManager {
     }
 
     @Override
-    public void incrementHistory(@NotNull Punishment punishment) throws PunishmentsDatabaseException {
+    public void incrementHistory(@NotNull Punishment punishment) throws PunishmentsStorageException {
 
     }
 
     @Override
-    public void incrementStaffHistory(@NotNull Punishment punishment) throws PunishmentsDatabaseException {
+    public void incrementStaffHistory(@NotNull Punishment punishment) throws PunishmentsStorageException {
 
     }
 
     @Override
-    public void loadUser(@NotNull UUID uuid, boolean onlyLoadActive) throws PunishmentsDatabaseException {
+    public void loadUser(@NotNull UUID uuid, boolean onlyLoadActive) throws PunishmentsStorageException {
         if (locked) {
             ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
             return;
@@ -412,7 +412,7 @@ public class SQLManager implements StorageManager {
                 loadPunishmentsFromDatabase(alts, true);
             }
         } catch (Exception e) {
-            throw new PunishmentsDatabaseException("Loading User: " + uuid.toString(), "CONSOLE", this.getClass().getName(), e);
+            throw new PunishmentsStorageException("Loading User: " + uuid.toString(), "CONSOLE", this.getClass().getName(), e);
         }
     }
 
@@ -425,47 +425,47 @@ public class SQLManager implements StorageManager {
     }
 
     @Override
-    public void updateAlts(@NotNull UUID uuid, @NotNull String ip) throws PunishmentsDatabaseException {
+    public void updateAlts(@NotNull UUID uuid, @NotNull String ip) throws PunishmentsStorageException {
 
     }
 
     @Override
-    public void updateIpHist(@NotNull UUID uuid, @NotNull String ip) throws PunishmentsDatabaseException {
+    public void updateIpHist(@NotNull UUID uuid, @NotNull String ip) throws PunishmentsStorageException {
 
     }
 
     @Override
-    public Punishment getPunishmentFromId(int id) throws PunishmentsDatabaseException {
+    public Punishment getPunishmentFromId(int id) throws PunishmentsStorageException {
         return null;
     }
 
     @Override
-    public int getOffences(@NotNull UUID targetUUID, @NotNull String reason) throws PunishmentsDatabaseException {
+    public int getOffences(@NotNull UUID targetUUID, @NotNull String reason) throws PunishmentsStorageException {
         return 0;
     }
 
     @Override
-    public TreeMap<Integer, Punishment> getHistory(@NotNull UUID uuid) throws PunishmentsDatabaseException {
+    public TreeMap<Integer, Punishment> getHistory(@NotNull UUID uuid) throws PunishmentsStorageException {
         return null;
     }
 
     @Override
-    public TreeMap<Integer, Punishment> getStaffHistory(@NotNull UUID uuid) throws PunishmentsDatabaseException {
+    public TreeMap<Integer, Punishment> getStaffHistory(@NotNull UUID uuid) throws PunishmentsStorageException {
         return null;
     }
 
     @Override
-    public ArrayList<UUID> getAlts(@NotNull UUID uuid) throws PunishmentsDatabaseException {
+    public ArrayList<UUID> getAlts(@NotNull UUID uuid) throws PunishmentsStorageException {
         return null;
     }
 
     @Override
-    public ArrayList<UUID> getAlts(@NotNull String ip) throws PunishmentsDatabaseException {
+    public ArrayList<UUID> getAlts(@NotNull String ip) throws PunishmentsStorageException {
         return null;
     }
 
     @Override
-    public TreeMap<Long, String> getIpHist(@NotNull UUID uuid) throws PunishmentsDatabaseException {
+    public TreeMap<Long, String> getIpHist(@NotNull UUID uuid) throws PunishmentsStorageException {
         return null;
     }
 

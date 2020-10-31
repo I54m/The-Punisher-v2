@@ -1,7 +1,7 @@
 package com.i54m.punisher.managers.storage;
 
 import com.i54m.punisher.PunisherPlugin;
-import com.i54m.punisher.exceptions.PunishmentsDatabaseException;
+import com.i54m.punisher.exceptions.PunishmentsStorageException;
 import com.i54m.punisher.handlers.ErrorHandler;
 import com.i54m.punisher.managers.PunishmentManager;
 import com.i54m.punisher.managers.WorkerManager;
@@ -337,7 +337,7 @@ public class DatabaseManager {
         if (cacheTask == null) {
             try {
                 cache();
-            } catch (PunishmentsDatabaseException pde) {
+            } catch (PunishmentsStorageException pde) {
                 errorHandler.log(pde);
                 errorHandler.adminChatAlert(pde, plugin.getProxy().getConsole());
             }
@@ -348,8 +348,8 @@ public class DatabaseManager {
                     workerManager.runWorker(new WorkerManager.Worker(this::resetCache));
                 } catch (Exception e) {
                     try {
-                        throw new PunishmentsDatabaseException("Caching punishments", "CONSOLE", this.getClass().getName(), e);
-                    } catch (PunishmentsDatabaseException pde) {
+                        throw new PunishmentsStorageException("Caching punishments", "CONSOLE", this.getClass().getName(), e);
+                    } catch (PunishmentsStorageException pde) {
                         errorHandler.log(pde);
                         errorHandler.adminChatAlert(pde, plugin.getProxy().getConsole());
                     }
@@ -373,24 +373,24 @@ public class DatabaseManager {
             DumpNew();
             clearCache();
             cache();
-        } catch (PunishmentsDatabaseException pde) {
+        } catch (PunishmentsStorageException pde) {
             errorHandler.log(pde);
             errorHandler.adminChatAlert(pde, plugin.getProxy().getConsole());
         }
     }
 
     // TODO: 11/03/2020 make it so that we don't cache all punishments, just the ones for online players and then cache on join too
-    private void cache() throws PunishmentsDatabaseException {
+    private void cache() throws PunishmentsStorageException {
         try {
             for (ProxiedPlayer player : plugin.getProxy().getPlayers()) {
                 loadUser(player.getUniqueId().toString().replace("-", ""));
             }
         } catch (SQLException sqle) {
-            throw new PunishmentsDatabaseException("Caching punishments", "CONSOLE", this.getClass().getName(), sqle);
+            throw new PunishmentsStorageException("Caching punishments", "CONSOLE", this.getClass().getName(), sqle);
         }
     }
 
-    public void DumpNew() throws PunishmentsDatabaseException {
+    public void DumpNew() throws PunishmentsStorageException {
         try {
             TreeMap<Integer, Punishment> PunishmentCache = new TreeMap<>(this.PunishmentCache);//to avoid concurrent modification exception if we happen to clear cache while looping over it (unlikely but could still happen)
             String sqlpunishment = "SELECT * FROM `punishments`;";
@@ -418,13 +418,13 @@ public class DatabaseManager {
                         stmt1.executeUpdate();
                         stmt1.close();
                     } catch (SQLException sqle) {
-                        throw new PunishmentsDatabaseException("Dumping Punishment: " + punishment.toString(), "CONSOLE", this.getClass().getName(), sqle);
+                        throw new PunishmentsStorageException("Dumping Punishment: " + punishment.toString(), "CONSOLE", this.getClass().getName(), sqle);
                     }
             }
             resultspunishment.close();
             stmtpunishment.close();
         } catch (SQLException sqle) {
-            throw new PunishmentsDatabaseException("Caching punishments", "CONSOLE", this.getClass().getName(), sqle);
+            throw new PunishmentsStorageException("Caching punishments", "CONSOLE", this.getClass().getName(), sqle);
         }
     }
 }

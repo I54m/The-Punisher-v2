@@ -2,7 +2,7 @@ package com.i54m.punisher.commands;
 
 import com.i54m.punisher.PunisherPlugin;
 import com.i54m.punisher.exceptions.DataFecthException;
-import com.i54m.punisher.exceptions.PunishmentsDatabaseException;
+import com.i54m.punisher.exceptions.PunishmentsStorageException;
 import com.i54m.punisher.handlers.ErrorHandler;
 import com.i54m.punisher.managers.PunishmentManager;
 import com.i54m.punisher.managers.WorkerManager;
@@ -89,8 +89,8 @@ public class UnmuteCommand extends Command {
                     }
                 } catch (SQLException e) {
                     try {
-                        throw new PunishmentsDatabaseException("Unmuting a player", targetname, this.getName(), e, "/unmute", strings);
-                    } catch (PunishmentsDatabaseException pde) {
+                        throw new PunishmentsStorageException("Unmuting a player", targetname, this.getName(), e, "/unmute", strings);
+                    } catch (PunishmentsStorageException pde) {
                         ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
                         errorHandler.log(pde);
                         errorHandler.alert(pde, commandSender);
@@ -145,8 +145,8 @@ public class UnmuteCommand extends Command {
                     }
                 } catch (SQLException e) {
                     try {
-                        throw new PunishmentsDatabaseException("Unmuting a player", targetname, this.getName(), e, "/unmute", strings);
-                    } catch (PunishmentsDatabaseException pde) {
+                        throw new PunishmentsStorageException("Unmuting a player", targetname, this.getName(), e, "/unmute", strings);
+                    } catch (PunishmentsStorageException pde) {
                         ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
                         errorHandler.log(pde);
                         errorHandler.alert(pde, commandSender);

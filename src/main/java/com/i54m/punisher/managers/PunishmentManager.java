@@ -4,7 +4,7 @@ import com.i54m.punisher.PunisherPlugin;
 import com.i54m.punisher.chats.StaffChat;
 import com.i54m.punisher.exceptions.ManagerNotStartedException;
 import com.i54m.punisher.exceptions.PunishmentCalculationException;
-import com.i54m.punisher.exceptions.PunishmentsDatabaseException;
+import com.i54m.punisher.exceptions.PunishmentsStorageException;
 import com.i54m.punisher.handlers.ErrorHandler;
 import com.i54m.punisher.managers.storage.StorageManager;
 import com.i54m.punisher.objects.ActivePunishments;
@@ -66,12 +66,12 @@ public class PunishmentManager implements Manager {
 
     }
 
-    public void issue(@NotNull final Punishment punishment, @Nullable ProxiedPlayer player, final boolean addHistory, final boolean announce, final boolean minusRep) throws PunishmentsDatabaseException {
+    public void issue(@NotNull final Punishment punishment, @Nullable ProxiedPlayer player, final boolean addHistory, final boolean announce, final boolean minusRep) throws PunishmentsStorageException {
         @Nullable final ProxiedPlayer finalPlayer = player;
         WORKER_MANAGER.runWorker(new WorkerManager.Worker(() -> {
             try {
                 storageManager.dumpNew();
-            } catch (PunishmentsDatabaseException pde) {
+            } catch (PunishmentsStorageException pde) {
                 ERROR_HANDLER.log(pde);
                 if (finalPlayer != null && finalPlayer.isConnected()) ERROR_HANDLER.alert(pde, finalPlayer);
                 else ERROR_HANDLER.adminChatAlert(pde, ProxyServer.getInstance().getConsole());
@@ -368,7 +368,7 @@ public class PunishmentManager implements Manager {
         }
     }
 
-    public void remove(@NotNull Punishment punishment, @Nullable ProxiedPlayer player, boolean removed, boolean removeHistory, boolean announce) throws PunishmentsDatabaseException {// TODO: 12/03/2020  need to rewrite this
+    public void remove(@NotNull Punishment punishment, @Nullable ProxiedPlayer player, boolean removed, boolean removeHistory, boolean announce) throws PunishmentsStorageException {// TODO: 12/03/2020  need to rewrite this
         UUID targetuuid = punishment.getTargetUUID();
         storageManager.loadUser(targetuuid, true);
         String reason = punishment.getReason();
@@ -457,7 +457,7 @@ public class PunishmentManager implements Manager {
         }
     }
 
-    public long calculateExpiration(Punishment punishment) throws PunishmentsDatabaseException {//todo verify that this is actually calculating correctly
+    public long calculateExpiration(Punishment punishment) throws PunishmentsStorageException {//todo verify that this is actually calculating correctly
         switch (punishment.getReason()) {
             case "Other_Minor_Offence":
                 return (long) 6.048e+8 + System.currentTimeMillis();
@@ -472,7 +472,7 @@ public class PunishmentManager implements Manager {
         return (long) (60000 * PLUGIN.getPunishments().getDouble(punishment.getReason() + "." + punishmentno + ".length")) + System.currentTimeMillis();
     }
 
-    public Punishment.Type calculateType(UUID targetuuid, String reason) throws PunishmentCalculationException, PunishmentsDatabaseException {
+    public Punishment.Type calculateType(UUID targetuuid, String reason) throws PunishmentCalculationException, PunishmentsStorageException {
         if (reason.contains("Manual") || reason.equals("Custom") || reason.contains("Other"))
             throw new PunishmentCalculationException("Punishment reason must be an automatic punishment type when calculating punishment type!", "type");
         int punishmentno = storageManager.getOffences(targetuuid, reason);
@@ -481,7 +481,7 @@ public class PunishmentManager implements Manager {
         return Punishment.Type.valueOf(PLUGIN.getPunishments().getString(reason + "." + punishmentno + ".type").toUpperCase());
     }
 
-    public double calculateRepLoss(@NotNull Punishment punishment) throws PunishmentsDatabaseException {
+    public double calculateRepLoss(@NotNull Punishment punishment) throws PunishmentsStorageException {
         if (punishment.isManual() && (punishment.isBan() || punishment.isMute()))
             return PLUGIN.getConfig().getDouble("ReputationScale." + punishment.getType().toString() + "." + 5);
         if (punishment.isManual() && (punishment.isWarn() || punishment.isKick()))
@@ -628,7 +628,7 @@ public class PunishmentManager implements Manager {
     public Punishment getPunishment(int id) {
         try {
             return storageManager.getPunishmentFromId(id);
-        } catch (PunishmentsDatabaseException pde) {
+        } catch (PunishmentsStorageException pde) {
             ERROR_HANDLER.log(pde);
             return null;
         }
@@ -716,8 +716,8 @@ public class PunishmentManager implements Manager {
                     remove(punishment, null, false, false, false);
                 } catch (SQLException e) {
                     try {
-                        throw new PunishmentsDatabaseException("Revoking punishment", punishment.getTargetName(), this.getClass().getName(), e);
-                    } catch (PunishmentsDatabaseException pde) {
+                        throw new PunishmentsStorageException("Revoking punishment", punishment.getTargetName(), this.getClass().getName(), e);
+                    } catch (PunishmentsStorageException pde) {
                         ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
                         errorHandler.log(pde);
                     }

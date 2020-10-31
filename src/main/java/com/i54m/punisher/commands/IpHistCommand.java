@@ -2,7 +2,7 @@ package com.i54m.punisher.commands;
 
 import com.i54m.punisher.PunisherPlugin;
 import com.i54m.punisher.exceptions.DataFecthException;
-import com.i54m.punisher.exceptions.PunishmentsDatabaseException;
+import com.i54m.punisher.exceptions.PunishmentsStorageException;
 import com.i54m.punisher.handlers.ErrorHandler;
 import com.i54m.punisher.utils.NameFetcher;
 import com.i54m.punisher.utils.UUIDFetcher;
@@ -14,9 +14,6 @@ import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.TreeMap;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -102,8 +99,8 @@ public class IpHistCommand extends Command {
                 }
             } catch (Exception sqle) {
                 try {
-                    throw new PunishmentsDatabaseException("Checking ip history", targetName, this.getName(), sqle, "/iphist", strings);
-                } catch (PunishmentsDatabaseException pde) {
+                    throw new PunishmentsStorageException("Checking ip history", targetName, this.getName(), sqle, "/iphist", strings);
+                } catch (PunishmentsStorageException pde) {
                     ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
                     errorHandler.log(pde);
                     errorHandler.alert(pde, commandSender);
