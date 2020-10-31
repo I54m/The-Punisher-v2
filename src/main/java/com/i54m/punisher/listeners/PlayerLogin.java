@@ -12,6 +12,7 @@ import net.md_5.bungee.event.EventPriority;
 
 import java.util.UUID;
 
+@Deprecated //Deprecated in favor of PrePlayerLogin, left in for the comment below from the old v1 source code
 public class PlayerLogin implements Listener {
 
     private final PunisherPlugin plugin = PunisherPlugin.getInstance();
