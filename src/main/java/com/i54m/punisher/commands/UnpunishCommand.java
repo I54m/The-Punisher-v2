@@ -105,10 +105,10 @@ public class UnpunishCommand extends Command {
                 } catch (SQLException e) {
                     try {
                         throw new PunishmentsStorageException("Unpunishing a player", targetname, this.getName(), e, "/unpunish", strings);
-                    } catch (PunishmentsStorageException pde) {
+                    } catch (PunishmentsStorageException pse) {
                         ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
-                        errorHandler.log(pde);
-                        errorHandler.alert(pde, commandSender);
+                        errorHandler.log(pse);
+                        errorHandler.alert(pse, commandSender);
                     }
                 }
             } else {

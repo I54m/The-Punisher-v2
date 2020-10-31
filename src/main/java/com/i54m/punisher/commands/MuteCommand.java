@@ -164,10 +164,10 @@ public class MuteCommand extends Command {
         } catch (SQLException e) {
             try {
                 throw new PunishmentsStorageException("Issuing mute on a player", targetname, this.getName(), e, "/mute", strings);
-            } catch (PunishmentsStorageException pde) {
+            } catch (PunishmentsStorageException pse) {
                 ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
-                errorHandler.log(pde);
-                errorHandler.alert(pde, commandSender);
+                errorHandler.log(pse);
+                errorHandler.alert(pse, commandSender);
             }
         }
     }

@@ -95,11 +95,11 @@ public class PlayerChat implements Listener {
         } catch (SQLException e) {
             try {
                 throw new PunishmentsStorageException("Removing mute on a player", targetname, this.getClass().getName(), e);
-            } catch (PunishmentsStorageException pde) {
+            } catch (PunishmentsStorageException pse) {
                 ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
-                errorHandler.log(pde);
-                errorHandler.alert(pde, player);
-                errorHandler.adminChatAlert(pde, player);
+                errorHandler.log(pse);
+                errorHandler.alert(pse, player);
+                errorHandler.adminChatAlert(pse, player);
                 event.setCancelled(true);
             }
         }

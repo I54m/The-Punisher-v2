@@ -185,10 +185,10 @@ public class AltsCommand extends Command {
         } catch (Exception e) {
             try {
                 throw new PunishmentsStorageException("Alts command (/alts" + strings[0] + strings[1] + ")", targetname, this.getName(), e);
-            } catch (PunishmentsStorageException pde) {
+            } catch (PunishmentsStorageException pse) {
                 ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
-                errorHandler.log(pde);
-                errorHandler.alert(pde, commandSender);
+                errorHandler.log(pse);
+                errorHandler.alert(pse, commandSender);
             }
         }
     }

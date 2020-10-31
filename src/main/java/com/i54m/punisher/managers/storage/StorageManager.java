@@ -37,9 +37,9 @@ public interface StorageManager extends Manager {
             dumpNew();
             clearCache();
             cache();
-        } catch (PunishmentsStorageException pde) {
-            ERROR_HANDLER.log(pde);
-            ERROR_HANDLER.adminChatAlert(pde, PLUGIN.getProxy().getConsole());
+        } catch (PunishmentsStorageException pse) {
+            ERROR_HANDLER.log(pse);
+            ERROR_HANDLER.adminChatAlert(pse, PLUGIN.getProxy().getConsole());
         }
     }
     void setupStorage() throws Exception;

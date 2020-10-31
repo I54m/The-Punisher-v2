@@ -337,9 +337,9 @@ public class DatabaseManager {
         if (cacheTask == null) {
             try {
                 cache();
-            } catch (PunishmentsStorageException pde) {
-                errorHandler.log(pde);
-                errorHandler.adminChatAlert(pde, plugin.getProxy().getConsole());
+            } catch (PunishmentsStorageException pse) {
+                errorHandler.log(pse);
+                errorHandler.adminChatAlert(pse, plugin.getProxy().getConsole());
             }
             cacheTask = plugin.getProxy().getScheduler().schedule(plugin, () -> {
                 if (plugin.getConfig().getBoolean("MySql.debugMode"))
@@ -349,9 +349,9 @@ public class DatabaseManager {
                 } catch (Exception e) {
                     try {
                         throw new PunishmentsStorageException("Caching punishments", "CONSOLE", this.getClass().getName(), e);
-                    } catch (PunishmentsStorageException pde) {
-                        errorHandler.log(pde);
-                        errorHandler.adminChatAlert(pde, plugin.getProxy().getConsole());
+                    } catch (PunishmentsStorageException pse) {
+                        errorHandler.log(pse);
+                        errorHandler.adminChatAlert(pse, plugin.getProxy().getConsole());
                     }
                 }
             }, 10, 10, TimeUnit.SECONDS);
@@ -373,9 +373,9 @@ public class DatabaseManager {
             DumpNew();
             clearCache();
             cache();
-        } catch (PunishmentsStorageException pde) {
-            errorHandler.log(pde);
-            errorHandler.adminChatAlert(pde, plugin.getProxy().getConsole());
+        } catch (PunishmentsStorageException pse) {
+            errorHandler.log(pse);
+            errorHandler.adminChatAlert(pse, plugin.getProxy().getConsole());
         }
     }
 

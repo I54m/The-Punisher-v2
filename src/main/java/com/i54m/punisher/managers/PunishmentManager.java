@@ -71,10 +71,10 @@ public class PunishmentManager implements Manager {
         WORKER_MANAGER.runWorker(new WorkerManager.Worker(() -> {
             try {
                 storageManager.dumpNew();
-            } catch (PunishmentsStorageException pde) {
-                ERROR_HANDLER.log(pde);
-                if (finalPlayer != null && finalPlayer.isConnected()) ERROR_HANDLER.alert(pde, finalPlayer);
-                else ERROR_HANDLER.adminChatAlert(pde, ProxyServer.getInstance().getConsole());
+            } catch (PunishmentsStorageException pse) {
+                ERROR_HANDLER.log(pse);
+                if (finalPlayer != null && finalPlayer.isConnected()) ERROR_HANDLER.alert(pse, finalPlayer);
+                else ERROR_HANDLER.adminChatAlert(pse, ProxyServer.getInstance().getConsole());
             }
         }));
 
@@ -628,8 +628,8 @@ public class PunishmentManager implements Manager {
     public Punishment getPunishment(int id) {
         try {
             return storageManager.getPunishmentFromId(id);
-        } catch (PunishmentsStorageException pde) {
-            ERROR_HANDLER.log(pde);
+        } catch (PunishmentsStorageException pse) {
+            ERROR_HANDLER.log(pse);
             return null;
         }
     }
@@ -717,9 +717,9 @@ public class PunishmentManager implements Manager {
                 } catch (SQLException e) {
                     try {
                         throw new PunishmentsStorageException("Revoking punishment", punishment.getTargetName(), this.getClass().getName(), e);
-                    } catch (PunishmentsStorageException pde) {
+                    } catch (PunishmentsStorageException pse) {
                         ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
-                        errorHandler.log(pde);
+                        errorHandler.log(pse);
                     }
                 }
                 PunisherPlugin.getLOGS().info(punishment.getTargetName() + "'s punishment expired so it was removed");

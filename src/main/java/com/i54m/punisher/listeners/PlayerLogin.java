@@ -26,8 +26,8 @@ public class PlayerLogin implements Listener {
             try {
                 plugin.getStorageManager().updateAlts(uuid, connection.getSocketAddress().toString());
                 plugin.getStorageManager().updateIpHist(uuid, connection.getSocketAddress().toString());
-            } catch (PunishmentsStorageException pde) {
-                errorHandler.log(pde);
+            } catch (PunishmentsStorageException pse) {
+                errorHandler.log(pse);
                 errorHandler.loginError(event);
             }
         }));
@@ -76,9 +76,9 @@ public class PlayerLogin implements Listener {
 //                try {
 //                    String targetName = NameFetcher.getName(fetcheduuid);
 //                    throw new PunishmentsStorageException("Updating ip in iphist", targetName, PlayerLogin.class.getName(), sqle);
-//                } catch (PunishmentsStorageException pde) {
+//                } catch (PunishmentsStorageException pse) {
 //                    ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
-//                    errorHandler.log(pde);
+//                    errorHandler.log(pse);
 //                    errorHandler.loginError(event);
 //                }
 //            }

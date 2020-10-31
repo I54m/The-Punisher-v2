@@ -100,10 +100,10 @@ public class IpHistCommand extends Command {
             } catch (Exception sqle) {
                 try {
                     throw new PunishmentsStorageException("Checking ip history", targetName, this.getName(), sqle, "/iphist", strings);
-                } catch (PunishmentsStorageException pde) {
+                } catch (PunishmentsStorageException pse) {
                     ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
-                    errorHandler.log(pde);
-                    errorHandler.alert(pde, commandSender);
+                    errorHandler.log(pse);
+                    errorHandler.alert(pse, commandSender);
                 }
             }
         } else commandSender.sendMessage(new TextComponent("You must be a player to use this command!"));

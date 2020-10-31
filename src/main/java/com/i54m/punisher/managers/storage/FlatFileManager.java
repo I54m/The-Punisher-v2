@@ -119,9 +119,9 @@ public class FlatFileManager implements StorageManager {
         if (cacheTask == null) {
             try {
                 cache();
-            } catch (PunishmentsStorageException pde) {
-                ERROR_HANDLER.log(pde);
-                ERROR_HANDLER.adminChatAlert(pde, PLUGIN.getProxy().getConsole());
+            } catch (PunishmentsStorageException pse) {
+                ERROR_HANDLER.log(pse);
+                ERROR_HANDLER.adminChatAlert(pse, PLUGIN.getProxy().getConsole());
             }
             cacheTask = PLUGIN.getProxy().getScheduler().schedule(PLUGIN, () -> {
                 if (PLUGIN.getConfig().getBoolean("MySql.debugMode"))
@@ -131,9 +131,9 @@ public class FlatFileManager implements StorageManager {
                 } catch (Exception e) {
                     try {
                         throw new PunishmentsStorageException("Caching punishments", "CONSOLE", this.getClass().getName(), e);
-                    } catch (PunishmentsStorageException pde) {
-                        ERROR_HANDLER.log(pde);
-                        ERROR_HANDLER.adminChatAlert(pde, PLUGIN.getProxy().getConsole());
+                    } catch (PunishmentsStorageException pse) {
+                        ERROR_HANDLER.log(pse);
+                        ERROR_HANDLER.adminChatAlert(pse, PLUGIN.getProxy().getConsole());
                     }
                 }
             }, 10, 10, TimeUnit.SECONDS);
@@ -210,9 +210,9 @@ public class FlatFileManager implements StorageManager {
         punishment.verify();
         try {
             updatePunishment(punishment);
-        } catch (PunishmentsStorageException pde) {
-            ERROR_HANDLER.log(pde);
-            ERROR_HANDLER.adminChatAlert(pde, PLUGIN.getProxy().getConsole());
+        } catch (PunishmentsStorageException pse) {
+            ERROR_HANDLER.log(pse);
+            ERROR_HANDLER.adminChatAlert(pse, PLUGIN.getProxy().getConsole());
         }
     }
 
@@ -579,8 +579,8 @@ public class FlatFileManager implements StorageManager {
                     for (UUID oldalt : UUIDFetcher.convertStringArray(oldalts)) {
                         try {
                             updateAlts(oldalt, finalIp);
-                        } catch (PunishmentsStorageException pde) {
-                            ERROR_HANDLER.log(pde);
+                        } catch (PunishmentsStorageException pse) {
+                            ERROR_HANDLER.log(pse);
                         }
                     }
                     updatingIps.remove(finalIp);
