@@ -3,7 +3,6 @@ package com.i54m.punisher.managers.storage;
 import com.i54m.punisher.exceptions.ManagerNotStartedException;
 import com.i54m.punisher.exceptions.PunishmentsStorageException;
 import com.i54m.punisher.managers.WorkerManager;
-import com.i54m.punisher.objects.ActivePunishments;
 import com.i54m.punisher.objects.Punishment;
 import com.i54m.punisher.utils.UUIDFetcher;
 import lombok.Getter;
@@ -367,25 +366,7 @@ public class FlatFileManager implements StorageManager {
         for (int punishmentIds : config.getIntList("Punishments")) {
             Punishment punishment = getPunishmentFromId(punishmentIds);
             if (onlyLoadActive && !punishment.isActive()) continue;
-            PUNISHMENT_CACHE.put(punishmentIds, punishment);
-            if (punishment.isActive()) {
-                UUID targetUUID = punishment.getTargetUUID();
-                ActivePunishments punishments;
-                if (ACTIVE_PUNISHMENT_CACHE.get(targetUUID) == null)
-                    punishments = new ActivePunishments();
-                else
-                    punishments = ACTIVE_PUNISHMENT_CACHE.get(targetUUID);
-
-                if (punishment.isBan() && !punishments.banActive())
-                    punishments.setBan(punishment);
-                else if (punishment.isBan() && punishments.banActive())
-                    punishments.setBan(PUNISHMENT_MANAGER.override(punishment, punishments.getBan()));
-                if (punishment.isMute() && !punishments.muteActive())
-                    punishments.setMute(punishment);
-                else if (punishment.isMute() && punishments.muteActive())
-                    punishments.setMute(PUNISHMENT_MANAGER.override(punishment, punishments.getMute()));
-                ACTIVE_PUNISHMENT_CACHE.put(targetUUID, punishments);
-            }
+            cachePunishment(punishment);
         }
     }
 

@@ -42,6 +42,27 @@ public interface StorageManager extends Manager {
             ERROR_HANDLER.adminChatAlert(pse, PLUGIN.getProxy().getConsole());
         }
     }
+    default void cachePunishment(Punishment punishment) {
+        if (!PUNISHMENT_CACHE.containsValue(punishment))
+            PUNISHMENT_CACHE.put(punishment.getId(), punishment);
+        if (punishment.isActive()) {
+            ActivePunishments punishments;
+            if (ACTIVE_PUNISHMENT_CACHE.get(punishment.getTargetUUID()) == null)
+                punishments = new ActivePunishments();
+            else
+                punishments = ACTIVE_PUNISHMENT_CACHE.get(punishment.getTargetUUID());
+
+            if (punishment.isBan() && !punishments.banActive())
+                punishments.setBan(punishment);
+            else if (punishment.isBan() && punishments.banActive())
+                punishments.setBan(PUNISHMENT_MANAGER.override(punishment, punishments.getBan()));
+            if (punishment.isMute() && !punishments.muteActive())
+                punishments.setMute(punishment);
+            else if (punishment.isMute() && punishments.muteActive())
+                punishments.setMute(PUNISHMENT_MANAGER.override(punishment, punishments.getMute()));
+            ACTIVE_PUNISHMENT_CACHE.put(punishment.getTargetUUID(), punishments);
+        }
+    }
     void setupStorage() throws Exception;
     void startCaching();
     void cache() throws PunishmentsStorageException;
