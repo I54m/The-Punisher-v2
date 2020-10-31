@@ -366,8 +366,8 @@ public class FlatFileManager implements StorageManager {
         Configuration config = yamlProvider.load(file);
         for (int punishmentIds : config.getIntList("Punishments")) {
             Punishment punishment = getPunishmentFromId(punishmentIds);
-            if (!onlyLoadActive)
-                PUNISHMENT_CACHE.put(punishmentIds, punishment);
+            if (onlyLoadActive && !punishment.isActive()) continue;
+            PUNISHMENT_CACHE.put(punishmentIds, punishment);
             if (punishment.isActive()) {
                 UUID targetUUID = punishment.getTargetUUID();
                 ActivePunishments punishments;
