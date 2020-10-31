@@ -2,7 +2,7 @@ package com.i54m.punisher.commands;
 
 import com.i54m.punisher.PunisherPlugin;
 import com.i54m.punisher.exceptions.DataFecthException;
-import com.i54m.punisher.exceptions.PunishmentsDatabaseException;
+import com.i54m.punisher.exceptions.PunishmentsStorageException;
 import com.i54m.punisher.handlers.ErrorHandler;
 import com.i54m.punisher.managers.PunishmentManager;
 import com.i54m.punisher.managers.WorkerManager;
@@ -89,11 +89,11 @@ public class UnbanCommand extends Command {
                     }
                 } catch (SQLException e) {
                     try {
-                        throw new PunishmentsDatabaseException("Unbanning a player", targetname, this.getName(), e, "/unban", strings);
-                    } catch (PunishmentsDatabaseException pde) {
+                        throw new PunishmentsStorageException("Unbanning a player", targetname, this.getName(), e, "/unban", strings);
+                    } catch (PunishmentsStorageException pse) {
                         ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
-                        errorHandler.log(pde);
-                        errorHandler.alert(pde, commandSender);
+                        errorHandler.log(pse);
+                        errorHandler.alert(pse, commandSender);
                     }
                 }
             } else {
@@ -154,11 +154,11 @@ public class UnbanCommand extends Command {
                     }
                 } catch (SQLException e) {
                     try {
-                        throw new PunishmentsDatabaseException("Unbanning a player", targetname, this.getName(), e, "/unban", strings);
-                    } catch (PunishmentsDatabaseException pde) {
+                        throw new PunishmentsStorageException("Unbanning a player", targetname, this.getName(), e, "/unban", strings);
+                    } catch (PunishmentsStorageException pse) {
                         ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
-                        errorHandler.log(pde);
-                        errorHandler.alert(pde, commandSender);
+                        errorHandler.log(pse);
+                        errorHandler.alert(pse, commandSender);
                     }
                 }
             } else {

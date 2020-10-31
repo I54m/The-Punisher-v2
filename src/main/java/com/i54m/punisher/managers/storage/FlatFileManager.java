@@ -1,7 +1,7 @@
 package com.i54m.punisher.managers.storage;
 
 import com.i54m.punisher.exceptions.ManagerNotStartedException;
-import com.i54m.punisher.exceptions.PunishmentsDatabaseException;
+import com.i54m.punisher.exceptions.PunishmentsStorageException;
 import com.i54m.punisher.managers.WorkerManager;
 import com.i54m.punisher.objects.ActivePunishments;
 import com.i54m.punisher.objects.Punishment;
@@ -119,9 +119,9 @@ public class FlatFileManager implements StorageManager {
         if (cacheTask == null) {
             try {
                 cache();
-            } catch (PunishmentsDatabaseException pde) {
-                ERROR_HANDLER.log(pde);
-                ERROR_HANDLER.adminChatAlert(pde, PLUGIN.getProxy().getConsole());
+            } catch (PunishmentsStorageException pse) {
+                ERROR_HANDLER.log(pse);
+                ERROR_HANDLER.adminChatAlert(pse, PLUGIN.getProxy().getConsole());
             }
             cacheTask = PLUGIN.getProxy().getScheduler().schedule(PLUGIN, () -> {
                 if (PLUGIN.getConfig().getBoolean("MySql.debugMode"))
@@ -130,10 +130,10 @@ public class FlatFileManager implements StorageManager {
                     WORKER_MANAGER.runWorker(new WorkerManager.Worker(this::resetCache));
                 } catch (Exception e) {
                     try {
-                        throw new PunishmentsDatabaseException("Caching punishments", "CONSOLE", this.getClass().getName(), e);
-                    } catch (PunishmentsDatabaseException pde) {
-                        ERROR_HANDLER.log(pde);
-                        ERROR_HANDLER.adminChatAlert(pde, PLUGIN.getProxy().getConsole());
+                        throw new PunishmentsStorageException("Caching punishments", "CONSOLE", this.getClass().getName(), e);
+                    } catch (PunishmentsStorageException pse) {
+                        ERROR_HANDLER.log(pse);
+                        ERROR_HANDLER.adminChatAlert(pse, PLUGIN.getProxy().getConsole());
                     }
                 }
             }, 10, 10, TimeUnit.SECONDS);
@@ -141,7 +141,7 @@ public class FlatFileManager implements StorageManager {
     }
 
     @Override
-    public void cache() throws PunishmentsDatabaseException {
+    public void cache() throws PunishmentsStorageException {
         if (locked) {
             ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
             return;
@@ -151,12 +151,12 @@ public class FlatFileManager implements StorageManager {
                 loadUser(player.getUniqueId(), false);
             }
         } catch (Exception e) {
-            throw new PunishmentsDatabaseException("Caching punishments", "CONSOLE", this.getClass().getName(), e);
+            throw new PunishmentsStorageException("Caching punishments", "CONSOLE", this.getClass().getName(), e);
         }
     }
 
     @Override
-    public void dumpNew() throws PunishmentsDatabaseException {
+    public void dumpNew() throws PunishmentsStorageException {
         if (locked) {
             ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
             return;
@@ -172,7 +172,7 @@ public class FlatFileManager implements StorageManager {
             try {
                 updatePunishment(punishment);
             } catch (Exception e) {
-                throw new PunishmentsDatabaseException("Dumping Punishment: " + punishment.toString(), "CONSOLE", this.getClass().getName(), e);
+                throw new PunishmentsStorageException("Dumping Punishment: " + punishment.toString(), "CONSOLE", this.getClass().getName(), e);
             }
         }
     }
@@ -210,14 +210,14 @@ public class FlatFileManager implements StorageManager {
         punishment.verify();
         try {
             updatePunishment(punishment);
-        } catch (PunishmentsDatabaseException pde) {
-            ERROR_HANDLER.log(pde);
-            ERROR_HANDLER.adminChatAlert(pde, PLUGIN.getProxy().getConsole());
+        } catch (PunishmentsStorageException pse) {
+            ERROR_HANDLER.log(pse);
+            ERROR_HANDLER.adminChatAlert(pse, PLUGIN.getProxy().getConsole());
         }
     }
 
     @Override
-    public void updatePunishment(@NotNull Punishment punishment) throws PunishmentsDatabaseException {
+    public void updatePunishment(@NotNull Punishment punishment) throws PunishmentsStorageException {
         if (locked) {
             ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
             return;
@@ -247,13 +247,13 @@ public class FlatFileManager implements StorageManager {
             } catch (IOException ioe) {
                 ioe.printStackTrace();
             }
-            throw new PunishmentsDatabaseException("Updating Punishment: " + punishment.toString(), "CONSOLE", this.getClass().getName(), e);
+            throw new PunishmentsStorageException("Updating Punishment: " + punishment.toString(), "CONSOLE", this.getClass().getName(), e);
         }
 
     }
 
     @Override
-    public void createHistory(@NotNull UUID uuid) throws PunishmentsDatabaseException {
+    public void createHistory(@NotNull UUID uuid) throws PunishmentsStorageException {
         if (locked) {
             ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
             return;
@@ -269,12 +269,12 @@ public class FlatFileManager implements StorageManager {
             config.set("Punishments", new ArrayList<Integer>());
             yamlProvider.save(config, file);
         } catch (Exception e) {
-            throw new PunishmentsDatabaseException("Creating History for: " + uuid.toString(), "CONSOLE", this.getClass().getName(), e);
+            throw new PunishmentsStorageException("Creating History for: " + uuid.toString(), "CONSOLE", this.getClass().getName(), e);
         }
     }
 
     @Override
-    public void createStaffHistory(@NotNull UUID uuid) throws PunishmentsDatabaseException {
+    public void createStaffHistory(@NotNull UUID uuid) throws PunishmentsStorageException {
         if (locked) {
             ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
             return;
@@ -290,12 +290,12 @@ public class FlatFileManager implements StorageManager {
             config.set("Punishments", new ArrayList<Integer>());
             yamlProvider.save(config, file);
         } catch (Exception e) {
-            throw new PunishmentsDatabaseException("Creating Staff History for: " + uuid.toString(), "CONSOLE", this.getClass().getName(), e);
+            throw new PunishmentsStorageException("Creating Staff History for: " + uuid.toString(), "CONSOLE", this.getClass().getName(), e);
         }
     }
 
     @Override
-    public void incrementHistory(@NotNull Punishment punishment) throws PunishmentsDatabaseException {
+    public void incrementHistory(@NotNull Punishment punishment) throws PunishmentsStorageException {
         if (locked) {
             ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
             return;
@@ -314,12 +314,12 @@ public class FlatFileManager implements StorageManager {
             config.set("Punishments", punishments);
             yamlProvider.save(config, file);
         } catch (Exception e) {
-            throw new PunishmentsDatabaseException("Incrementing Staff History for: " + punishment.getTargetUUID().toString(), "CONSOLE", this.getClass().getName(), e);
+            throw new PunishmentsStorageException("Incrementing Staff History for: " + punishment.getTargetUUID().toString(), "CONSOLE", this.getClass().getName(), e);
         }
     }
 
     @Override
-    public void incrementStaffHistory(@NotNull Punishment punishment) throws PunishmentsDatabaseException {
+    public void incrementStaffHistory(@NotNull Punishment punishment) throws PunishmentsStorageException {
         if (locked) {
             ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
             return;
@@ -335,12 +335,12 @@ public class FlatFileManager implements StorageManager {
             config.set("Punishments", punishments);
             yamlProvider.save(config, file);
         } catch (Exception e) {
-            throw new PunishmentsDatabaseException("Incrementing Staff History for: " + punishment.getPunisherUUID().toString(), "CONSOLE", this.getClass().getName(), e);
+            throw new PunishmentsStorageException("Incrementing Staff History for: " + punishment.getPunisherUUID().toString(), "CONSOLE", this.getClass().getName(), e);
         }
     }
 
     @Override
-    public void loadUser(@NotNull UUID uuid, boolean onlyLoadActive) throws PunishmentsDatabaseException {
+    public void loadUser(@NotNull UUID uuid, boolean onlyLoadActive) throws PunishmentsStorageException {
         if (locked) {
             ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
             return;
@@ -353,7 +353,7 @@ public class FlatFileManager implements StorageManager {
                 loadPunishmentsFromFile(new File(historyDir, alts.toString() + ".yml"), true);//always only load active punishments for alts as this could fill the cache very fast
             }
         } catch (Exception e) {
-            throw new PunishmentsDatabaseException("Loading User: " + uuid.toString(), "CONSOLE", this.getClass().getName(), e);
+            throw new PunishmentsStorageException("Loading User: " + uuid.toString(), "CONSOLE", this.getClass().getName(), e);
         }
     }
 
@@ -366,8 +366,8 @@ public class FlatFileManager implements StorageManager {
         Configuration config = yamlProvider.load(file);
         for (int punishmentIds : config.getIntList("Punishments")) {
             Punishment punishment = getPunishmentFromId(punishmentIds);
-            if (!onlyLoadActive)
-                PUNISHMENT_CACHE.put(punishmentIds, punishment);
+            if (onlyLoadActive && !punishment.isActive()) continue;
+            PUNISHMENT_CACHE.put(punishmentIds, punishment);
             if (punishment.isActive()) {
                 UUID targetUUID = punishment.getTargetUUID();
                 ActivePunishments punishments;
@@ -390,7 +390,7 @@ public class FlatFileManager implements StorageManager {
     }
 
     @Override
-    public Punishment getPunishmentFromId(int id) throws PunishmentsDatabaseException {
+    public Punishment getPunishmentFromId(int id) throws PunishmentsStorageException {
         try {
             if (PUNISHMENT_CACHE.containsKey(id)) return PUNISHMENT_CACHE.get(id);
             File punishmentFile = new File(punishmentsDir, id + ".yml");
@@ -408,12 +408,12 @@ public class FlatFileManager implements StorageManager {
                     Punishment.Status.valueOf(punishmentsConfig.getString("status")),
                     punishmentsConfig.getString("removerUUID").equals("N/A") ? null : UUID.fromString(punishmentsConfig.getString("removerUUID")));
         } catch (Exception e) {
-            throw new PunishmentsDatabaseException("Getting punishment from id: " + id, "CONSOLE", this.getClass().getName(), e);
+            throw new PunishmentsStorageException("Getting punishment from id: " + id, "CONSOLE", this.getClass().getName(), e);
         }
     }
 
     @Override
-    public int getOffences(@NotNull UUID targetUUID, @NotNull String reason) throws PunishmentsDatabaseException {
+    public int getOffences(@NotNull UUID targetUUID, @NotNull String reason) throws PunishmentsStorageException {
         if (locked) {
             ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
             return 0;
@@ -427,12 +427,12 @@ public class FlatFileManager implements StorageManager {
             Configuration config = yamlProvider.load(file);
             return config.getInt(reason, 0);
         } catch (Exception e) {
-            throw new PunishmentsDatabaseException("Getting offences on user: " + targetUUID, "CONSOLE", this.getClass().getName(), e);
+            throw new PunishmentsStorageException("Getting offences on user: " + targetUUID, "CONSOLE", this.getClass().getName(), e);
         }
     }
 
     @Override
-    public TreeMap<Integer, Punishment> getHistory(@NotNull UUID uuid) throws PunishmentsDatabaseException {
+    public TreeMap<Integer, Punishment> getHistory(@NotNull UUID uuid) throws PunishmentsStorageException {
         if (locked) {
             ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
             return null;
@@ -447,12 +447,12 @@ public class FlatFileManager implements StorageManager {
             }
             return punishments;
         } catch (Exception e) {
-            throw new PunishmentsDatabaseException("Getting history on user: " + uuid.toString(), "CONSOLE", this.getClass().getName(), e);
+            throw new PunishmentsStorageException("Getting history on user: " + uuid.toString(), "CONSOLE", this.getClass().getName(), e);
         }
     }
 
     @Override
-    public TreeMap<Integer, Punishment> getStaffHistory(@NotNull UUID uuid) throws PunishmentsDatabaseException {
+    public TreeMap<Integer, Punishment> getStaffHistory(@NotNull UUID uuid) throws PunishmentsStorageException {
         if (locked) {
             ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
             return null;
@@ -467,12 +467,12 @@ public class FlatFileManager implements StorageManager {
             }
             return punishments;
         } catch (Exception e) {
-            throw new PunishmentsDatabaseException("Getting staff history on user: " + uuid.toString(), "CONSOLE", this.getClass().getName(), e);
+            throw new PunishmentsStorageException("Getting staff history on user: " + uuid.toString(), "CONSOLE", this.getClass().getName(), e);
         }
     }
 
     @Override
-    public ArrayList<UUID> getAlts(@NotNull UUID uuid) throws PunishmentsDatabaseException {
+    public ArrayList<UUID> getAlts(@NotNull UUID uuid) throws PunishmentsStorageException {
         if (locked) {
             ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
             return null;
@@ -488,12 +488,12 @@ public class FlatFileManager implements StorageManager {
             ArrayList<String> alts = new ArrayList<>(config.getStringList("alts"));
             return UUIDFetcher.convertStringArray(alts);
         } catch (Exception e) {
-            throw new PunishmentsDatabaseException("Getting alts on user: " + uuid.toString(), "CONSOLE", this.getClass().getName(), e);
+            throw new PunishmentsStorageException("Getting alts on user: " + uuid.toString(), "CONSOLE", this.getClass().getName(), e);
         }
     }
 
     @Override
-    public ArrayList<UUID> getAlts(@NotNull String ip) throws PunishmentsDatabaseException {
+    public ArrayList<UUID> getAlts(@NotNull String ip) throws PunishmentsStorageException {
         if (locked) {
             ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
             return null;
@@ -505,12 +505,12 @@ public class FlatFileManager implements StorageManager {
             ArrayList<String> alts = new ArrayList<>(config.getStringList("alts"));
             return UUIDFetcher.convertStringArray(alts);
         } catch (Exception e) {
-            throw new PunishmentsDatabaseException("Getting alts on ip: " + ip, "CONSOLE", this.getClass().getName(), e);
+            throw new PunishmentsStorageException("Getting alts on ip: " + ip, "CONSOLE", this.getClass().getName(), e);
         }
     }
 
     @Override
-    public TreeMap<Long, String> getIpHist(@NotNull UUID uuid) throws PunishmentsDatabaseException {
+    public TreeMap<Long, String> getIpHist(@NotNull UUID uuid) throws PunishmentsStorageException {
         if (locked) {
             ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
             return null;
@@ -525,12 +525,12 @@ public class FlatFileManager implements StorageManager {
             }
             return iphist;
         } catch (Exception e) {
-            throw new PunishmentsDatabaseException("Getting iphist on user: " + uuid.toString(), "CONSOLE", this.getClass().getName(), e);
+            throw new PunishmentsStorageException("Getting iphist on user: " + uuid.toString(), "CONSOLE", this.getClass().getName(), e);
         }
     }
 
     @Override
-    public void updateAlts(@NotNull final UUID uuid, @NotNull String ip) throws PunishmentsDatabaseException {
+    public void updateAlts(@NotNull final UUID uuid, @NotNull String ip) throws PunishmentsStorageException {
         if (locked) {
             ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
             return;
@@ -579,20 +579,20 @@ public class FlatFileManager implements StorageManager {
                     for (UUID oldalt : UUIDFetcher.convertStringArray(oldalts)) {
                         try {
                             updateAlts(oldalt, finalIp);
-                        } catch (PunishmentsDatabaseException pde) {
-                            ERROR_HANDLER.log(pde);
+                        } catch (PunishmentsStorageException pse) {
+                            ERROR_HANDLER.log(pse);
                         }
                     }
                     updatingIps.remove(finalIp);
                 }));
             }
         } catch (Exception e) {
-            throw new PunishmentsDatabaseException("Updating alts on user: " + uuid.toString(), "CONSOLE", this.getClass().getName(), e);
+            throw new PunishmentsStorageException("Updating alts on user: " + uuid.toString(), "CONSOLE", this.getClass().getName(), e);
         }
     }
 
     @Override
-    public void updateIpHist(@NotNull UUID uuid, @NotNull String ip) throws PunishmentsDatabaseException {
+    public void updateIpHist(@NotNull UUID uuid, @NotNull String ip) throws PunishmentsStorageException {
         if (locked) {
             ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
             return;
@@ -606,7 +606,7 @@ public class FlatFileManager implements StorageManager {
             config.set("iphist." + System.currentTimeMillis(), ip);
             yamlProvider.save(config, file);
         } catch (Exception e) {
-            throw new PunishmentsDatabaseException("Updating iphist on user: " + uuid.toString(), "CONSOLE", this.getClass().getName(), e);
+            throw new PunishmentsStorageException("Updating iphist on user: " + uuid.toString(), "CONSOLE", this.getClass().getName(), e);
         }
     }
 

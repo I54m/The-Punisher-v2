@@ -2,7 +2,7 @@ package com.i54m.punisher.commands;
 
 import com.i54m.punisher.PunisherPlugin;
 import com.i54m.punisher.exceptions.DataFecthException;
-import com.i54m.punisher.exceptions.PunishmentsDatabaseException;
+import com.i54m.punisher.exceptions.PunishmentsStorageException;
 import com.i54m.punisher.fetchers.Status;
 import com.i54m.punisher.handlers.ErrorHandler;
 import com.i54m.punisher.utils.NameFetcher;
@@ -16,8 +16,6 @@ import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -186,11 +184,11 @@ public class AltsCommand extends Command {
             }
         } catch (Exception e) {
             try {
-                throw new PunishmentsDatabaseException("Alts command (/alts" + strings[0] + strings[1] + ")", targetname, this.getName(), e);
-            } catch (PunishmentsDatabaseException pde) {
+                throw new PunishmentsStorageException("Alts command (/alts" + strings[0] + strings[1] + ")", targetname, this.getName(), e);
+            } catch (PunishmentsStorageException pse) {
                 ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
-                errorHandler.log(pde);
-                errorHandler.alert(pde, commandSender);
+                errorHandler.log(pse);
+                errorHandler.alert(pse, commandSender);
             }
         }
     }

@@ -2,13 +2,13 @@ package com.i54m.punisher.exceptions;
 
 import java.sql.SQLException;
 
-public class PunishmentsDatabaseException extends SQLException { // TODO: 5/08/2020 redo this error to support the different storage managers
+public class PunishmentsStorageException extends SQLException { // TODO: 5/08/2020 redo this error to support the different storage managers
     private final String reason, user, causingClass;
     private String command;
     private String[] commandline;
     private final Throwable cause;
 
-    public PunishmentsDatabaseException(String reason, String user, String causingClass, Throwable cause) {
+    public PunishmentsStorageException(String reason, String user, String causingClass, Throwable cause) {
         super(cause);
         this.reason = reason;
         this.user = user;
@@ -16,7 +16,7 @@ public class PunishmentsDatabaseException extends SQLException { // TODO: 5/08/2
         this.cause = cause;
     }
 
-    public PunishmentsDatabaseException(String reason, String user, String causingClass, Throwable cause, String command, String[] commandline) {
+    public PunishmentsStorageException(String reason, String user, String causingClass, Throwable cause, String command, String[] commandline) {
         super(cause);
         this.reason = reason;
         this.user = user;

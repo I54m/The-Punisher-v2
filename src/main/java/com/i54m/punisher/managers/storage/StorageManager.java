@@ -1,6 +1,6 @@
 package com.i54m.punisher.managers.storage;
 
-import com.i54m.punisher.exceptions.PunishmentsDatabaseException;
+import com.i54m.punisher.exceptions.PunishmentsStorageException;
 import com.i54m.punisher.managers.Manager;
 import com.i54m.punisher.managers.PunishmentManager;
 import com.i54m.punisher.managers.WorkerManager;
@@ -37,30 +37,30 @@ public interface StorageManager extends Manager {
             dumpNew();
             clearCache();
             cache();
-        } catch (PunishmentsDatabaseException pde) {
-            ERROR_HANDLER.log(pde);
-            ERROR_HANDLER.adminChatAlert(pde, PLUGIN.getProxy().getConsole());
+        } catch (PunishmentsStorageException pse) {
+            ERROR_HANDLER.log(pse);
+            ERROR_HANDLER.adminChatAlert(pse, PLUGIN.getProxy().getConsole());
         }
     }
     void setupStorage() throws Exception;
     void startCaching();
-    void cache() throws PunishmentsDatabaseException;
-    void dumpNew() throws PunishmentsDatabaseException;
+    void cache() throws PunishmentsStorageException;
+    void dumpNew() throws PunishmentsStorageException;
     void NewPunishment(@NotNull Punishment punishment);
-    void updatePunishment(@NotNull Punishment punishment) throws PunishmentsDatabaseException;
-    void createHistory(@NotNull UUID uuid) throws PunishmentsDatabaseException;
-    void createStaffHistory(@NotNull UUID uuid) throws PunishmentsDatabaseException;
-    void incrementHistory(@NotNull Punishment punishment) throws PunishmentsDatabaseException;
-    void incrementStaffHistory(@NotNull Punishment punishment) throws PunishmentsDatabaseException;
-    void loadUser(@NotNull UUID uuid, boolean onlyLoadActive) throws PunishmentsDatabaseException;
-    void updateAlts(@NotNull UUID uuid, @NotNull String ip) throws PunishmentsDatabaseException;
-    void updateIpHist(@NotNull UUID uuid, @NotNull  String ip) throws PunishmentsDatabaseException;
-    Punishment getPunishmentFromId(int id) throws PunishmentsDatabaseException;
-    int getOffences(@NotNull UUID targetUUID, @NotNull String reason) throws PunishmentsDatabaseException;
-    TreeMap<Integer, Punishment> getHistory(@NotNull UUID uuid) throws PunishmentsDatabaseException;
-    TreeMap<Integer, Punishment> getStaffHistory(@NotNull UUID uuid) throws PunishmentsDatabaseException;
-    ArrayList<UUID> getAlts(@NotNull UUID uuid) throws PunishmentsDatabaseException;
-    ArrayList<UUID> getAlts(@NotNull String ip) throws PunishmentsDatabaseException;
-    TreeMap<Long, String> getIpHist(@NotNull UUID uuid) throws PunishmentsDatabaseException;
+    void updatePunishment(@NotNull Punishment punishment) throws PunishmentsStorageException;
+    void createHistory(@NotNull UUID uuid) throws PunishmentsStorageException;
+    void createStaffHistory(@NotNull UUID uuid) throws PunishmentsStorageException;
+    void incrementHistory(@NotNull Punishment punishment) throws PunishmentsStorageException;
+    void incrementStaffHistory(@NotNull Punishment punishment) throws PunishmentsStorageException;
+    void loadUser(@NotNull UUID uuid, boolean onlyLoadActive) throws PunishmentsStorageException;
+    void updateAlts(@NotNull UUID uuid, @NotNull String ip) throws PunishmentsStorageException;
+    void updateIpHist(@NotNull UUID uuid, @NotNull  String ip) throws PunishmentsStorageException;
+    Punishment getPunishmentFromId(int id) throws PunishmentsStorageException;
+    int getOffences(@NotNull UUID targetUUID, @NotNull String reason) throws PunishmentsStorageException;
+    TreeMap<Integer, Punishment> getHistory(@NotNull UUID uuid) throws PunishmentsStorageException;
+    TreeMap<Integer, Punishment> getStaffHistory(@NotNull UUID uuid) throws PunishmentsStorageException;
+    ArrayList<UUID> getAlts(@NotNull UUID uuid) throws PunishmentsStorageException;
+    ArrayList<UUID> getAlts(@NotNull String ip) throws PunishmentsStorageException;
+    TreeMap<Long, String> getIpHist(@NotNull UUID uuid) throws PunishmentsStorageException;
     int getNextID();
 }

@@ -28,8 +28,8 @@ public class PrePlayerLogin implements Listener {
             try {
                 UUID uuid = uuidFetcher.call();
                 plugin.getStorageManager().loadUser(uuid, false);
-            } catch (Exception pde) {
-                errorHandler.log(pde);
+            } catch (Exception pse) {
+                errorHandler.log(pse);
                 errorHandler.loginError(event);
             }
         }));
@@ -40,8 +40,8 @@ public class PrePlayerLogin implements Listener {
                 UUID uuid = uuidFetcher.call();
                 plugin.getStorageManager().updateAlts(uuid, connection.getSocketAddress().toString());
                 plugin.getStorageManager().updateIpHist(uuid, connection.getSocketAddress().toString());
-            } catch (Exception pde) {
-                errorHandler.log(pde);
+            } catch (Exception pse) {
+                errorHandler.log(pse);
                 errorHandler.loginError(event);
             }
         }));

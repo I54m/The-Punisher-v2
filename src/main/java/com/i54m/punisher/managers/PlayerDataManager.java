@@ -138,8 +138,8 @@ public class PlayerDataManager implements Listener, Manager {
             try {
                 UUID uuid = uuidFetcher.call();
                 loadPlayerData(uuid);
-            } catch (Exception pde) {
-                ERROR_HANDLER.log(pde);
+            } catch (Exception pse) {
+                ERROR_HANDLER.log(pse);
                 ERROR_HANDLER.loginError(e);
             }
         }));
