@@ -32,7 +32,7 @@ public class PostPlayerLogin implements Listener {
         final UUID uuid = player.getUniqueId();
         final String targetName = player.getName();
         workerManager.runWorker(new WorkerManager.Worker(() -> {
-            //updated name & uuid fetcher cache
+            //update name & uuid fetcher cache
             NameFetcher.updateStoredName(uuid, targetName);
             UUIDFetcher.updateStoredUUID(targetName, uuid);
         }));
