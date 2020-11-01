@@ -401,7 +401,7 @@ public class PunisherPlugin extends Plugin {
     private void registerListeners() {
         getLogger().info(prefix + ChatColor.GREEN + "Registering Listeners...");
         getProxy().getPluginManager().registerListener(this, new PlayerChat());
-        getProxy().getPluginManager().registerListener(this, new PlayerLogin());
+        getProxy().getPluginManager().registerListener(this, new PrePlayerLogin());
         getProxy().getPluginManager().registerListener(this, new PlayerVote());
         getProxy().getPluginManager().registerListener(this, new PostPlayerLogin());
         getProxy().getPluginManager().registerListener(this, new TabComplete());
