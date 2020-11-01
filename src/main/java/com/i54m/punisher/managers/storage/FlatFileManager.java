@@ -204,8 +204,7 @@ public class FlatFileManager implements StorageManager {
         punishment.setMessage(message);
         if (PUNISHMENT_MANAGER.isLocked(punishment.getTargetUUID()))
             punishment.setStatus(Punishment.Status.Overridden);
-        if (!PUNISHMENT_CACHE.containsKey(punishment.getId()))
-            PUNISHMENT_CACHE.put(punishment.getId(), punishment);
+        cachePunishment(punishment);
         punishment.verify();
         try {
             updatePunishment(punishment);
@@ -463,11 +462,7 @@ public class FlatFileManager implements StorageManager {
             if (!file.exists()) return new ArrayList<>();
             Configuration config = yamlProvider.load(file);
             String ip = config.getString("ip");
-            file = new File(altsDir, ip + ".yml");
-            if (!file.exists()) return new ArrayList<>();
-            config = yamlProvider.load(file);
-            ArrayList<String> alts = new ArrayList<>(config.getStringList("alts"));
-            return UUIDFetcher.convertStringArray(alts);
+            return getAlts(ip);
         } catch (Exception e) {
             throw new PunishmentsStorageException("Getting alts on user: " + uuid.toString(), "CONSOLE", this.getClass().getName(), e);
         }
