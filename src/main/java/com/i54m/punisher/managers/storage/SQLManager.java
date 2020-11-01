@@ -4,8 +4,8 @@ import com.i54m.punisher.PunisherPlugin;
 import com.i54m.punisher.exceptions.ManagerNotStartedException;
 import com.i54m.punisher.exceptions.PunishmentsStorageException;
 import com.i54m.punisher.managers.WorkerManager;
-import com.i54m.punisher.objects.ActivePunishments;
 import com.i54m.punisher.objects.Punishment;
+import com.i54m.punisher.utils.UUIDFetcher;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -24,7 +24,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Map;
 import java.util.TreeMap;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -167,16 +166,18 @@ public class SQLManager implements StorageManager {
                 "ENGINE = InnoDB CHARSET=utf8 COLLATE utf8_general_ci;";
         String alt_list = "CREATE TABLE IF NOT EXISTS`" + database + "`.`alt_list` ( " +
                 "`UUID` VARCHAR(32) NOT NULL , " +
-                "`ip` VARCHAR(32) NOT NULL , " +
+                "`IP` VARCHAR(32) NOT NULL , " +
                 "PRIMARY KEY (`UUID`)) " +
                 "ENGINE = InnoDB CHARSET=utf8 COLLATE utf8_general_ci;";
         String ip_history = "CREATE TABLE IF NOT EXISTS`" + database + "`.`ip_history` ( " +
                 "`UUID` VARCHAR(32) NOT NULL , " +
-                "`date` BIGINT NOT NULL , " +
-                "`ip` VARCHAR(32) NOT NULL , " +
+                "`Date` BIGINT NOT NULL , " +
+                "`IP` VARCHAR(32) NOT NULL , " +
                 "PRIMARY KEY (`UUID`)) " +
                 "ENGINE = InnoDB CHARSET=utf8 COLLATE utf8_general_ci;";
-        String use_db = "USE " + database;
+        String use_db = "USE " + database;// TODO: 1/11/2020 test if this works on sqlite
+        if (storageType == StorageType.MY_SQL)
+            use_db = "USE " + database;
         PreparedStatement stmt = connection.prepareStatement(createdb);
         PreparedStatement stmt1 = connection.prepareStatement(punishments);
         PreparedStatement stmt2 = connection.prepareStatement(alt_list);
@@ -256,24 +257,7 @@ public class SQLManager implements StorageManager {
             }
             for (Punishment punishment : PunishmentCache.values()) {
                 if (!exsistingIDs.contains(punishment.getId()))
-                    try {
-                        String message = punishment.getMessage();
-                        if (message.contains("'"))
-                            message = message.replaceAll("'", "%sinquo%");
-                        if (message.contains("\""))
-                            message = message.replaceAll("\"", "%dubquo%");
-                        if (message.contains("`"))
-                            message = message.replaceAll("`", "%bcktck%");
-                        String sql1 = "INSERT INTO `punishments` (`id`, `type`, `reason`, `issueDate`, `expiration`, `targetUUID`, `targetName`, `punisherUUID`, `message`, `status`, `removerUUID`)" +
-                                " VALUES ('" + punishment.getId() + "', '" + punishment.getType().toString() + "', '" + punishment.getReason().toString() + "', '" + punishment.getIssueDate() + "', '"
-                                + punishment.getExpiration() + "', '" + punishment.getTargetUUID() + "', '" + punishment.getTargetName() + "', '" + punishment.getPunisherUUID() + "', '" + message
-                                + "', '" + punishment.getStatus().toString() + "', '" + punishment.getRemoverUUID() + "');";
-                        PreparedStatement stmt1 = connection.prepareStatement(sql1);
-                        stmt1.executeUpdate();
-                        stmt1.close();
-                    } catch (SQLException sqle) {
-                        throw new PunishmentsStorageException("Dumping Punishment: " + punishment.toString(), "CONSOLE", this.getClass().getName(), sqle);
-                    }
+                    NewPunishment(punishment);
             }
             resultspunishment.close();
             stmtpunishment.close();
@@ -310,11 +294,18 @@ public class SQLManager implements StorageManager {
         punishment.setMessage(message);
         if (PUNISHMENT_MANAGER.isLocked(punishment.getTargetUUID()))
             punishment.setStatus(Punishment.Status.Overridden);
-        if (!PUNISHMENT_CACHE.containsKey(punishment.getId()))
-            PUNISHMENT_CACHE.put(punishment.getId(), punishment);
+        cachePunishment(punishment);
+        punishment.verify();
         try {
-            updatePunishment(punishment);
-        } catch (PunishmentsStorageException pse) {
+            String sql1 = "INSERT INTO `punishments` (`ID`, `Type`, `Reason`, `Issue_Date`, `Expiration`, `Target_UUID`, `Target_Name`, `Punisher_UUID`, `Message`, `Status`, `Remover_UUID`)" +
+                    " VALUES ('" + punishment.getId() + "', '" + punishment.getType().toString() + "', '" + punishment.getReason() + "', '" + punishment.getIssueDate() + "', '"
+                    + punishment.getExpiration() + "', '" + punishment.getTargetUUID().toString() + "', '" + punishment.getTargetName() + "', '" + punishment.getPunisherUUID().toString() + "', '" + message
+                    + "', '" + punishment.getStatus().toString() + "', '" + punishment.getRemoverUUID().toString() + "');";
+            PreparedStatement stmt1 = connection.prepareStatement(sql1);
+            stmt1.executeUpdate();
+            stmt1.close();
+        } catch (SQLException sqle) {
+            PunishmentsStorageException pse = new PunishmentsStorageException("Adding Punishment: " + punishment.toString() + " to database.", "CONSOLE", this.getClass().getName(), sqle);
             ERROR_HANDLER.log(pse);
             ERROR_HANDLER.adminChatAlert(pse, PLUGIN.getProxy().getConsole());
         }
@@ -335,17 +326,17 @@ public class SQLManager implements StorageManager {
             if (message.contains("`"))
                 message = message.replaceAll("`", "%bcktck%");
             String sql = "UPDATE `punishments` SET " +
-                    "`type`='" + punishment.getType().toString() + "', " +
-                    "`reason`='" + punishment.getReason() + "', " +
-                    "`issueDate`='" + punishment.getIssueDate() + "', " +
-                    "`expiration`='" + punishment.getExpiration() + "', " +
-                    "`targetUUID`='" + punishment.getTargetUUID() + "', " +
-                    "`targetName`='" + punishment.getTargetName() + "', " +
-                    "`punisherUUID`='" + punishment.getPunisherUUID() + "', " +
-                    "`message`='" + message + "', " +
-                    "`status`='" + punishment.getStatus().toString() + "', " +
-                    "`removerUUID`='" + punishment.getRemoverUUID() + "' " +
-                    "WHERE `id`='" + punishment.getId() + "' ;";
+                    "`Type`='" + punishment.getType().toString() + "', " +
+                    "`Reason`='" + punishment.getReason() + "', " +
+                    "`Issue_Date`='" + punishment.getIssueDate() + "', " +
+                    "`Expiration`='" + punishment.getExpiration() + "', " +
+                    "`Target_UUID`='" + punishment.getTargetUUID().toString() + "', " +
+                    "`Target_Name`='" + punishment.getTargetName() + "', " +
+                    "`Punisher_UUID`='" + punishment.getPunisherUUID().toString() + "', " +
+                    "`Message`='" + message + "', " +
+                    "`Status`='" + punishment.getStatus().toString() + "', " +
+                    "`Remover_UUID`='" + punishment.getRemoverUUID().toString() + "' " +
+                    "WHERE `ID`='" + punishment.getId() + "' ;";
             PreparedStatement stmt = connection.prepareStatement(sql);
             stmt.executeUpdate();
             stmt.close();
@@ -355,49 +346,23 @@ public class SQLManager implements StorageManager {
     }
 
     @Override
-    public void createHistory(@NotNull UUID uuid) throws PunishmentsStorageException {
-        //these do nothing as history is done by the punishments database.
+    public void createHistory(@NotNull UUID uuid) {
+        //No need as amount of offences is calculated from the punishments table when we fetch it.
     }
 
     @Override
-    public void createStaffHistory(@NotNull UUID uuid) throws PunishmentsStorageException {
-
-    }
-
-
-    @Override
-    public TreeMap<Integer, Punishment> getPunishmentCache() {
-        return null;
+    public void createStaffHistory(@NotNull UUID uuid) {
+        //No need as amount of offences is calculated from the punishments table when we fetch it.
     }
 
     @Override
-    public Map<UUID, ActivePunishments> getActivePunishmentCache() {
-        return null;
+    public void incrementHistory(@NotNull Punishment punishment) {
+        //No need as amount of offences is calculated from the punishments table when we fetch it.
     }
 
     @Override
-    public Map<String, Integer> getPunishmentReasons() {
-        return null;
-    }
-
-    @Override
-    public void clearCache() {
-
-    }
-
-    @Override
-    public void resetCache() {
-
-    }
-
-    @Override
-    public void incrementHistory(@NotNull Punishment punishment) throws PunishmentsStorageException {
-
-    }
-
-    @Override
-    public void incrementStaffHistory(@NotNull Punishment punishment) throws PunishmentsStorageException {
-
+    public void incrementStaffHistory(@NotNull Punishment punishment) {
+        //No need as amount of offences is calculated from the punishments table when we fetch it.
     }
 
     @Override
@@ -417,58 +382,328 @@ public class SQLManager implements StorageManager {
     }
 
     private void loadPunishmentsFromDatabase(UUID targetUUID, boolean onlyLoadActive) throws Exception {
-        if (onlyLoadActive) {
-            //get all punishments where targetUUID = targetUUID & Status = ACTIVE
-        } else {
-            //get all punishments where targetUUID = targetUUID or punisherUUID = targetUUID
+        String sqlpunishment;
+        if (onlyLoadActive)
+            sqlpunishment = "SELECT * FROM `punishments` WHERE `Target_UUID`='" + targetUUID + "' AND `Status`='Active';";
+        else
+            sqlpunishment = "SELECT * FROM `punishments` WHERE `Target_UUID`='" + targetUUID + "' OR `Punisher_UUID`='" + targetUUID + "';";
+        PreparedStatement stmtpunishment = connection.prepareStatement(sqlpunishment);
+        ResultSet resultspunishment = stmtpunishment.executeQuery();
+        while (resultspunishment.next()) {
+            Punishment punishment = new Punishment(
+                    resultspunishment.getInt("ID"),
+                    Punishment.Type.valueOf(resultspunishment.getString("Type")),
+                    resultspunishment.getString("Reason"),
+                    resultspunishment.getString("Issue_Date"),
+                    resultspunishment.getLong("Expiration"),
+                    UUID.fromString(resultspunishment.getString("Target_UUID")),
+                    resultspunishment.getString("Target_Name"),
+                    UUID.fromString(resultspunishment.getString("Punisher_UUID")),
+                    resultspunishment.getString("Message"),
+                    Punishment.Status.valueOf(resultspunishment.getString("Status")),
+                    UUID.fromString(resultspunishment.getString("Remover_UUID")));
+            String message = punishment.getMessage();
+            if (message.contains("%sinquo%"))
+                message = message.replaceAll("%sinquo%", "'");
+            if (message.contains("%dubquo%"))
+                message = message.replaceAll("%dubquo%", "\"");
+            if (message.contains("%bcktck%"))
+                message = message.replaceAll("%bcktck%", "`");
+            punishment.setMessage(message);
+            cachePunishment(punishment);
+        }
+        resultspunishment.close();
+        stmtpunishment.close();
+    }
+
+    @Override
+    public Punishment getPunishmentFromId(int id) throws PunishmentsStorageException {
+        try {
+            if (PUNISHMENT_CACHE.containsKey(id)) return PUNISHMENT_CACHE.get(id);
+            String sqlpunishment = "SELECT * FROM `punishments` WHERE `ID`='" + id + "';";
+            PreparedStatement stmtpunishment = connection.prepareStatement(sqlpunishment);
+            ResultSet resultspunishment = stmtpunishment.executeQuery();
+            Punishment punishment = new Punishment(
+                    resultspunishment.getInt("ID"),
+                    Punishment.Type.valueOf(resultspunishment.getString("Type")),
+                    resultspunishment.getString("Reason"),
+                    resultspunishment.getString("Issue_Date"),
+                    resultspunishment.getLong("Expiration"),
+                    UUID.fromString(resultspunishment.getString("Target_UUID")),
+                    resultspunishment.getString("Target_Name"),
+                    UUID.fromString(resultspunishment.getString("Punisher_UUID")),
+                    resultspunishment.getString("Message"),
+                    Punishment.Status.valueOf(resultspunishment.getString("Status")),
+                    UUID.fromString(resultspunishment.getString("Remover_UUID")));
+            String message = punishment.getMessage();
+            if (message.contains("%sinquo%"))
+                message = message.replaceAll("%sinquo%", "'");
+            if (message.contains("%dubquo%"))
+                message = message.replaceAll("%dubquo%", "\"");
+            if (message.contains("%bcktck%"))
+                message = message.replaceAll("%bcktck%", "`");
+            punishment.setMessage(message);
+            cachePunishment(punishment);
+            resultspunishment.close();
+            stmtpunishment.close();
+            return punishment;
+        } catch (Exception e) {
+            throw new PunishmentsStorageException("Getting punishment from id: " + id, "CONSOLE", this.getClass().getName(), e);
+        }
+    }
+
+    @Override
+    public int getOffences(@NotNull UUID targetUUID, @NotNull String reason) throws PunishmentsStorageException {
+        if (locked) {
+            ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
+            return 0;
+        }
+        if (!PUNISHMENT_REASONS.containsKey(reason))
+            throw new IllegalArgumentException(reason + " is not a defined reason!!");
+        try {
+            String sqlpunishment = "SELECT * FROM `punishments` WHERE `Target_UUID`='" + targetUUID + "' AND `Reason`='" + reason + "';";
+            PreparedStatement stmtpunishment = connection.prepareStatement(sqlpunishment);
+            ResultSet resultspunishment = stmtpunishment.executeQuery();
+            int offences = 0;
+            while (resultspunishment.next()) {
+                offences++;
+                Punishment punishment = new Punishment(
+                        resultspunishment.getInt("ID"),
+                        Punishment.Type.valueOf(resultspunishment.getString("Type")),
+                        resultspunishment.getString("Reason"),
+                        resultspunishment.getString("Issue_Date"),
+                        resultspunishment.getLong("Expiration"),
+                        UUID.fromString(resultspunishment.getString("Target_UUID")),
+                        resultspunishment.getString("Target_Name"),
+                        UUID.fromString(resultspunishment.getString("Punisher_UUID")),
+                        resultspunishment.getString("Message"),
+                        Punishment.Status.valueOf(resultspunishment.getString("Status")),
+                        UUID.fromString(resultspunishment.getString("Remover_UUID")));
+                String message = punishment.getMessage();
+                if (message.contains("%sinquo%"))
+                    message = message.replaceAll("%sinquo%", "'");
+                if (message.contains("%dubquo%"))
+                    message = message.replaceAll("%dubquo%", "\"");
+                if (message.contains("%bcktck%"))
+                    message = message.replaceAll("%bcktck%", "`");
+                punishment.setMessage(message);
+                cachePunishment(punishment);
+            }
+            resultspunishment.close();
+            stmtpunishment.close();
+            return offences;
+        } catch (Exception e) {
+            throw new PunishmentsStorageException("Getting offences on user: " + targetUUID, "CONSOLE", this.getClass().getName(), e);
+        }
+    }
+
+    @Override
+    public TreeMap<Integer, Punishment> getHistory(@NotNull UUID targetUUID) throws PunishmentsStorageException { // TODO: 31/10/2020 need to find a way to use the cache to get some of this
+        if (locked) {
+            ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
+            return null;
+        }
+        try {
+            String sqlpunishment = "SELECT * FROM `punishments` WHERE `Target_UUID`='" + targetUUID + "';";
+            PreparedStatement stmtpunishment = connection.prepareStatement(sqlpunishment);
+            ResultSet resultspunishment = stmtpunishment.executeQuery();
+            TreeMap<Integer, Punishment> history = new TreeMap<>();
+            while (resultspunishment.next()) {
+                Punishment punishment = new Punishment(
+                        resultspunishment.getInt("ID"),
+                        Punishment.Type.valueOf(resultspunishment.getString("Type")),
+                        resultspunishment.getString("Reason"),
+                        resultspunishment.getString("Issue_Date"),
+                        resultspunishment.getLong("Expiration"),
+                        UUID.fromString(resultspunishment.getString("Target_UUID")),
+                        resultspunishment.getString("Target_Name"),
+                        UUID.fromString(resultspunishment.getString("Punisher_UUID")),
+                        resultspunishment.getString("Message"),
+                        Punishment.Status.valueOf(resultspunishment.getString("Status")),
+                        UUID.fromString(resultspunishment.getString("Remover_UUID")));
+                String message = punishment.getMessage();
+                if (message.contains("%sinquo%"))
+                    message = message.replaceAll("%sinquo%", "'");
+                if (message.contains("%dubquo%"))
+                    message = message.replaceAll("%dubquo%", "\"");
+                if (message.contains("%bcktck%"))
+                    message = message.replaceAll("%bcktck%", "`");
+                punishment.setMessage(message);
+                cachePunishment(punishment);
+                history.put(punishment.getId(), punishment);
+            }
+            resultspunishment.close();
+            stmtpunishment.close();
+            return history;
+        } catch (Exception e) {
+            throw new PunishmentsStorageException("Getting history on user: " + targetUUID.toString(), "CONSOLE", this.getClass().getName(), e);
+        }
+    }
+
+    @Override
+    public TreeMap<Integer, Punishment> getStaffHistory(@NotNull UUID targetUUID) throws PunishmentsStorageException { // TODO: 31/10/2020 need to find a way to use the cache to get some of this
+        if (locked) {
+            ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
+            return null;
+        }
+        try {
+            String sqlpunishment = "SELECT * FROM `punishments` WHERE `Punisher_UUID`='" + targetUUID + "';";
+            PreparedStatement stmtpunishment = connection.prepareStatement(sqlpunishment);
+            ResultSet resultspunishment = stmtpunishment.executeQuery();
+            TreeMap<Integer, Punishment> history = new TreeMap<>();
+            while (resultspunishment.next()) {
+                Punishment punishment = new Punishment(
+                        resultspunishment.getInt("ID"),
+                        Punishment.Type.valueOf(resultspunishment.getString("Type")),
+                        resultspunishment.getString("Reason"),
+                        resultspunishment.getString("Issue_Date"),
+                        resultspunishment.getLong("Expiration"),
+                        UUID.fromString(resultspunishment.getString("Target_UUID")),
+                        resultspunishment.getString("Target_Name"),
+                        UUID.fromString(resultspunishment.getString("Punisher_UUID")),
+                        resultspunishment.getString("Message"),
+                        Punishment.Status.valueOf(resultspunishment.getString("Status")),
+                        UUID.fromString(resultspunishment.getString("Remover_UUID")));
+                String message = punishment.getMessage();
+                if (message.contains("%sinquo%"))
+                    message = message.replaceAll("%sinquo%", "'");
+                if (message.contains("%dubquo%"))
+                    message = message.replaceAll("%dubquo%", "\"");
+                if (message.contains("%bcktck%"))
+                    message = message.replaceAll("%bcktck%", "`");
+                punishment.setMessage(message);
+                cachePunishment(punishment);
+                history.put(punishment.getId(), punishment);
+            }
+            resultspunishment.close();
+            stmtpunishment.close();
+            return history;
+        } catch (Exception e) {
+            throw new PunishmentsStorageException("Getting staff history on user: " + targetUUID.toString(), "CONSOLE", this.getClass().getName(), e);
+        }
+    }
+
+    @Override
+    public ArrayList<UUID> getAlts(@NotNull UUID uuid) throws PunishmentsStorageException {
+        if (locked) {
+            ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
+            return null;
+        }
+        try {
+            String sqlip = "SELECT * FROM `alt_list` WHERE UUID='" + uuid + "'";
+            PreparedStatement stmtip = connection.prepareStatement(sqlip);
+            ResultSet resultsip = stmtip.executeQuery();
+            if (resultsip.next()) {
+                String ip = resultsip.getString("IP");
+                resultsip.close();
+                stmtip.close();
+                return getAlts(ip);
+            }
+            return new ArrayList<>();
+        } catch (Exception e) {
+            throw new PunishmentsStorageException("Getting alts on user: " + uuid.toString(), "CONSOLE", this.getClass().getName(), e);
+        }
+    }
+
+    @Override
+    public ArrayList<UUID> getAlts(@NotNull String ip) throws PunishmentsStorageException {
+        if (locked) {
+            ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
+            return null;
+        }
+        try {
+            String sqlalts = "SELECT * FROM `alt_list` WHERE IP='" + ip + "'";
+            PreparedStatement stmtalts = connection.prepareStatement(sqlalts);
+            ResultSet resultsalts = stmtalts.executeQuery();
+            ArrayList<String> alts = new ArrayList<>();
+            while (resultsalts.next()) {
+                alts.add(resultsalts.getString("UUID"));
+            }
+            resultsalts.close();
+            stmtalts.close();
+            return UUIDFetcher.convertStringArray(alts);
+        } catch (Exception e) {
+            throw new PunishmentsStorageException("Getting alts on ip: " + ip, "CONSOLE", this.getClass().getName(), e);
+        }
+    }
+
+    @Override
+    public TreeMap<Long, String> getIpHist(@NotNull UUID uuid) throws PunishmentsStorageException {
+        if (locked) {
+            ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
+            return null;
+        }
+        try {
+            String sqlip = "SELECT * FROM `ip_history` WHERE UUID='" + uuid + "'";
+            PreparedStatement stmtip = connection.prepareStatement(sqlip);
+            ResultSet resultsip = stmtip.executeQuery();
+            TreeMap<Long, String> iphist = new TreeMap<>();
+            while (resultsip.next()) {
+                iphist.put(resultsip.getLong("Date"), resultsip.getString("IP"));
+            }
+            stmtip.close();
+            resultsip.close();
+            return iphist;
+        } catch (Exception e) {
+            throw new PunishmentsStorageException("Getting iphist on user: " + uuid.toString(), "CONSOLE", this.getClass().getName(), e);
         }
     }
 
     @Override
     public void updateAlts(@NotNull UUID uuid, @NotNull String ip) throws PunishmentsStorageException {
-
+        if (locked) {
+            ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
+            return;
+        }
+        try {
+            //fetch ip
+            String sqlip = "SELECT * FROM `alt_list` WHERE UUID='" + uuid + "'";
+            PreparedStatement stmtip = connection.prepareStatement(sqlip);
+            ResultSet resultsip = stmtip.executeQuery();
+            if (resultsip.next()) { //player has an ip stored in database
+                String oldip = resultsip.getString("IP");
+                resultsip.close();
+                stmtip.close();
+                //check if ip has changed from stored ip
+                if (oldip.equals(ip)) return;
+                //update all records with oldip to the new ip (this includes the player we checked's record)
+                String sqlipadd = "UPDATE `alt_list` SET `IP`='" + ip + "' WHERE `IP`='" + oldip + "' ;";
+                PreparedStatement stmtipadd = connection.prepareStatement(sqlipadd);
+                stmtipadd.executeUpdate();
+                stmtipadd.close();
+            } else {//no ip found in database, so we add them to the database with the new ip
+                String sql1 = "INSERT INTO `alt_list` (`UUID`, `IP`) VALUES ('" + uuid + "', '" + ip + "');";
+                PreparedStatement stmt1 = connection.prepareStatement(sql1);
+                stmt1.executeUpdate();
+                stmt1.close();
+            }
+        } catch (Exception e) {
+            throw new PunishmentsStorageException("Updating alts on user: " + uuid.toString(), "CONSOLE", this.getClass().getName(), e);
+        }
     }
 
     @Override
     public void updateIpHist(@NotNull UUID uuid, @NotNull String ip) throws PunishmentsStorageException {
-
+        if (locked) {
+            ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
+            return;
+        }
+        try {
+            //check for current ip
+            String sql = "SELECT * FROM `ip_history` WHERE UUID='" + uuid + "'";
+            PreparedStatement stmt = connection.prepareStatement(sql);
+            ResultSet results = stmt.executeQuery();
+            if (results.next())//if current ip we check if it's changed
+                if (results.getString("ip").equals(ip)) return;//if ip has not changed there is no need to update ip history
+            //add new iphistory record
+            String addip = "INSERT INTO `ip_history` (`UUID`, `Date`, `IP`) VALUES ('" + uuid + "', '" + System.currentTimeMillis() + "', '" + ip + "');";
+            PreparedStatement addipstmt = connection.prepareStatement(addip);
+            addipstmt.executeUpdate();
+            addipstmt.close();
+        } catch (Exception e) {
+            throw new PunishmentsStorageException("Updating iphist on user: " + uuid.toString(), "CONSOLE", this.getClass().getName(), e);
+        }
     }
-
-    @Override
-    public Punishment getPunishmentFromId(int id) throws PunishmentsStorageException {
-        return null;
-    }
-
-    @Override
-    public int getOffences(@NotNull UUID targetUUID, @NotNull String reason) throws PunishmentsStorageException {
-        return 0;
-    }
-
-    @Override
-    public TreeMap<Integer, Punishment> getHistory(@NotNull UUID uuid) throws PunishmentsStorageException {
-        return null;
-    }
-
-    @Override
-    public TreeMap<Integer, Punishment> getStaffHistory(@NotNull UUID uuid) throws PunishmentsStorageException {
-        return null;
-    }
-
-    @Override
-    public ArrayList<UUID> getAlts(@NotNull UUID uuid) throws PunishmentsStorageException {
-        return null;
-    }
-
-    @Override
-    public ArrayList<UUID> getAlts(@NotNull String ip) throws PunishmentsStorageException {
-        return null;
-    }
-
-    @Override
-    public TreeMap<Long, String> getIpHist(@NotNull UUID uuid) throws PunishmentsStorageException {
-        return null;
-    }
-
 
     private void saveMainDataConfig() {
         try {
