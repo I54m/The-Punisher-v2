@@ -4,6 +4,8 @@ import com.i54m.protocol.api.CancelSendSignal;
 import com.i54m.protocol.api.protocol.ProtocolAPI;
 import com.i54m.protocol.api.protocol.Stream;
 import com.i54m.protocol.api.util.ReflectionUtil;
+import com.i54m.punisher.exceptions.ProtocolException;
+import com.i54m.punisher.handlers.ErrorHandler;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
@@ -23,6 +25,7 @@ public class DecoderChannelHandler extends MessageToMessageDecoder<PacketWrapper
     private final AbstractPacketHandler abstractPacketHandler;
     private final Connection connection;
     private final Stream stream;
+    private final ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
     private Direction direction;
     private Protocol protocol;
     private int protocolVersion;
@@ -78,12 +81,12 @@ public class DecoderChannelHandler extends MessageToMessageDecoder<PacketWrapper
 
                 // Packet handling & rewrite
                 final Entry<DefinedPacket, Boolean> entry = ProtocolAPI.getEventManager().handleInboundPacket(msg.packet, abstractPacketHandler);
-                if(entry == null)
+                if (entry == null)
                     return;
                 final DefinedPacket packet = entry.getKey();
-                if(packet == null)
+                if (packet == null)
                     return;
-                if(entry.getValue()) {
+                if (entry.getValue()) {
                     try {
                         // Try packet rewrite
                         final ByteBuf buf = Unpooled.directBuffer();
@@ -107,21 +110,14 @@ public class DecoderChannelHandler extends MessageToMessageDecoder<PacketWrapper
     public void exceptionCaught(final ChannelHandlerContext ctx, final Throwable cause) throws Exception {
         if (cause.getClass().equals(CancelSendSignal.INSTANCE.getClass()))
             throw ((Error) cause);
-        if(cause instanceof ClosedChannelException) {
-            return;
-        } else if(cause instanceof NativeIoException) {
-            return; // Suppress this annoying exception
-        }
-        // TODO: 5/06/2020 exception handler
-//        if(ProtocolPlugin.isExceptionCausedByProtocol(cause)) {
-//            PunisherPlugin.getInstance().getLogger().log(Level.SEVERE, "[Protocol] === EXCEPTION CAUGHT IN DECODER ===");
-//            PunisherPlugin.getInstance().getLogger().log(Level.SEVERE, "[Protocol] Stream: "+stream.name());
-//            PunisherPlugin.getInstance().getLogger().log(Level.SEVERE, "[Protocol] Connection: "+connection.toString());
-//            PunisherPlugin.getInstance().getLogger().log(Level.SEVERE, "[Protocol] Protocol version: "+protocolVersion);
-//            cause.printStackTrace();
-//        } else {
-//            super.exceptionCaught(ctx, cause); // We don't argue with foreign exceptions anymore.
-//        }
+        if (cause instanceof ClosedChannelException)
+            return; // Suppress this
+        else if (cause instanceof NativeIoException)
+            return; // Suppress this
+        if (errorHandler.isExceptionCausedByProtocol(cause))
+            errorHandler.log(new ProtocolException("Decoder", stream.name(), connection.toString(), protocol.name(), cause));
+        else
+            super.exceptionCaught(ctx, cause);
     }
 
 }
