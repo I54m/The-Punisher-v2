@@ -1,6 +1,9 @@
 package com.i54m.punisher.managers;
 
+import com.i54m.punisher.exceptions.DataFetchException;
+import com.i54m.punisher.exceptions.DataSaveException;
 import com.i54m.punisher.exceptions.ManagerNotStartedException;
+import com.i54m.punisher.utils.NameFetcher;
 import com.i54m.punisher.utils.UUIDFetcher;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -154,7 +157,7 @@ public class PlayerDataManager implements Listener, Manager {
      * @see com.i54m.punisher.managers.WorkerManager.Worker
      */
     @EventHandler(priority = EventPriority.HIGHEST)
-    public void onServerConnect(@NotNull final ServerConnectEvent e){
+    public void onServerConnect(@NotNull final ServerConnectEvent e) {
         WorkerManager.getINSTANCE().runWorker(new WorkerManager.Worker(() -> {
             ProxiedPlayer player = e.getPlayer();
             Configuration playerData = getPlayerData(player, true);
@@ -225,7 +228,7 @@ public class PlayerDataManager implements Listener, Manager {
      * Fetch the player's data configuration file from their uuid.
      * If the player's data is not already loaded we will load it into the cache and return it
      *
-     * @param uuid the uuid of the player to fetch the data for
+     * @param uuid   the uuid of the player to fetch the data for
      * @param create whether to create the player's data file if not found
      * @return a configuration file of the stored data
      */
@@ -236,9 +239,8 @@ public class PlayerDataManager implements Listener, Manager {
         }
         if (isPlayerDataLoaded(uuid))
             return playerDataCache.get(uuid);
-        else
-            if (create) return loadPlayerData(uuid);
-            else return loadPlayerDataNoCreate(uuid);
+        else if (create) return loadPlayerData(uuid);
+        else return loadPlayerDataNoCreate(uuid);
     }
 
     /**
@@ -256,10 +258,16 @@ public class PlayerDataManager implements Listener, Manager {
         try {
             boolean newPlayer = false;
             if (isPlayerDataLoaded(uuid)) return getPlayerData(uuid, true);
-            File dataFile = new File(PLUGIN.getDataFolder() + "/playerdata/", uuid.toString() + ".yml");
-            if (!dataFile.exists()) {
-                dataFile.createNewFile();
-                newPlayer = true;
+            File dataFile;
+            try {
+                dataFile = new File(PLUGIN.getDataFolder() + "/playerdata/", uuid.toString() + ".yml");
+                if (!dataFile.exists()) {
+                    dataFile.createNewFile();
+                    newPlayer = true;
+                }
+            } catch (IOException ioe) {
+                ERROR_HANDLER.log(new DataSaveException(this.getClass().getName(), "Player data file", NameFetcher.getName(uuid), ioe));
+                return null;
             }
             Configuration playerConfig = ConfigurationProvider.getProvider(YamlConfiguration.class).load(dataFile);
             if (newPlayer)
@@ -267,9 +275,10 @@ public class PlayerDataManager implements Listener, Manager {
             playerDataCache.put(uuid, playerConfig);
             return playerConfig;
         } catch (IOException ioe) {
+            ERROR_HANDLER.log(new DataFetchException(this.getClass().getName(), "Player data file", NameFetcher.getName(uuid), ioe, "Player data file requested through loadPlayerData"));
             return null;
-            // TODO: 8/06/2020 data create/save exception
         }
+
     }
 
     /**
@@ -293,25 +302,29 @@ public class PlayerDataManager implements Listener, Manager {
             playerDataCache.put(uuid, playerConfig);
             return playerConfig;
         } catch (IOException ioe) {
+            ERROR_HANDLER.log(new DataFetchException(this.getClass().getName(), "Player data file", NameFetcher.getName(uuid), ioe, "Player data file requested through loadPlayerDataNoCreate"));
             return null;
-            // TODO: 8/06/2020 data create/save exception
         }
     }
 
-    private void saveDefaultData(@NotNull Configuration config, @NotNull File dataFile, @NotNull UUID uuid) throws IOException {
-        Date date = new Date();
-        date.setTime(System.currentTimeMillis());
-        DateFormat df = new SimpleDateFormat("dd MMM yyyy, hh:mm (Z)");
-        df.setTimeZone(TimeZone.getDefault());
-        config.set("firstJoin", df.format(date));
-        config.set("joinId", (lastJoinId + 1));
-        config.set("lastLogin", System.currentTimeMillis());
-        config.set("staffHide", false);
-        mainDataConfig.set("lastJoinID", (lastJoinId + 1));
-        mainDataConfig.set(String.valueOf((lastJoinId + 1)), uuid.toString());
-        saveMainDataConfig();
-        lastJoinId++;
-        ConfigurationProvider.getProvider(YamlConfiguration.class).save(config, dataFile);
+    private void saveDefaultData(@NotNull Configuration config, @NotNull File dataFile, @NotNull UUID uuid) {
+        try {
+            Date date = new Date();
+            date.setTime(System.currentTimeMillis());
+            DateFormat df = new SimpleDateFormat("dd MMM yyyy, hh:mm (Z)");
+            df.setTimeZone(TimeZone.getDefault());
+            config.set("firstJoin", df.format(date));
+            config.set("joinId", (lastJoinId + 1));
+            config.set("lastLogin", System.currentTimeMillis());
+            config.set("staffHide", false);
+            mainDataConfig.set("lastJoinID", (lastJoinId + 1));
+            mainDataConfig.set(String.valueOf((lastJoinId + 1)), uuid.toString());
+            saveMainDataConfig();
+            lastJoinId++;
+            ConfigurationProvider.getProvider(YamlConfiguration.class).save(config, dataFile);
+        } catch (IOException ioe) {
+            ERROR_HANDLER.log(new DataSaveException(this.getClass().getName(), "Default data to player data file", NameFetcher.getName(uuid), ioe));
+        }
     }
 
     /**
@@ -333,7 +346,7 @@ public class PlayerDataManager implements Listener, Manager {
             }
             ConfigurationProvider.getProvider(YamlConfiguration.class).save(playerDataCache.get(uuid), dataFile);
         } catch (IOException ioe) {
-            // TODO: 8/06/2020 data create/save exception
+            ERROR_HANDLER.log(new DataSaveException(this.getClass().getName(), "Player data file", NameFetcher.getName(uuid), ioe));
         }
     }
 
