@@ -160,7 +160,7 @@ public class Punishment {
      * A punishment is considered permanent if it is 10 or more years.
      * @return true if the punishment is 10 or more years long, false if it is less than 10 years.
      */
-    public boolean isPermanent() {// TODO: 21/10/2020 look into this not returning true for bans
+    public boolean isPermanent() {
         if (isExpired() || isOverridden() || isIssued() || isRemoved()) return false;
         return (int) ((expiration - System.currentTimeMillis()) / 3.154e+10) >= 10;
     }
