@@ -4,7 +4,10 @@ import com.i54m.punisher.PunisherPlugin;
 import com.i54m.punisher.chats.StaffChat;
 import com.i54m.punisher.exceptions.DataFecthException;
 import com.i54m.punisher.handlers.ErrorHandler;
-import com.i54m.punisher.managers.storage.DatabaseManager;
+import com.i54m.punisher.managers.PlayerDataManager;
+import com.i54m.punisher.managers.ReputationManager;
+import com.i54m.punisher.managers.WorkerManager;
+import com.i54m.punisher.managers.storage.StorageManager;
 import com.i54m.punisher.utils.NameFetcher;
 import com.i54m.punisher.utils.Permissions;
 import com.i54m.punisher.utils.UserFetcher;
@@ -13,9 +16,9 @@ import net.luckperms.api.context.ContextManager;
 import net.luckperms.api.model.user.User;
 import net.luckperms.api.query.QueryOptions;
 import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.config.Configuration;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -23,13 +26,22 @@ import java.util.concurrent.*;
 
 public class PlayerInfo implements Callable<Map<String, String>> {
 
+    private final PunisherPlugin plugin = PunisherPlugin.getInstance();
+    private final StorageManager storageManager = plugin.getStorageManager();
+    private final ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
+    private final WorkerManager workerManager = WorkerManager.getINSTANCE();
+    private final PlayerDataManager playerDataManager = PlayerDataManager.getINSTANCE();
+    private final ReputationManager reputationManager = ReputationManager.getINSTANCE();
     private UUID targetuuid;
     private String targetName;
-    private final PunisherPlugin plugin = PunisherPlugin.getInstance();
-    private final DatabaseManager dbManager = DatabaseManager.getINSTANCE();
+    private Configuration playerData;
 
     public void setTargetuuid(UUID targetuuid) {
         this.targetuuid = targetuuid;
+        workerManager.runWorker(new WorkerManager.Worker(() -> {
+            if (!playerDataManager.isPlayerDataLoaded(targetuuid))
+                playerData = playerDataManager.getPlayerData(targetuuid, false);
+        }));
     }
 
     public void setTargetName(String targetName) {
@@ -49,13 +61,8 @@ public class PlayerInfo implements Callable<Map<String, String>> {
             Future<User> userFuture = executorService.submit(userFetcher);
             try {
                 user = userFuture.get(500, TimeUnit.MILLISECONDS);
-            }catch (Exception e){
-                try {
-                    throw new DataFecthException("User prefix required for chat message to avoid issues the prefix was set to \"\"", targetName, "User Instance", StaffChat.class.getName(), e);
-                } catch (DataFecthException dfe) {
-                    ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
-                    errorHandler.log(dfe);
-                }
+            } catch (Exception e) {
+                errorHandler.log(new DataFecthException("User prefix required for player info fetch, all player permission and prefix data will not be fetched!", targetName, "User Instance", StaffChat.class.getName(), e));
                 user = null;
             }
             executorService.shutdown();
@@ -84,96 +91,46 @@ public class PlayerInfo implements Callable<Map<String, String>> {
                 info.put("punishmentbypass", ChatColor.RED + "False");
         }
         StringBuilder altslist = new StringBuilder();
-        String sql = "SELECT * FROM `altlist` WHERE UUID='" + targetuuid + "'";
-        PreparedStatement stmt = dbManager.connection.prepareStatement(sql);
-        ResultSet results = stmt.executeQuery();
-        if (results.next()) {
-            String ip = results.getString("ip");
-            info.put("ip", ip);
-            String sql1 = "SELECT * FROM `altlist` WHERE ip='" + ip + "'";
-            PreparedStatement stmt1 = dbManager.connection.prepareStatement(sql1);
-            ResultSet results1 = stmt1.executeQuery();
-            while (results1.next()) {
-                String concacc = NameFetcher.getName(results1.getString("uuid"));
-                if (concacc != null && !concacc.equals(targetName)) {
-                    altslist.append(concacc).append(" ");
-                }
-            }
-            stmt1.close();
-            results1.close();
-        }else if (!results.next() && altslist.toString().isEmpty())
+        ArrayList<UUID> alts = storageManager.getAlts(targetuuid);
+        if (alts.isEmpty())
             altslist.append("no known alts");
+        else
+            for (UUID alt : alts) {
+                altslist.append(NameFetcher.getName(alt)).append(" ");
+            }
         info.put("alts", altslist.toString());
-//        info.put("firstjoin", PunisherPlugin.playerInfoConfig.getString(targetuuid + ".firstjoin"));
-//        info.put("lastserver", PunisherPlugin.playerInfoConfig.getString(targetuuid + ".lastserver"));
-//        info.put("reputation", ReputationManager.getRep(targetuuid));
-//        long lastlogin = (System.currentTimeMillis() - PunisherPlugin.playerInfoConfig.getLong(targetuuid + ".lastlogin"));
-//        long lastlogout = (System.currentTimeMillis() - PunisherPlugin.playerInfoConfig.getLong(targetuuid + ".lastlogout"));
-//        String lastloginString, lastlogoutString;
-//        int daysago = (int) (lastlogin / (1000 * 60 * 60 * 24));
-//        int hoursago = (int) (lastlogin / (1000 * 60 * 60) % 24);
-//        int minutesago = (int) (lastlogin / (1000 * 60) % 60);
-//        int secondsago = (int) (lastlogin / 1000 % 60);
-//        if (secondsago <= 0) secondsago = 1;
-//        if (daysago >= 1) lastloginString = daysago + "d " + hoursago + "h " + minutesago + "m " + secondsago + "s " + " ago";
-//        else if (hoursago >= 1) lastloginString = hoursago + "h " + minutesago + "m " + secondsago + "s " + " ago";
-//        else if (minutesago >= 1) lastloginString = minutesago + "m " + secondsago + "s " + " ago";
-//        else lastloginString = secondsago + "s " + " ago";
-//        daysago = (int) (lastlogout / (1000 * 60 * 60 * 24));
-//        hoursago = (int) (lastlogout / (1000 * 60 * 60) % 24);
-//        minutesago = (int) (lastlogout / (1000 * 60) % 60);
-//        secondsago = (int) (lastlogout / 1000 % 60);
-//        if (secondsago <= 0) secondsago = 1;
-//        if (daysago >= 1) lastlogoutString = daysago + "d " + hoursago + "h " + minutesago + "m " + secondsago + "s " + " ago";
-//        else if (hoursago >= 1) lastlogoutString = hoursago + "h " + minutesago + "m " + secondsago + "s " + " ago";
-//        else if (minutesago >= 1) lastlogoutString = minutesago + "m " + secondsago + "s " + " ago";
-//        else lastlogoutString = secondsago + "s " + " ago";
-//        info.put("lastlogin", lastloginString);
-//        info.put("lastlogout", lastlogoutString);
-        String sqlhist = "SELECT * FROM `history` WHERE UUID='" + targetuuid + "'";
-        PreparedStatement stmthist = dbManager.connection.prepareStatement(sqlhist);
-        ResultSet resultshist = stmthist.executeQuery();
-        if (resultshist.next()) {
-            int punishmentsReceived = resultshist.getInt("Minor_Chat_Offence")
-                    + resultshist.getInt("Major_Chat_Offence")
-                    + resultshist.getInt("DDoS_DoX_Threats")
-                    + resultshist.getInt("Inappropriate_Link")
-                    + resultshist.getInt("Scamming")
-                    + resultshist.getInt("X_Raying")
-                    + resultshist.getInt("AutoClicker")
-                    + resultshist.getInt("Fly_Speed_Hacking")
-                    + resultshist.getInt("Malicious_PvP_Hacks")
-                    + resultshist.getInt("Disallowed_Mods")
-                    + resultshist.getInt("Server_Advertisement")
-                    + resultshist.getInt("Greifing")
-                    + resultshist.getInt("Exploiting")
-                    + resultshist.getInt("Tpa_Trapping")
-                    + resultshist.getInt("Impersonation")
-                    + resultshist.getInt("Manual_Punishments");
-            info.put("punishmentsreceived", String.valueOf(punishmentsReceived));
-        }else info.put("punishmentsreceived", String.valueOf(0));
-        String sqlStaffhist = "SELECT * FROM `staffhistory` WHERE UUID='" + targetuuid + "'";
-        PreparedStatement stmtStaffhist = dbManager.connection.prepareStatement(sqlStaffhist);
-        ResultSet resultsStaffhist = stmtStaffhist.executeQuery();
-        if (resultsStaffhist.next()) {
-            int punishmentsGiven = resultsStaffhist.getInt("Minor_Chat_Offence")
-                    + resultsStaffhist.getInt("Major_Chat_Offence")
-                    + resultsStaffhist.getInt("DDoS_DoX_Threats")
-                    + resultsStaffhist.getInt("Inappropriate_Link")
-                    + resultsStaffhist.getInt("Scamming")
-                    + resultsStaffhist.getInt("X_Raying")
-                    + resultsStaffhist.getInt("AutoClicker")
-                    + resultsStaffhist.getInt("Fly_Speed_Hacking")
-                    + resultsStaffhist.getInt("Malicious_PvP_Hacks")
-                    + resultsStaffhist.getInt("Disallowed_Mods")
-                    + resultsStaffhist.getInt("Server_Advertisement")
-                    + resultsStaffhist.getInt("Greifing")
-                    + resultsStaffhist.getInt("Exploiting")
-                    + resultsStaffhist.getInt("Tpa_Trapping")
-                    + resultsStaffhist.getInt("Impersonation")
-                    + resultsStaffhist.getInt("Manual_Punishments");
-            info.put("punishmentsgiven", String.valueOf(punishmentsGiven));
-        }else info.put("punishmentsgiven", String.valueOf(0));
+        info.put("reputation", reputationManager.getRep(targetuuid));
+        if (playerData != null) {
+            info.put("firstjoin", playerData.getString("firstjoin"));
+            info.put("lastserver", playerData.getString("lastserver"));
+            long lastlogin = (System.currentTimeMillis() - playerData.getLong("lastlogin"));
+            long lastlogout = (System.currentTimeMillis() - playerData.getLong("lastlogout"));
+            String lastloginString, lastlogoutString;
+            int daysago = (int) (lastlogin / (1000 * 60 * 60 * 24));
+            int hoursago = (int) (lastlogin / (1000 * 60 * 60) % 24);
+            int minutesago = (int) (lastlogin / (1000 * 60) % 60);
+            int secondsago = (int) (lastlogin / 1000 % 60);
+            if (secondsago <= 0) secondsago = 1;
+            if (daysago >= 1)
+                lastloginString = daysago + "d " + hoursago + "h " + minutesago + "m " + secondsago + "s " + " ago";
+            else if (hoursago >= 1) lastloginString = hoursago + "h " + minutesago + "m " + secondsago + "s " + " ago";
+            else if (minutesago >= 1) lastloginString = minutesago + "m " + secondsago + "s " + " ago";
+            else lastloginString = secondsago + "s " + " ago";
+            daysago = (int) (lastlogout / (1000 * 60 * 60 * 24));
+            hoursago = (int) (lastlogout / (1000 * 60 * 60) % 24);
+            minutesago = (int) (lastlogout / (1000 * 60) % 60);
+            secondsago = (int) (lastlogout / 1000 % 60);
+            if (secondsago <= 0) secondsago = 1;
+            if (daysago >= 1)
+                lastlogoutString = daysago + "d " + hoursago + "h " + minutesago + "m " + secondsago + "s " + " ago";
+            else if (hoursago >= 1) lastlogoutString = hoursago + "h " + minutesago + "m " + secondsago + "s " + " ago";
+            else if (minutesago >= 1) lastlogoutString = minutesago + "m " + secondsago + "s " + " ago";
+            else lastlogoutString = secondsago + "s " + " ago";
+            info.put("lastlogin", lastloginString);
+            info.put("lastlogout", lastlogoutString);
+        }
+        info.put("punishmentsreceived", String.valueOf(storageManager.getHistory(targetuuid).keySet().size()));
+        info.put("punishmentsgiven", String.valueOf(storageManager.getStaffHistory(targetuuid).keySet().size()));
         return info;
     }
 }
