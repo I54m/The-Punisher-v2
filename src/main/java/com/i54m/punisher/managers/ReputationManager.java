@@ -51,6 +51,10 @@ public class ReputationManager implements Manager {
     }
 
     public void minusRep(UUID uuid, double amount) {
+        if (locked) {
+            ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
+            return;
+        }
         Configuration config = PLAYER_DATA_MANAGER.getPlayerData(uuid, false);
         double currentRep = config.getDouble("Reputation", startingRep);
         currentRep = currentRep - amount;
@@ -63,6 +67,10 @@ public class ReputationManager implements Manager {
     }
 
     public void addRep(UUID uuid, double amount) {
+        if (locked) {
+            ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
+            return;
+        }
         Configuration config = PLAYER_DATA_MANAGER.getPlayerData(uuid, false);
         double currentRep = config.getDouble("Reputation", startingRep);
         currentRep = currentRep + amount;
@@ -75,6 +83,10 @@ public class ReputationManager implements Manager {
     }
 
     public void setRep(UUID uuid, double amount) {
+        if (locked) {
+            ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
+            return;
+        }
         if (amount > 10.0)
             amount = 10.0;
         PLAYER_DATA_MANAGER.getPlayerData(uuid, false).set("Reputation", amount);
@@ -85,10 +97,18 @@ public class ReputationManager implements Manager {
     }
 
     public String getRep(UUID uuid) {
+        if (locked) {
+            ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
+            return null;
+        }
         return String.valueOf(PLAYER_DATA_MANAGER.getPlayerData(uuid, false).getDouble("Reputation", startingRep));
     }
 
     private void repBan(UUID targetUUID) {
+        if (locked) {
+            ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
+            return;
+        }
         PUNISHMENT_MANAGER.lock(targetUUID);
         PLUGIN.getProxy().getScheduler().schedule(PLUGIN, () -> {
             try {
