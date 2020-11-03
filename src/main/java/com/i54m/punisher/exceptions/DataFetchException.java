@@ -1,11 +1,11 @@
 package com.i54m.punisher.exceptions;
 
-public class DataFecthException extends Exception {
+public class DataFetchException extends Exception {
 
     private final String reason, user, requestedInfo, causingClass;
     private final Throwable cause;
 
-    public DataFecthException(String reason, String user, String requestedInfo, String causingClass, Throwable cause){
+    public DataFetchException(String reason, String user, String requestedInfo, String causingClass, Throwable cause){
         super(cause);
         this.reason = reason;
         this.user = user;

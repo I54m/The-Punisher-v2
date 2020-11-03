@@ -1,7 +1,7 @@
 package com.i54m.punisher.commands;
 
 import com.i54m.punisher.PunisherPlugin;
-import com.i54m.punisher.exceptions.DataFecthException;
+import com.i54m.punisher.exceptions.DataFetchException;
 import com.i54m.punisher.fetchers.PlayerInfo;
 import com.i54m.punisher.fetchers.Status;
 import com.i54m.punisher.handlers.ErrorHandler;
@@ -62,8 +62,8 @@ public class PlayerInfoCommand extends Command {
                 targetuuid = future.get(1, TimeUnit.SECONDS);
             } catch (Exception e) {
                 try {
-                    throw new DataFecthException("UUID Required for next step", strings[0], "UUID", this.getName(), e);
-                } catch (DataFecthException dfe) {
+                    throw new DataFetchException("UUID Required for next step", strings[0], "UUID", this.getName(), e);
+                } catch (DataFetchException dfe) {
                     ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
                     errorHandler.log(dfe);
                     errorHandler.alert(dfe, commandSender);
@@ -100,8 +100,8 @@ public class PlayerInfoCommand extends Command {
             info = futureInfo.get(2, TimeUnit.SECONDS);
         } catch (Exception e) {
             try {
-                throw new DataFecthException("Player Info was required for next step", strings[0], "player info", this.getName(), e);
-            }catch (DataFecthException dfe){
+                throw new DataFetchException("Player Info was required for next step", strings[0], "player info", this.getName(), e);
+            }catch (DataFetchException dfe){
                 ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
                 errorHandler.log(dfe);
                 errorHandler.alert(dfe, commandSender);
@@ -115,8 +115,8 @@ public class PlayerInfoCommand extends Command {
             status = futurestatus.get(500, TimeUnit.MILLISECONDS);
         } catch (Exception e) {
             try {
-                throw new DataFecthException("Status was required for player info", targetname, "Punishment Status", this.getName(), e);
-            } catch (DataFecthException dfe) {
+                throw new DataFetchException("Status was required for player info", targetname, "Punishment Status", this.getName(), e);
+            } catch (DataFetchException dfe) {
                 ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
                 errorHandler.log(dfe);
                 errorHandler.alert(dfe, commandSender);

@@ -1,7 +1,7 @@
 package com.i54m.punisher.commands;
 
 import com.i54m.punisher.PunisherPlugin;
-import com.i54m.punisher.exceptions.DataFecthException;
+import com.i54m.punisher.exceptions.DataFetchException;
 import com.i54m.punisher.handlers.ErrorHandler;
 import com.i54m.punisher.managers.PlayerDataManager;
 import com.i54m.punisher.utils.NameFetcher;
@@ -98,8 +98,8 @@ public class SeenCommand extends Command {
                 targetuuid = future.get(1, TimeUnit.SECONDS);
             } catch (Exception e) {
                 try {
-                    throw new DataFecthException("UUID Required for next step", strings[0], "UUID", this.getName(), e);
-                }catch (DataFecthException dfe){
+                    throw new DataFetchException("UUID Required for next step", strings[0], "UUID", this.getName(), e);
+                }catch (DataFetchException dfe){
                     ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
                     errorHandler.log(dfe);
                     errorHandler.alert(dfe, commandSender);

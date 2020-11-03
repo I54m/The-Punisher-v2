@@ -1,7 +1,7 @@
 package com.i54m.punisher.commands;
 
 import com.i54m.punisher.PunisherPlugin;
-import com.i54m.punisher.exceptions.DataFecthException;
+import com.i54m.punisher.exceptions.DataFetchException;
 import com.i54m.punisher.exceptions.PunishmentsStorageException;
 import com.i54m.punisher.handlers.ErrorHandler;
 import com.i54m.punisher.managers.PunishmentManager;
@@ -57,8 +57,8 @@ public class WarnCommand extends Command {
             }
         } catch (Exception e) {
             try {
-                throw new DataFecthException("User instance required for punishment level checking", player.getName(), "User Instance", Permissions.class.getName(), e);
-            } catch (DataFecthException dfe) {
+                throw new DataFetchException("User instance required for punishment level checking", player.getName(), "User Instance", Permissions.class.getName(), e);
+            } catch (DataFetchException dfe) {
                 ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
                 errorHandler.log(dfe);
                 errorHandler.alert(e, player);

@@ -1,7 +1,7 @@
 package com.i54m.punisher.listeners;
 
 import com.i54m.punisher.PunisherPlugin;
-import com.i54m.punisher.exceptions.DataFecthException;
+import com.i54m.punisher.exceptions.DataFetchException;
 import com.i54m.punisher.handlers.ErrorHandler;
 import com.i54m.punisher.managers.ReputationManager;
 import com.i54m.punisher.utils.UUIDFetcher;
@@ -44,8 +44,8 @@ public class PlayerVote implements Listener {
                 reputationManager.addRep(future.get(1, TimeUnit.SECONDS), plugin.getConfig().getDouble("Voting.amountOfRepToAdd", 0.1));
             } catch (Exception e) {
                 try {
-                    throw new DataFecthException("UUID Required for next step", username, "UUID", PlayerVote.class.getName(), e);
-                } catch (DataFecthException dfe) {
+                    throw new DataFetchException("UUID Required for next step", username, "UUID", PlayerVote.class.getName(), e);
+                } catch (DataFetchException dfe) {
                     ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
                     errorHandler.log(dfe);
                     errorHandler.adminChatAlert(dfe, plugin.getProxy().getConsole());

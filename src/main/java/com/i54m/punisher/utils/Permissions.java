@@ -2,7 +2,7 @@ package com.i54m.punisher.utils;
 
 import com.i54m.punisher.PunisherPlugin;
 import com.i54m.punisher.chats.StaffChat;
-import com.i54m.punisher.exceptions.DataFecthException;
+import com.i54m.punisher.exceptions.DataFetchException;
 import com.i54m.punisher.handlers.ErrorHandler;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.cacheddata.CachedPermissionData;
@@ -101,8 +101,8 @@ public class Permissions {
                 user = userFuture.get(500, TimeUnit.MILLISECONDS);
             } catch (Exception e) {
                 try {
-                    throw new DataFecthException("User prefix required for chat message to avoid issues the prefix was set to \"\"", targetUUID.toString(), "User Instance", StaffChat.class.getName(), e);
-                } catch (DataFecthException dfe) {
+                    throw new DataFetchException("User prefix required for chat message to avoid issues the prefix was set to \"\"", targetUUID.toString(), "User Instance", StaffChat.class.getName(), e);
+                } catch (DataFetchException dfe) {
                     ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
                     errorHandler.log(dfe);
                 }
@@ -148,8 +148,8 @@ public class Permissions {
                 user = userFuture.get(500, TimeUnit.MILLISECONDS);
             } catch (Exception e) {
                 try {
-                    throw new DataFecthException("User instance required for punishment level checking", uuid.toString(), "User Instance", Permissions.class.getName(), e);
-                } catch (DataFecthException dfe) {
+                    throw new DataFetchException("User instance required for punishment level checking", uuid.toString(), "User Instance", Permissions.class.getName(), e);
+                } catch (DataFetchException dfe) {
                     ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
                     errorHandler.log(dfe);
                 }
