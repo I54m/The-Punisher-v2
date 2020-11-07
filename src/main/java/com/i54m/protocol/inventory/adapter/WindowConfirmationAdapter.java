@@ -6,22 +6,22 @@ import com.i54m.protocol.api.handler.PacketAdapter;
 import com.i54m.protocol.api.protocol.Stream;
 import com.i54m.protocol.inventory.Inventory;
 import com.i54m.protocol.inventory.InventoryModule;
-import com.i54m.protocol.inventory.packet.ConfirmTransaction;
+import com.i54m.protocol.inventory.packet.WindowConfirmation;
 import com.i54m.protocol.items.*;
 
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-public class ConfirmTransactionAdapter extends PacketAdapter<ConfirmTransaction> {
+public class WindowConfirmationAdapter extends PacketAdapter<WindowConfirmation> {
 
-    public ConfirmTransactionAdapter() {
-        super(Stream.DOWNSTREAM, ConfirmTransaction.class);
+    public WindowConfirmationAdapter() {
+        super(Stream.DOWNSTREAM, WindowConfirmation.class);
     }
 
     @Override
-    public void receive(final PacketReceiveEvent<ConfirmTransaction> event) {
-        final ConfirmTransaction packet = event.getPacket();
+    public void receive(final PacketReceiveEvent<WindowConfirmation> event) {
+        final WindowConfirmation packet = event.getPacket();
         final UUID uniqueId = event.getPlayer().getUniqueId();
         final InventoryAction action = InventoryModule.getInventoryAction(uniqueId, packet.getWindowId(), packet.getActionNumber());
         if(action == null || InventoryModule.isSpigotInventoryTracking()) {

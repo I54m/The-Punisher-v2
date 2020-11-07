@@ -10,7 +10,7 @@ import com.i54m.protocol.inventory.InventoryModule;
 import com.i54m.protocol.inventory.InventoryType;
 import com.i54m.protocol.inventory.event.InventoryClickEvent;
 import com.i54m.protocol.inventory.packet.ClickWindow;
-import com.i54m.protocol.inventory.packet.ConfirmTransaction;
+import com.i54m.protocol.inventory.packet.WindowConfirmation;
 import com.i54m.protocol.items.*;
 import com.i54m.protocol.items.packet.SetSlot;
 import net.md_5.bungee.api.ProxyServer;
@@ -50,10 +50,10 @@ public class ClickWindowAdapter extends PacketAdapter<ClickWindow> {
                 else
                     InventoryManager.getInventory(event.getPlayer().getUniqueId()).update();
                 if(clickEvent.getClickType().name().startsWith("NUMBER_BUTTON")) {
-                    event.getPlayer().unsafe().sendPacket(new ConfirmTransaction((byte)clickWindow.getWindowId(), (short) clickWindow.getActionNumber(), false));
+                    event.getPlayer().unsafe().sendPacket(new WindowConfirmation((byte)clickWindow.getWindowId(), (short) clickWindow.getActionNumber(), false));
                     event.getPlayer().unsafe().sendPacket(new SetSlot((byte) 0, (short)(clickEvent.getClickType().getButton() + 36), new ItemStack(ItemType.NO_DATA)));
                 } else if(clickEvent.getClickType().name().startsWith("SHIFT_")) {
-                    event.getPlayer().unsafe().sendPacket(new ConfirmTransaction((byte)clickWindow.getWindowId(), (short) clickWindow.getActionNumber(), false));
+                    event.getPlayer().unsafe().sendPacket(new WindowConfirmation((byte)clickWindow.getWindowId(), (short) clickWindow.getActionNumber(), false));
                     event.getPlayer().unsafe().sendPacket(new SetSlot((byte) 0, (short)44, new ItemStack(ItemType.NO_DATA)));
                 } else {
                     event.getPlayer().unsafe().sendPacket(new SetSlot((byte) -1, (short) -1, new ItemStack(ItemType.NO_DATA)));
