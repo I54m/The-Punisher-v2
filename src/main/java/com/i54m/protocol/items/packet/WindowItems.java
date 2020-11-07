@@ -45,6 +45,7 @@ public class WindowItems extends AbstractPacket {
         MAPPING.put(MINECRAFT_1_16_1, 0x13);
         MAPPING.put(MINECRAFT_1_16_2, 0x13);
         MAPPING.put(MINECRAFT_1_16_3, 0x13);
+        MAPPING.put(MINECRAFT_1_16_4, 0x13);
     }
 
     public WindowItems(final short windowId, final Map<Integer, ItemStack> items) {

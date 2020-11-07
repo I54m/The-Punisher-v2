@@ -41,6 +41,7 @@ public class WindowProperty extends AbstractPacket {
         MAPPING.put(MINECRAFT_1_16_1, 0x15);
         MAPPING.put(MINECRAFT_1_16_2, 0x14);
         MAPPING.put(MINECRAFT_1_16_3, 0x14);
+        MAPPING.put(MINECRAFT_1_16_4, 0x14);
     }
 
     private int windowId;
@@ -59,6 +60,15 @@ public class WindowProperty extends AbstractPacket {
         windowId = buf.readUnsignedByte();
         property = buf.readShort();
         value = buf.readShort();
+        if(buf.readableBytes() > 0) {
+            byte[] readable = new byte[buf.readableBytes()];
+            buf.readBytes(readable);
+            StringBuilder packetBuffer = new StringBuilder();
+            for(byte b : readable) {
+                packetBuffer.append(Integer.toHexString(b)).append(" ");
+            }
+            System.out.println("[protocol - debug] Resulting buffer after read = "+packetBuffer);// TODO: 7/11/2020 remove debug once tested
+        }
     }
 
     public int getWindowId() {
