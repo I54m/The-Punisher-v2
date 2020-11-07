@@ -14,9 +14,9 @@ import com.i54m.protocol.items.PlayerInventory;
 import com.i54m.protocol.items.packet.WindowItems;
 import net.md_5.bungee.api.ProxyServer;
 
-public class WindowItemsAdapter extends PacketAdapter<WindowItems> {
+public class WindowPropertyAdapter extends PacketAdapter<WindowItems> {
 
-    public WindowItemsAdapter() {
+    public WindowPropertyAdapter() {
         super(Stream.DOWNSTREAM, WindowItems.class);
     }
 
