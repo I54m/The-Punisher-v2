@@ -36,12 +36,12 @@ public final class InventoryModule {
         // TO_CLIENT
         ProtocolAPI.getPacketRegistration().registerPacket(Protocol.GAME, ProtocolConstants.Direction.TO_CLIENT, OpenWindow.class, OpenWindow.MAPPING);
         ProtocolAPI.getPacketRegistration().registerPacket(Protocol.GAME, ProtocolConstants.Direction.TO_CLIENT, CloseWindow.class, CloseWindow.MAPPING_CLIENTBOUND);
-        ProtocolAPI.getPacketRegistration().registerPacket(Protocol.GAME, ProtocolConstants.Direction.TO_CLIENT, ConfirmTransaction.class, ConfirmTransaction.MAPPING_CLIENTBOUND);
+        ProtocolAPI.getPacketRegistration().registerPacket(Protocol.GAME, ProtocolConstants.Direction.TO_CLIENT, WindowConfirmation.class, WindowConfirmation.MAPPING_CLIENTBOUND);
         ProtocolAPI.getPacketRegistration().registerPacket(Protocol.GAME, ProtocolConstants.Direction.TO_CLIENT, WindowProperty.class, WindowProperty.MAPPING);
 
         // TO_SERVER
         ProtocolAPI.getPacketRegistration().registerPacket(Protocol.GAME, ProtocolConstants.Direction.TO_SERVER, CloseWindow.class, CloseWindow.MAPPING_SERVERBOUND);
-        ProtocolAPI.getPacketRegistration().registerPacket(Protocol.GAME, ProtocolConstants.Direction.TO_SERVER, ConfirmTransaction.class, ConfirmTransaction.MAPPING_SERVERBOUND);
+        ProtocolAPI.getPacketRegistration().registerPacket(Protocol.GAME, ProtocolConstants.Direction.TO_SERVER, WindowConfirmation.class, WindowConfirmation.MAPPING_SERVERBOUND);
         ProtocolAPI.getPacketRegistration().registerPacket(Protocol.GAME, ProtocolConstants.Direction.TO_SERVER, ClickWindow.class, ClickWindow.MAPPING);
 
         // Adapters
@@ -49,8 +49,8 @@ public final class InventoryModule {
         ProtocolAPI.getEventManager().registerListener(new CloseWindowAdapter(Stream.UPSTREAM));
         ProtocolAPI.getEventManager().registerListener(new CloseWindowAdapter(Stream.DOWNSTREAM));
         ProtocolAPI.getEventManager().registerListener(new ClickWindowAdapter());
-        ProtocolAPI.getEventManager().registerListener(new WindowItemsAdapter());
-        ProtocolAPI.getEventManager().registerListener(new ConfirmTransactionAdapter());
+        ProtocolAPI.getEventManager().registerListener(new WindowPropertyAdapter());
+        ProtocolAPI.getEventManager().registerListener(new WindowConfirmationAdapter());
     }
 
     public static void closeInventory(final Inventory inventory, final ProxiedPlayer p){
