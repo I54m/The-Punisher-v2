@@ -548,7 +548,7 @@ public class PunisherPlugin extends Plugin {
      */
     private void saveDefaultConfig() {
         try {
-            Files.copy(getResourceAsStream("bungeeconfig.yml"), configFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(getResourceAsStream("config.yml"), configFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
             throw new RuntimeException("Unable to create configuration file", e);
         }

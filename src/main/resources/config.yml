@@ -1,4 +1,201 @@
-bungeecord: false
+######################################################################################The Punisher Main config ###########################################################################################################
+Configversion: ${project.version}
+#DO NOT TOUCH THIS IT WILL MAKE A NEW CONFIG!!
+#This config is for the main config options, if you want to edit the automatic punishments go to punishments.yml
 
-#this can be either "FLAT_FILE", "MY_SQL" OR
-storage-type:
+#how should ips, punishments, alts, history & staff history be stored?
+#FLAT_FILE: stores the data in the <plugin folder>/data/ folder in yml files. This is mainly used for debugging and setting up the plugin and shouldn't be used in production servers.
+#SQLITE: stores the data in an sqlite database file. This is mainly used for people who don't have a mysql database and want to store data locally - this doesn't work with multiple bungeecord networks
+#MY_SQL: stores the data in a mysql database. This is mainly used for people who have access to a mysql database and don't want to store data locally.
+Storage-Type: FLAT_FILE
+
+#MYSql settings
+MySQL:
+  #host use 127.0.0.1 or localhost for localhost
+  host: localhost
+  #name of the database you want the plugin to use (will create it if it doesn't exist)
+  database: punisherdb
+  #username and password you want to plugin to use to access the MYSql database
+  username: punisher
+  password: punisher
+  #the port must be an integer, default is 3306
+  port: 3306
+  #Extra arguments to use in the sql url
+  extraArguments: ?useSSL=false
+  #should extra debug messages be shown for the sql connection?
+  debugMode: false
+
+Plugin-prefixes:
+  Plugin-Wide: "&7[&cPunisher&7] "
+  #%server% will be replaced with server that the player is on & %player% with the player's name and prefix in the below options
+  Staff-Chat: "&7[&cSC&7] &7[%server%&7] %player%: "
+  Staff-Chat-Raw: "&7[&cSC&7] "
+  Admin-Chat: "&7[&3AC&7] &7[%server%&7] %player%: "
+  Admin-Chat-Raw: "&7[&3AC&7] "
+  broadcast-prefix: "&7[&e&lShout&7] &7[&b%server%&7] %player%: "
+  superbroadcast-prefix: "&b&lAnnouncement: &r"
+
+#The color of the text in the chats
+Staff-Chat-Color: 'RED'
+Admin-Chat-Color: 'AQUA'
+Broadcast-Color: 'WHITE'
+SuperBroadcast-Color: 'WHITE'
+
+#The time in hours in which a player can do /broadcast can be bypassed with: punisher.cooldowns.override
+broadcast-cooldown: 24
+
+#Set the following in this format: <message>:<fade in>:<stay>:<fade out> or set to 'none' to disable
+superbroadcast-title: "&bAn Announcement has been made!:15:75:15"
+
+#commands and command aliases you want to be blocked when a player is muted
+Muted Commands:
+  - "message"
+  - "msg"
+  - "m"
+  - "reply"
+  - "r"
+  - "pm"
+  - "privatemessage"
+  - "global"
+  - "broadcast"
+  - "g"
+
+#The ban messages will be shown when ever someone gets banned or blocked from logging in due to a ban, the kick message is for when they get /kicked or kicked by the plugin
+#placeholders are %reason% for the ban reason, %days% for the days left, %hours% for the hours left, %minutes% for the minutes left, %seconds% for the seconds left.
+#placeholders for the kick & warn message are just %reason% for the reason
+#use '&' for colorcodes and '\n' ot go to the next line
+Warn Title:
+  Enabled: true
+  #only %reason% works in the titles
+  Title Message: "&4You have been Warned!"
+  Subtitle Message: "&4Reason: %reason%!"
+  Fade In: 10
+  Stay: 100
+  Fade Out: 10
+
+  Warn Sound:
+    Enabled: true
+    #       SOUNDNAME:VOLUME:PITCH
+    Sound: "UI_TOAST_CHALLENGE_COMPLETE:100:0.5"
+
+Warn Message:
+  "\n&cYou have been Warned, Reason: %reason%!
+  \n&cYou have done something against our server rules!
+  \n&cNext time there may be harsher punishments!
+  \n&cDo /rules for the rules and server info!\n"
+
+Mute Title:
+  Enabled: true
+  #only %reason% works in the titles
+  Title Message: "&4You have been Muted!"
+  Subtitle Message: "&4Reason: %reason%!"
+  Fade In: 10
+  Stay: 100
+  Fade Out: 10
+
+  Mute Sound:
+    Enabled: true
+    #       SOUNDNAME:VOLUME:PITCH
+    Sound: "UI_TOAST_CHALLENGE_COMPLETE:100:0.5"
+
+TempMute Message:
+  "\n&cYou have been Muted, reason: &f%reason%!
+  \n&cThis mute %timeleft%!
+  \n&cYou have done something against our server rules!
+  \n&cSome of our punishments result in a mute with no warning!\n"
+
+PermMute Message:
+  "\n&cYou have been Muted, reason: &f%reason%!
+  \n&cThis mute is permanent and does not expire!
+  \n&cYou have done something against our server rules!
+  \n&cSome of our punishments result in a mute with no warning!\n"
+
+TempMute Deny Message:
+  "\n&cYou cannot speak! You are Muted! Reason: &f%reason%!
+  \n&cThis mute %timeleft%!
+  \n&cYou have done something against our server rules!
+  \n&cSome of our punishments result in a mute with no warning!\n"
+
+PermMute Deny Message:
+  "\n&cYou cannot speak! You are Muted! Reason: &f%reason%!
+  \n&cThis mute is permanent and does not expire!
+  \n&cYou have done something against our server rules!
+  \n&cSome of our punishments result in a mute with no warning!\n"
+
+#send the player's message to staff chat when a player is denied from speaking because of a mute
+SendPlayersMessageToStaffChatOnMuteDeny: false
+#tell staff that the player tried to speak but don't send their message to staff chat the above option takes priority over this one
+StaffChatOnMuteDeny: true
+
+
+Kick Message:
+  "&cYou have been Kicked from the server!
+  \n&cYou were Kicked for the reason: &f%reason%!
+  \n&cYou have done something against our server rules!
+  \n&cSome of our punishments result in a kick with no warning!"
+
+TempBan Message:
+  "&cYou have been Banned from the server!
+  \n&cYou were Banned for the reason: &f%reason%!
+  \n&cThis ban %timeleft%!
+  \n&cYou have done something against our server rules!
+  \n&cSome of our punishments result in a ban with no warning!"
+
+PermBan Message:
+  "&cYou have been Banned from the server!
+  \n&cYou were Banned for the reason: &f%reason%!
+  \n&cThis ban does not expire!
+  \n&cYou have done something against our server rules!
+  \n&cSome of our punishments result in a ban with no warning!"
+
+#How much reputation should be taken off the player for each offence number
+#KICK and WARN only have 1 offence
+ReputationScale:
+  BAN:
+    1: 1.0
+    2: 2.0
+    3: 3.0
+    4: 4.0
+    5: 4.0
+  MUTE:
+    1: 0.5
+    2: 1.0
+    3: 1.5
+    4: 2.0
+    5: 2.0
+  KICK: 0.0
+  WARN: 0.2
+
+Reputation:
+  Starting-Rep: 5.0
+  Rep-Ban:
+    enabled: true
+    #the players reputation must drop below this before they will be rep-banned
+    Ban-At: -10.0
+
+Voting:
+  addRepOnVote: true
+  amountOfRepToAdd: 0.1
+
+
+DiscordIntegration:
+  Enabled: false
+  BotToken: "<insert bot token here>"
+  GuildId: "<insert guild Id here>"
+  Playing: "your.server.com"
+  JoinLink: "http://your-discord-join-link.com"
+  RolesIdsToAddToLinkedUser:
+    - "role#1id"
+    - "role#2id"
+    - "role#3id"
+
+  EnableRoleSync: true
+  #give permission "punisher.discord.role.<roleid> to groups/user then define put the role id here
+  #this will give linked users a role on the discord that corresponds to the permission nodes they have
+  RolesToSync:
+    - "role#1id"
+    - "role#2id"
+    - "role#3id"
+
+  EnableJoinLogging: true
+  JoinLoggingChannelId: "JoinLoggingChannelId"
