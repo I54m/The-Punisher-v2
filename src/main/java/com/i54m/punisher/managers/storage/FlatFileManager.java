@@ -23,7 +23,7 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 @SuppressWarnings("ResultOfMethodCallIgnored")
-public class FlatFileManager implements StorageManager {
+public class FlatFileManager implements StorageManager { // TODO: 7/11/2020 implement metadata
 
     @Getter
     private static final FlatFileManager INSTANCE = new FlatFileManager();
@@ -386,7 +386,7 @@ public class FlatFileManager implements StorageManager {
                     UUID.fromString(punishmentsConfig.getString("punisherUUID")),
                     punishmentsConfig.getString("message"),
                     Punishment.Status.valueOf(punishmentsConfig.getString("status")),
-                    punishmentsConfig.getString("removerUUID").equals("N/A") ? null : UUID.fromString(punishmentsConfig.getString("removerUUID")));
+                    punishmentsConfig.getString("removerUUID").equals("N/A") ? null : UUID.fromString(punishmentsConfig.getString("removerUUID")), null);
         } catch (Exception e) {
             throw new PunishmentsStorageException("Getting punishment from id: " + id, "CONSOLE", this.getClass().getName(), e);
         }

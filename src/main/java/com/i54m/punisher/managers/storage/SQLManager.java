@@ -28,7 +28,7 @@ import java.util.TreeMap;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-public class SQLManager implements StorageManager {
+public class SQLManager implements StorageManager {// TODO: 7/11/2020 implement metadata
 
     @Getter(AccessLevel.PUBLIC)
     private static final SQLManager INSTANCE = new SQLManager();
@@ -401,7 +401,7 @@ public class SQLManager implements StorageManager {
                     UUID.fromString(resultspunishment.getString("Punisher_UUID")),
                     resultspunishment.getString("Message"),
                     Punishment.Status.valueOf(resultspunishment.getString("Status")),
-                    UUID.fromString(resultspunishment.getString("Remover_UUID")));
+                    UUID.fromString(resultspunishment.getString("Remover_UUID")), null);
             String message = punishment.getMessage();
             if (message.contains("%sinquo%"))
                 message = message.replaceAll("%sinquo%", "'");
@@ -434,7 +434,7 @@ public class SQLManager implements StorageManager {
                     UUID.fromString(resultspunishment.getString("Punisher_UUID")),
                     resultspunishment.getString("Message"),
                     Punishment.Status.valueOf(resultspunishment.getString("Status")),
-                    UUID.fromString(resultspunishment.getString("Remover_UUID")));
+                    UUID.fromString(resultspunishment.getString("Remover_UUID")), null);
             String message = punishment.getMessage();
             if (message.contains("%sinquo%"))
                 message = message.replaceAll("%sinquo%", "'");
@@ -478,7 +478,7 @@ public class SQLManager implements StorageManager {
                         UUID.fromString(resultspunishment.getString("Punisher_UUID")),
                         resultspunishment.getString("Message"),
                         Punishment.Status.valueOf(resultspunishment.getString("Status")),
-                        UUID.fromString(resultspunishment.getString("Remover_UUID")));
+                        UUID.fromString(resultspunishment.getString("Remover_UUID")), null);
                 String message = punishment.getMessage();
                 if (message.contains("%sinquo%"))
                     message = message.replaceAll("%sinquo%", "'");
@@ -520,7 +520,7 @@ public class SQLManager implements StorageManager {
                         UUID.fromString(resultspunishment.getString("Punisher_UUID")),
                         resultspunishment.getString("Message"),
                         Punishment.Status.valueOf(resultspunishment.getString("Status")),
-                        UUID.fromString(resultspunishment.getString("Remover_UUID")));
+                        UUID.fromString(resultspunishment.getString("Remover_UUID")), null);
                 String message = punishment.getMessage();
                 if (message.contains("%sinquo%"))
                     message = message.replaceAll("%sinquo%", "'");
@@ -563,7 +563,7 @@ public class SQLManager implements StorageManager {
                         UUID.fromString(resultspunishment.getString("Punisher_UUID")),
                         resultspunishment.getString("Message"),
                         Punishment.Status.valueOf(resultspunishment.getString("Status")),
-                        UUID.fromString(resultspunishment.getString("Remover_UUID")));
+                        UUID.fromString(resultspunishment.getString("Remover_UUID")), null);
                 String message = punishment.getMessage();
                 if (message.contains("%sinquo%"))
                     message = message.replaceAll("%sinquo%", "'");

@@ -154,7 +154,7 @@ public class BanCommand extends Command {
             }
         }
         try {
-            Punishment ban = new Punishment(Punishment.Type.BAN, "CUSTOM", length, targetuuid, targetname, player.getUniqueId(), reason.toString());
+            Punishment ban = new Punishment(Punishment.Type.BAN, "CUSTOM", length, targetuuid, targetname, player.getUniqueId(), reason.toString(), null);
             punishMngr.issue(ban, player, true, true, false);
         } catch (Exception e) {
             ErrorHandler errorHandler = ErrorHandler.getINSTANCE();

@@ -159,7 +159,7 @@ public class MuteCommand extends Command {
             }
         }
         try {
-            Punishment mute = new Punishment(Punishment.Type.MUTE, "CUSTOM", length, targetuuid, targetname, player.getUniqueId(), reason.toString());
+            Punishment mute = new Punishment(Punishment.Type.MUTE, "CUSTOM", length, targetuuid, targetname, player.getUniqueId(), reason.toString(), null);
             punishMnger.issue(mute, player, true, true, true);
         } catch (SQLException e) {
             try {

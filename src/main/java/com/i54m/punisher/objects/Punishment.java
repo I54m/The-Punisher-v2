@@ -7,8 +7,7 @@ import com.i54m.punisher.managers.PunishmentManager;
 import com.i54m.punisher.managers.storage.StorageManager;
 import com.i54m.punisher.utils.NameFetcher;
 import com.i54m.punisher.utils.UUIDFetcher;
-import lombok.Getter;
-import lombok.ToString;
+import lombok.*;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
@@ -78,6 +77,11 @@ public class Punishment {
      */
     @Getter
     private UUID removerUUID;
+    /**
+     * The MetaData of the punishment. This contains useful information
+     * that cannot be reliably calculated from other variables.
+     */
+    private MetaData metaData;
 
     /**
      * This is the constructor that all new punishments should use as it will generate a new id for it.
@@ -88,8 +92,9 @@ public class Punishment {
      * @param targetName The name (with capitalization) of the person to be punished.
      * @param punisherUUID The UUID of the person that issued the punishment.
      * @param message The message that the target will see as the reason.
+     * @param metaData The MetaData of the punishment.
      */
-    public Punishment(@NotNull Type type, @NotNull String reason, @Nullable Long expiration, UUID targetUUID, @NotNull String targetName, UUID punisherUUID, @Nullable String message) {
+    public Punishment(@NotNull Type type, @NotNull String reason, @Nullable Long expiration, @NotNull UUID targetUUID, @NotNull String targetName, @NotNull UUID punisherUUID, @Nullable String message, @Nullable MetaData metaData) {
         StorageManager storageManager = PunisherPlugin.getInstance().getStorageManager();
         this.id = storageManager.getNextID();
         this.type = type;
@@ -102,6 +107,8 @@ public class Punishment {
         this.removerUUID = null;
         this.status = Status.Created;
         storageManager.NewPunishment(this);
+        if (metaData != null)
+            this.metaData = metaData;
     }
 
     /**
@@ -117,8 +124,9 @@ public class Punishment {
      * @param message The message that the target will see as the reason.
      * @param status The current status of the punishment eg: removed, issued, pending, etc.
      * @param removerUUID The UUID of the person that removed the punishment, If the punishment has not yet been removed then this is null.
+     * @param metaData The MetaData of the punishment.
      */
-    public Punishment(@NotNull Integer id, @NotNull Type type, @NotNull String reason, @Nullable String issueDate, @Nullable Long expiration, UUID targetUUID, @Nullable String targetName, UUID punisherUUID, @Nullable String message, @NotNull Status status, UUID removerUUID) {
+    public Punishment(@NotNull Integer id, @NotNull Type type, @NotNull String reason, @Nullable String issueDate, @Nullable Long expiration, @NotNull UUID targetUUID, @Nullable String targetName, @NotNull UUID punisherUUID, @Nullable String message, @NotNull Status status, @Nullable UUID removerUUID, @Nullable MetaData metaData) {
         this.id = id;
         this.type = type;
         this.reason = reason;
@@ -131,6 +139,8 @@ public class Punishment {
         this.status = status;
         if (removerUUID != null)
             this.removerUUID = removerUUID;
+        if (metaData != null)
+            this.metaData = metaData;
     }
 
     /**
@@ -151,7 +161,7 @@ public class Punishment {
      * The reason we are issuing the punishment for.
      */
 //    @Deprecated
-//    public enum Reason { // TODO: 8/06/2020 remove as this needs to be configurable
+//    public enum Reason { // TODO: 8/06/2020 make config for these
 //        Minor_Chat_Offence, Major_Chat_Offence, DDoS_DoX_Threats, Inappropriate_Link, Scamming, X_Raying, AutoClicker, Fly_Speed_Hacking, Disallowed_Mods, Malicious_PvP_Hacks, Server_Advertisement,
 //        Greifing, Exploiting, Tpa_Trapping, Impersonation, Other_Minor_Offence, Other_Major_Offence, Other_Offence, Custom
 //    }
@@ -182,8 +192,9 @@ public class Punishment {
     /**
      * @return true if the punishment is a permanent ban that was made by console and contains the message "Overly Toxic", these are the main signs of a reputation ban.
      */
-    public boolean isRepBan() {// TODO: 22/10/2020 punishment metadata class to supply booleans for things like this?
-        return isBan() && punisherUUID.equals(UUIDFetcher.getBLANK_UUID()) && isPermanent() && message.contains("Overly Toxic");
+    public boolean isRepBan() {
+        if (hasMetaData()) return getMetaData().reputationBan;
+        else return false;
     }
 
     /**
@@ -214,13 +225,6 @@ public class Punishment {
     public boolean isTest() {
         return this.type == Type.ALL;
     }
-
-//    /**
-//     * @return true if the reason is custom else false.
-//     */
-//    public boolean isCustom() {
-//        return this.reason == Reason.Custom;
-//    }
 
     /**
      * If the punishment is pending it means it has been issued by the punisher
@@ -292,6 +296,11 @@ public class Punishment {
     public boolean hasMessage() {
         return !(this.message == null || this.message.isEmpty());
     }
+
+    /**
+     * @return true if the punishment contains MetaData else false.
+     */
+    public boolean hasMetaData(){return this.metaData != null;}
 
     /**
      * This method verifies that the punishment has all the variables
@@ -381,11 +390,20 @@ public class Punishment {
     }
 
     /**
-     * @param removerUUID the UUID of the player that removed the punishment
+     * @param removerUUID The UUID of the player that removed the punishment
      * @return The punishment itself with the updated info so that it can continue to be used.
      */
     public Punishment setRemoverUUID(UUID removerUUID) {
         this.removerUUID = removerUUID;
+        return this;
+    }
+
+    /**
+     * @param metaData The MetaData to set on the punishment
+     * @return The punishment itself with the updated info so that it can continue to be used.
+     */
+    public Punishment setMetaData(MetaData metaData) {
+        this.metaData = metaData;
         return this;
     }
 
@@ -441,5 +459,27 @@ public class Punishment {
             text.append("\nRemoved by: ").color(ChatColor.RED).append(NameFetcher.getName(removerUUID)).color(ChatColor.WHITE);
         }
         return text;
+    }
+
+    @Nullable
+    public MetaData getMetaData() {
+        if (hasMetaData()) return metaData;
+        else return null;
+    }
+
+    @AllArgsConstructor
+    public static class MetaData {
+        @Getter @Setter
+        Boolean reputationBan;
+        @Getter @Setter
+        Boolean automaticCalculation;
+        @Getter @Setter
+        Boolean locked;
+
+        public MetaData() {
+            reputationBan = false;
+            automaticCalculation = false;
+            locked = false;
+        }
     }
 }

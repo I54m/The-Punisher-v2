@@ -27,7 +27,7 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.*;
 
-public class PunishmentManager implements Manager {
+public class PunishmentManager implements Manager {// TODO: 7/11/2020 implement metadata
 
     private static final WorkerManager WORKER_MANAGER = WorkerManager.getINSTANCE();
     private static final ReputationManager REPUTATION_MANAGER = ReputationManager.getINSTANCE();

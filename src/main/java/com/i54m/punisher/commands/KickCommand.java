@@ -62,7 +62,7 @@ public class KickCommand extends Command {
                         player.getUniqueId(),
                         ChatColor.RED + "You have been Kicked from the server!" +
                                 "\nYou were kicked for the reason: Manually Kicked!" +
-                                "\nYou may reconnect at anytime, but make sure to read the /rules!");
+                                "\nYou may reconnect at anytime, but make sure to read the /rules!", null); // TODO: 7/11/2020 make kick message configurable
                 try {
                     punishmentManager.issue(kick, player, true, true, true);
                 } catch (Exception e) {
@@ -80,7 +80,7 @@ public class KickCommand extends Command {
                         target.getUniqueId(),
                         target.getName(),
                         player.getUniqueId(),
-                        ChatColor.translateAlternateColorCodes('&', sb.toString()));
+                        ChatColor.translateAlternateColorCodes('&', sb.toString()), null);
                 try {
                     punishmentManager.issue(kick, player, true, true, true);
                 } catch (Exception e) {

@@ -66,7 +66,7 @@ public class WarnCommand extends Command {
             }
         }
         try {
-            Punishment warn = new Punishment(Punishment.Type.WARN, "CUSTOM", null, targetuuid, target.getName(), player.getUniqueId(), sb.toString());
+            Punishment warn = new Punishment(Punishment.Type.WARN, "CUSTOM", null, targetuuid, target.getName(), player.getUniqueId(), sb.toString(), null);
             punishMnger.issue(warn, player, true, true, true);
         } catch (SQLException e) {
             try {
