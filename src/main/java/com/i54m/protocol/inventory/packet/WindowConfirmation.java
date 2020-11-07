@@ -10,7 +10,7 @@ import java.util.Objects;
 
 import static com.i54m.protocol.api.util.ProtocolVersions.*;
 
-public class ConfirmTransaction extends AbstractPacket {
+public class WindowConfirmation extends AbstractPacket {//also called confirm transaction
 
     public static final Map<Integer, Integer> MAPPING_CLIENTBOUND = Maps.newHashMap();
     public static final Map<Integer, Integer> MAPPING_SERVERBOUND = Maps.newHashMap();
@@ -42,6 +42,7 @@ public class ConfirmTransaction extends AbstractPacket {
         MAPPING_CLIENTBOUND.put(MINECRAFT_1_16_1, 0x11);
         MAPPING_CLIENTBOUND.put(MINECRAFT_1_16_2, 0x11);
         MAPPING_CLIENTBOUND.put(MINECRAFT_1_16_3, 0x11);
+        MAPPING_CLIENTBOUND.put(MINECRAFT_1_16_4, 0x11);
 
         MAPPING_SERVERBOUND.put(MINECRAFT_1_9, 0x05);
         MAPPING_SERVERBOUND.put(MINECRAFT_1_9_1, 0x05);
@@ -68,19 +69,20 @@ public class ConfirmTransaction extends AbstractPacket {
         MAPPING_SERVERBOUND.put(MINECRAFT_1_16_1, 0x07);
         MAPPING_SERVERBOUND.put(MINECRAFT_1_16_2, 0x07);
         MAPPING_SERVERBOUND.put(MINECRAFT_1_16_3, 0x07);
+        MAPPING_SERVERBOUND.put(MINECRAFT_1_16_4, 0x07);
     }
 
     private int windowId;
     private short actionNumber;
     private boolean accepted;
 
-    public ConfirmTransaction(final byte windowId, final short actionNumber, final boolean accepted) {
+    public WindowConfirmation(final byte windowId, final short actionNumber, final boolean accepted) {
         this.windowId = windowId;
         this.actionNumber = actionNumber;
         this.accepted = accepted;
     }
 
-    public ConfirmTransaction() {
+    public WindowConfirmation() {
 
     }
 
@@ -129,7 +131,7 @@ public class ConfirmTransaction extends AbstractPacket {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        ConfirmTransaction that = (ConfirmTransaction) o;
+        WindowConfirmation that = (WindowConfirmation) o;
         return windowId == that.windowId &&
                 actionNumber == that.actionNumber &&
                 accepted == that.accepted;
@@ -142,7 +144,7 @@ public class ConfirmTransaction extends AbstractPacket {
 
     @Override
     public String toString() {
-        return "ConfirmTransaction{" +
+        return "WindowConfirmation{" +
                 "windowId=" + windowId +
                 ", actionNumber=" + actionNumber +
                 ", accepted=" + accepted +
