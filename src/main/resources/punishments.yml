@@ -1,21 +1,25 @@
-#Punishment lengths are done in minutes (perm is 5.256e+7 which is one century)
-#specify the punishment type then length like so:
-#Minor_Chat_Offence:
+#Punishment lengths are done in minutes (Punishment is consider permanent if the length is more than 10 years)
+#specify the punishment reason then the type and length like so:
+#
+#EXAMPLE_PUNISHMENT_REASON:
 #  1:
-#    type: 'WARN'
+#    type: 'KICK'
 #  2:
-#    type: 'MUTE'
-#    length: 60
+#    type: 'WARN'
 #  3:
 #    type: 'MUTE'
 #    length: 1440
 #  4:
-#    type: 'MUTE'
+#    type: 'BAN'
 #    length: 4320
-#  5:
-#    type: 'MUTE'
-#    length: 10080
-#for more on this please talk to 54mpenguin
+#
+#SPECIFC RULES TO FOLLOW:
+# 1. WARN and KICK do not need a length
+# 2. DO NOT INCLUDE SYMBOLS IN THE PUNISHMENT REASONS!!
+# 3. Caps lock is not essential as the plugin will make everything caps that needs to be
+# 4. Underscores are not essential as spaces will be replaced by _ when loaded
+# 5. more reasons and offences per reason = longer plugin load times
+
 Minor_Chat_Offence:
   1:
     type: 'WARN'
@@ -35,16 +39,16 @@ Major_Chat_Offence:
   1:
     type: 'WARN'
   2:
-    type:  'MUTE'
+    type: 'MUTE'
     length: 1440
   3:
-    type:  'MUTE'
+    type: 'MUTE'
     length: 4320
   4:
-    type:  'MUTE'
+    type: 'MUTE'
     length: 10080
   5:
-    type:  'MUTE'
+    type: 'MUTE'
     length: 20160
 DDoS_DoX_Threats:
   1:
@@ -248,7 +252,7 @@ Impersonation:
     type: 'MUTE'
     length: 4320
   4:
-    type:  'MUTE'
+    type: 'MUTE'
     length: 10080
   5:
     type: 'MUTE'
