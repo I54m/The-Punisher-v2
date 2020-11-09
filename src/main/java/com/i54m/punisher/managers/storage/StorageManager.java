@@ -70,8 +70,12 @@ public interface StorageManager extends Manager {// TODO: 9/11/2020 Add Javadocs
     }
 
     default void importPunishmentReasons() {
-        PUNISHMENT_REASONS.clear();//clear incase this is called on reload, so that we don't end up with duplicate reasons
-        // TODO: 9/11/2020 import punishment reasons here
+        PUNISHMENT_REASONS.clear();//clear in case this is called on reload, so that we don't end up with duplicate reasons
+        for (String reason : PLUGIN.getPunishments().getKeys()) {
+            if (PLUGIN.getPunishments().getSection(reason).getKeys().size() > 0)
+                PUNISHMENT_REASONS.put(reason.toUpperCase().replace(" ", "_"), PLUGIN.getPunishments().getSection(reason).getKeys().size());
+            // TODO: 9/11/2020 need some testing on this as not sure if the get keys or size methods will return what is needed
+        }
     }
 
     void setupStorage() throws Exception;
@@ -104,7 +108,7 @@ public interface StorageManager extends Manager {// TODO: 9/11/2020 Add Javadocs
 
     int getOffences(@NotNull UUID targetUUID, @NotNull String reason) throws PunishmentsStorageException;
 
-    TreeMap<Integer, Punishment> getHistory(@NotNull UUID uuid) throws PunishmentsStorageException;// TODO: 9/11/2020 implement metadata applies to history
+    TreeMap<Integer, Punishment> getHistory(@NotNull UUID uuid) throws PunishmentsStorageException;// TODO: 9/11/2020 implement metadata appliesToHistory
 
     TreeMap<Integer, Punishment> getStaffHistory(@NotNull UUID uuid) throws PunishmentsStorageException;
 
