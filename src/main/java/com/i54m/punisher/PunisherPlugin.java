@@ -305,7 +305,7 @@ public class PunisherPlugin extends Plugin {
             REPUTATION_MANAGER.start();
             //start punishment manager
             getLogger().info(ChatColor.GREEN + "Starting Punishment Manager...");
-            //punManager.start();
+            // TODO: 9/11/2020 make this work punManager.start();
             //start worker manager
             //this should be started last so that other managers don't start doing operations with workers when the plugin has not fully loaded
             //as this could cause errors while the server is not fully started and a player joins
