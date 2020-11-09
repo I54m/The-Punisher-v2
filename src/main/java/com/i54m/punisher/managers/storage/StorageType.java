@@ -2,6 +2,9 @@ package com.i54m.punisher.managers.storage;
 
 import lombok.Getter;
 
+/**
+ * This class defines what storage types are managed by each manager.
+ */
 public enum StorageType {
 
     FLAT_FILE(FlatFileManager.getINSTANCE()),
