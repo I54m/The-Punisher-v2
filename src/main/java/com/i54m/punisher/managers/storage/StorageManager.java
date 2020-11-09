@@ -10,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-public interface StorageManager extends Manager {// TODO: 9/11/2020 Added Javadocs
+public interface StorageManager extends Manager {// TODO: 9/11/2020 Add Javadocs
 
     PunishmentManager PUNISHMENT_MANAGER = PunishmentManager.getINSTANCE();
     WorkerManager WORKER_MANAGER = WorkerManager.getINSTANCE();
