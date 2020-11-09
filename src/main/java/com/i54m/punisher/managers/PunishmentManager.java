@@ -27,7 +27,7 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.*;
 
-public class PunishmentManager implements Manager {// TODO: 7/11/2020 implement metadata
+public class PunishmentManager implements Manager {// TODO: 7/11/2020 fully implement metadata
 
     private static final WorkerManager WORKER_MANAGER = WorkerManager.getINSTANCE();
     private static final ReputationManager REPUTATION_MANAGER = ReputationManager.getINSTANCE();
@@ -385,9 +385,19 @@ public class PunishmentManager implements Manager {// TODO: 7/11/2020 implement 
             return;
         }
 
+        if (punishment.hasMetaData())
+            if (punishment.getMetaData().isLocked()){
+                if (player != null)
+                    player.sendMessage(new ComponentBuilder(PLUGIN.getPrefix()).append("This punishment is currently locked and must be unlocked before any actions can be taken on it!").color(ChatColor.RED).create());// TODO: 9/11/2020 make a way for admins to unlock/lock punishments
+                else
+                    ERROR_HANDLER.log(new PunishmentCalculationException("Punishment is locked!", "Punishment removal"));
+                return;
+            }
+
+
         if (isMuted(targetuuid) && punishment.isMute()) {
             UUID oldPunisherID = getMute(targetuuid).getPunisherUUID();
-            if (!Permissions.higher(removeruuid, oldPunisherID) && player != null) {// TODO: 9/11/2020 implement MetaData.isLocked somewhere here
+            if (!Permissions.higher(removeruuid, oldPunisherID) && player != null) {
                 player.sendMessage(new ComponentBuilder(PLUGIN.getPrefix()).append("You cannot unmute: " + targetname + " as they have an active mute by someone with higher permissions than you!").color(ChatColor.RED).create());
                 return;
             }
@@ -422,47 +432,26 @@ public class PunishmentManager implements Manager {// TODO: 7/11/2020 implement 
         }
         if (punishment.isRepBan())
             unlock(targetuuid);
+
         punishment.setRemoverUUID(removeruuid);
-        storageManager.updatePunishment(removed ? punishment.setStatus(Punishment.Status.Removed) : punishment.setStatus(Punishment.Status.Expired));
+
+        if (removed)
+            punishment.setStatus(Punishment.Status.Removed);
+        else
+            punishment.setStatus(Punishment.Status.Expired);
+
         removeActive(punishment);
 
         if (removeHistory) {// TODO: 22/06/2020  need to rewrite this part to check for MetaData.appliesToHistory
-//            String sqlhist = "SELECT * FROM `history` WHERE UUID='" + targetuuid + "'";
-//            PreparedStatement stmthist = storageManager.connection.prepareStatement(sqlhist);
-//            ResultSet resultshist = stmthist.executeQuery();
-//            if (resultshist.next()) {
-//                int current;
-//                if (punishment.isCustom()) {
-//                    current = resultshist.getInt("Manual_Punishments");
-//                } else {
-//                    current = resultshist.getInt(reason.toString());
-//                }
-//                if (current != 0) {
-//                    current--;
-//                } else {
-//                    if (player != null) {
-//                        player.sendMessage(new ComponentBuilder(PLUGIN.getPrefix()).append(targetname + " Already has 0 punishments for that offence!").color(ChatColor.RED).create());
-//                        return;
-//                    }
-//                }
-//                String collumn;
-//                if (reason.contains("Manual")) {
-//                    collumn = "Manual_Punishments";
-//                } else {
-//                    collumn = reason;
-//                }
-//                String sqlhistupdate = "UPDATE `history` SET `" + collumn + "`='" + current + "' WHERE `UUID`='" + targetuuid + "' ;";
-//                PreparedStatement stmthistupdate = storageManager.connection.prepareStatement(sqlhistupdate);
-//                stmthistupdate.executeUpdate();
-//                stmthistupdate.close();
-
+            punishment.getMetaData().setAppliesToHistory(false);
             if (player != null) {
-                PunisherPlugin.getLOGS().info(player.getName() + " removed punishment: " + reason + " on player: " + targetname + " Through unpunish");
+                PunisherPlugin.getLOGS().info(player.getName() + " removed punishment: " + reason + " on player: " + targetname + " through unpunish");
                 player.sendMessage(new ComponentBuilder(PLUGIN.getPrefix()).append("The punishment: " + reason + " on: " + targetname + " has been removed!").color(ChatColor.RED).event(punishment.getHoverEvent()).create());
                 if (announce)
-                    StaffChat.sendMessage(new ComponentBuilder(player.getName() + " Unpunished: " + targetname + " for the offence: " + reason).color(ChatColor.RED).event(punishment.getHoverEvent()).create());
+                    StaffChat.sendMessage(new ComponentBuilder(player.getName() + " unpunished: " + targetname + " for the offence: " + reason).color(ChatColor.RED).event(punishment.getHoverEvent()).create());
             }
         }
+        storageManager.updatePunishment(punishment);
     }
 
     public long calculateExpiration(Punishment punishment) throws PunishmentsStorageException {//todo verify that this is actually calculating correctly
@@ -504,7 +493,7 @@ public class PunishmentManager implements Manager {// TODO: 7/11/2020 implement 
         }
     }
 
-    public String[] translate(int slot, String item) throws PunishmentCalculationException {
+    public String[] translate(int slot, String item) throws PunishmentCalculationException {// TODO: 9/11/2020 is this needed anymore? maybe convert to look through gui configs to find the reason that the item represents
         if ((slot == 11 || slot == 12) && item.contains("Spam, Flood ETC"))
             return new String[]{"Minor_Chat_Offence", "Minor Chat Offence"};
         else if ((slot == 12 || slot == 13) && item.contains("Racism, Disrespect ETC"))
