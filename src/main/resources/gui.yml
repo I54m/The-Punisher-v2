@@ -1,1 +1,13 @@
 # TODO: 9/11/2020 this can probably replace all the classes in com.i54m.punisher.objects.gui also separate files for each or no?
+# pseudo code for creating guis:
+# for each key in this file:
+#  construct a gui based on defined values
+#  store gui with name (key) in a hashmap
+#
+# then need to figure out how to integrate that into current design of menus
+#
+#
+#
+#
+#
+#
