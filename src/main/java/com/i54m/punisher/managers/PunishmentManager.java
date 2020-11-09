@@ -379,20 +379,20 @@ public class PunishmentManager implements Manager {// TODO: 7/11/2020 implement 
 
         if (isMuted(targetuuid) && punishment.isMute()) {
             UUID oldPunisherID = getMute(targetuuid).getPunisherUUID();
-            if (!Permissions.higher(removeruuid, oldPunisherID) && player != null) {
+            if (!Permissions.higher(removeruuid, oldPunisherID) && player != null) {// TODO: 9/11/2020 implement MetaData.isLocked somewhere here
                 player.sendMessage(new ComponentBuilder(PLUGIN.getPrefix()).append("You cannot unmute: " + targetname + " as they have an active mute by someone with higher permissions than you!").color(ChatColor.RED).create());
                 return;
             }
             if (player != null && player.isConnected()) {
                 if (announce)
-                    StaffChat.sendMessage(new ComponentBuilder(player.getName() + " Unmuted: " + targetname).color(ChatColor.RED).event(punishment.getHoverEvent()).create());
+                    StaffChat.sendMessage(new ComponentBuilder(player.getName() + " unmuted: " + targetname).color(ChatColor.RED).event(punishment.getHoverEvent()).create());
                 else
                     player.sendMessage(new ComponentBuilder(PLUGIN.getPrefix()).append("Silently unmuted " + targetname).color(ChatColor.RED).event(punishment.getHoverEvent()).create());
-                PunisherPlugin.getLOGS().info(targetname + " Was Unmuted by: " + player.getName());
+                PunisherPlugin.getLOGS().info(targetname + " was unmuted by: " + player.getName());
             } else {
                 if (announce)
-                    StaffChat.sendMessage(new ComponentBuilder("CONSOLE Unmuted: " + targetname).color(ChatColor.RED).event(punishment.getHoverEvent()).create());
-                PunisherPlugin.getLOGS().info(targetname + " Was Unmuted by: " + NameFetcher.getName(targetuuid));
+                    StaffChat.sendMessage(new ComponentBuilder("CONSOLE unmuted: " + targetname).color(ChatColor.RED).event(punishment.getHoverEvent()).create());
+                PunisherPlugin.getLOGS().info(targetname + " was unmuted by: " + NameFetcher.getName(targetuuid));
             }
         } else if (isBanned(targetuuid) && punishment.isBan()) {
             UUID oldPunisherID = getBan(targetuuid).getPunisherUUID();
@@ -402,14 +402,14 @@ public class PunishmentManager implements Manager {// TODO: 7/11/2020 implement 
             }
             if (player != null && player.isConnected()) {
                 if (announce)
-                    StaffChat.sendMessage(new ComponentBuilder(player.getName() + " Unbanned: " + targetname).color(ChatColor.RED).event(punishment.getHoverEvent()).create());
+                    StaffChat.sendMessage(new ComponentBuilder(player.getName() + " unbanned: " + targetname).color(ChatColor.RED).event(punishment.getHoverEvent()).create());
                 else
                     player.sendMessage(new ComponentBuilder(PLUGIN.getPrefix()).append("Silently unbanned " + targetname).color(ChatColor.RED).event(punishment.getHoverEvent()).create());
-                PunisherPlugin.getLOGS().info(targetname + " Was Unbanned by: " + player.getName());
+                PunisherPlugin.getLOGS().info(targetname + " was unbanned by: " + player.getName());
             } else {
                 if (announce)
-                    StaffChat.sendMessage(new ComponentBuilder("CONSOLE Unbanned: " + targetname).color(ChatColor.RED).event(punishment.getHoverEvent()).create());
-                PunisherPlugin.getLOGS().info(targetname + " Was Unbanned by: " + NameFetcher.getName(targetuuid));
+                    StaffChat.sendMessage(new ComponentBuilder("CONSOLE unbanned: " + targetname).color(ChatColor.RED).event(punishment.getHoverEvent()).create());
+                PunisherPlugin.getLOGS().info(targetname + " was unbanned by: " + NameFetcher.getName(targetuuid));
             }
         }
         if (punishment.isRepBan())
@@ -418,7 +418,7 @@ public class PunishmentManager implements Manager {// TODO: 7/11/2020 implement 
         storageManager.updatePunishment(removed ? punishment.setStatus(Punishment.Status.Removed) : punishment.setStatus(Punishment.Status.Expired));
         removeActive(punishment);
 
-        if (removeHistory) {// TODO: 22/06/2020  need to rewrite this part
+        if (removeHistory) {// TODO: 22/06/2020  need to rewrite this part to check for MetaData.appliesToHistory
 //            String sqlhist = "SELECT * FROM `history` WHERE UUID='" + targetuuid + "'";
 //            PreparedStatement stmthist = storageManager.connection.prepareStatement(sqlhist);
 //            ResultSet resultshist = stmthist.executeQuery();
