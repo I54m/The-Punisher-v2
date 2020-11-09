@@ -377,6 +377,14 @@ public class PunishmentManager implements Manager {// TODO: 7/11/2020 implement 
         if (targetname == null)
             targetname = NameFetcher.getName(punishment.getTargetUUID());
 
+        if (!punishment.isActive()){
+            if (player != null)
+                player.sendMessage(new ComponentBuilder(PLUGIN.getPrefix()).append("You cannot remove a punishment that is not active!").color(ChatColor.RED).create());
+            else
+                ERROR_HANDLER.log(new PunishmentCalculationException("Punishment is not active!", "Punishment removal"));
+            return;
+        }
+
         if (isMuted(targetuuid) && punishment.isMute()) {
             UUID oldPunisherID = getMute(targetuuid).getPunisherUUID();
             if (!Permissions.higher(removeruuid, oldPunisherID) && player != null) {// TODO: 9/11/2020 implement MetaData.isLocked somewhere here
