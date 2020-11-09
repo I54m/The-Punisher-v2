@@ -22,6 +22,7 @@ public class ReputationManager implements Manager {
     private boolean locked = true;
     private double banAt = -10.0;
     private double startingRep = 5.0;
+    private final Punishment.MetaData repbanMetaData = new Punishment.MetaData(true, false, false, true);
 
     @Override
     public void start() {
@@ -119,7 +120,8 @@ public class ReputationManager implements Manager {
                         targetUUID,
                         targetName,
                         UUIDFetcher.getBLANK_UUID(),
-                        "Overly Toxic (Rep dropped below " + banAt + ")", new Punishment.MetaData(true, false, false)); // TODO: 7/11/2020 make repban message configurable
+                        "Overly Toxic (Rep dropped below " + banAt + ")", // TODO: 7/11/2020 make repban message configurable
+                        repbanMetaData);
                 PUNISHMENT_MANAGER.issue(ban, null, false, true, false);
             } catch (Exception e) {
                 ERROR_HANDLER.log(new PunishmentsStorageException("Issuing rep ban", NameFetcher.getName(targetUUID), ReputationManager.class.getName(), e));
