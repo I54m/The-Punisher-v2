@@ -297,6 +297,7 @@ public class PunisherPlugin extends Plugin {
                 throw new IllegalArgumentException(config.getString("Storage-Type") + " is not a supported storage type, choices are one of the following: " + Arrays.toString(StorageType.values()));
             }
             storageManager.start();
+            storageManager.importPunishmentReasons();
             //start player data manager, this must be started next as the reputation manager depends on this for data
             getLogger().info(ChatColor.GREEN + "Starting Player Data Manager...");
             PLAYER_DATA_MANAGER.start();
