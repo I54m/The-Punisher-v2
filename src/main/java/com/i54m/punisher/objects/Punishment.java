@@ -469,17 +469,52 @@ public class Punishment {
 
     @AllArgsConstructor
     public static class MetaData {
-        @Getter @Setter
         Boolean reputationBan;
-        @Getter @Setter
         Boolean automaticCalculation;
-        @Getter @Setter
         Boolean locked;
+        Boolean appliesToHistory;
 
         public MetaData() {
             reputationBan = false;
             automaticCalculation = false;
             locked = false;
+            appliesToHistory = true;
+        }
+
+        public MetaData setLocked(Boolean locked) {
+            this.locked = locked;
+            return this;
+        }
+
+        public MetaData setReputationBan(Boolean reputationBan) {
+            this.reputationBan = reputationBan;
+            return this;
+        }
+
+        public MetaData setAutomaticCalculation(Boolean automaticCalculation) {
+            this.automaticCalculation = automaticCalculation;
+            return this;
+        }
+
+        public MetaData setAppliesToHistory(Boolean appliesToHistory) {
+            this.appliesToHistory = appliesToHistory;
+            return this;
+        }
+
+        public Boolean isReputationBan() {
+            return reputationBan;
+        }
+
+        public Boolean isAutomaticCalculation() {
+            return automaticCalculation;
+        }
+
+        public Boolean appliesToHistory() {
+            return appliesToHistory;
+        }
+
+        public Boolean isLocked() {
+            return locked;
         }
     }
 }
