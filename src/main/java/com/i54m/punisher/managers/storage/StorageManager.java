@@ -16,14 +16,17 @@ public interface StorageManager extends Manager {
     WorkerManager WORKER_MANAGER = WorkerManager.getINSTANCE();
 
     TreeMap<Integer, Punishment> PUNISHMENT_CACHE = new TreeMap<>();
+    Map<UUID, ActivePunishments> ACTIVE_PUNISHMENT_CACHE = new HashMap<>();
+    Map<String, Integer> PUNISHMENT_REASONS = new HashMap<>();
+
     default TreeMap<Integer, Punishment> getPunishmentCache() {
         return PUNISHMENT_CACHE;
     }
-    Map<UUID, ActivePunishments> ACTIVE_PUNISHMENT_CACHE = new HashMap<>();
+
     default Map<UUID, ActivePunishments> getActivePunishmentCache() {
         return ACTIVE_PUNISHMENT_CACHE;
     }
-    Map<String, Integer> PUNISHMENT_REASONS = new HashMap<>();
+
     default Map<String, Integer> getPunishmentReasons() {
         return PUNISHMENT_REASONS;
     }
@@ -32,6 +35,7 @@ public interface StorageManager extends Manager {
         ACTIVE_PUNISHMENT_CACHE.clear();
         PUNISHMENT_CACHE.clear();
     }
+
     default void resetCache() {
         try {
             dumpNew();
@@ -42,6 +46,7 @@ public interface StorageManager extends Manager {
             ERROR_HANDLER.adminChatAlert(pse, PLUGIN.getProxy().getConsole());
         }
     }
+
     default void cachePunishment(Punishment punishment) {
         if (!PUNISHMENT_CACHE.containsValue(punishment))
             PUNISHMENT_CACHE.put(punishment.getId(), punishment);
@@ -63,25 +68,51 @@ public interface StorageManager extends Manager {
             ACTIVE_PUNISHMENT_CACHE.put(punishment.getTargetUUID(), punishments);
         }
     }
+
+    default void importPunishmentReasons() {
+        PUNISHMENT_REASONS.clear();
+        // TODO: 9/11/2020 import punishment reasons here
+    }
+
     void setupStorage() throws Exception;
+
     void startCaching();
+
     void cache() throws PunishmentsStorageException;
+
     void dumpNew() throws PunishmentsStorageException;
+
     void NewPunishment(@NotNull Punishment punishment);
+
     void updatePunishment(@NotNull Punishment punishment) throws PunishmentsStorageException;
+
     void createHistory(@NotNull UUID uuid) throws PunishmentsStorageException;
+
     void createStaffHistory(@NotNull UUID uuid) throws PunishmentsStorageException;
+
     void incrementHistory(@NotNull Punishment punishment) throws PunishmentsStorageException;
+
     void incrementStaffHistory(@NotNull Punishment punishment) throws PunishmentsStorageException;
+
     void loadUser(@NotNull UUID uuid, boolean onlyLoadActive) throws PunishmentsStorageException;
+
     void updateAlts(@NotNull UUID uuid, @NotNull String ip) throws PunishmentsStorageException;
-    void updateIpHist(@NotNull UUID uuid, @NotNull  String ip) throws PunishmentsStorageException;
+
+    void updateIpHist(@NotNull UUID uuid, @NotNull String ip) throws PunishmentsStorageException;
+
     Punishment getPunishmentFromId(int id) throws PunishmentsStorageException;
+
     int getOffences(@NotNull UUID targetUUID, @NotNull String reason) throws PunishmentsStorageException;
+
     TreeMap<Integer, Punishment> getHistory(@NotNull UUID uuid) throws PunishmentsStorageException;
+
     TreeMap<Integer, Punishment> getStaffHistory(@NotNull UUID uuid) throws PunishmentsStorageException;
+
     ArrayList<UUID> getAlts(@NotNull UUID uuid) throws PunishmentsStorageException;
+
     ArrayList<UUID> getAlts(@NotNull String ip) throws PunishmentsStorageException;
+
     TreeMap<Long, String> getIpHist(@NotNull UUID uuid) throws PunishmentsStorageException;
+
     int getNextID();
 }
