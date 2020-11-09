@@ -126,7 +126,7 @@ public class Punishment {
      * @param removerUUID The UUID of the person that removed the punishment, If the punishment has not yet been removed then this is null.
      * @param metaData The MetaData of the punishment.
      */
-    public Punishment(@NotNull Integer id, @NotNull Type type, @NotNull String reason, @Nullable String issueDate, @Nullable Long expiration, @NotNull UUID targetUUID, @Nullable String targetName, @NotNull UUID punisherUUID, @Nullable String message, @NotNull Status status, @Nullable UUID removerUUID, @Nullable MetaData metaData) {
+    public Punishment(@NotNull Integer id, @NotNull Type type, @NotNull String reason, @Nullable String issueDate, @Nullable Long expiration, @NotNull UUID targetUUID, @Nullable String targetName, @NotNull UUID punisherUUID, @Nullable String message, @NotNull Status status, @Nullable UUID removerUUID, @Nullable MetaData metaData) {// TODO: 9/11/2020 make metadata required
         this.id = id;
         this.type = type;
         this.reason = reason;
@@ -177,9 +177,18 @@ public class Punishment {
 
     /**
      * @return true if the punishment was issued manually else false.
+     * This is just the inverse of {@link Punishment#isAutomatic()}.
      */
     public boolean isManual() {
-        return reason.contains("Other");
+        return !getMetaData().automaticCalculation;
+    }
+
+    /**
+     * @return true if the punishment was issued using automatic calculation else false.
+     * This is just the inverse of {@link Punishment#isManual()}.
+     */
+    public boolean isAutomatic() {
+        return getMetaData().automaticCalculation;
     }
 
     /**
@@ -461,10 +470,13 @@ public class Punishment {
         return text;
     }
 
-    @Nullable
+    /**
+     * @return the MetaData of the punishment. If none exists it will create some with the default options as a safeguard.
+     */
     public MetaData getMetaData() {
-        if (hasMetaData()) return metaData;
-        else return null;
+        if (!hasMetaData())
+            setMetaData(new MetaData());
+        return metaData;
     }
 
     @AllArgsConstructor
@@ -475,6 +487,7 @@ public class Punishment {
         Boolean appliesToHistory;
 
         public MetaData() {
+            //creates a new set of metadata with the default settings
             reputationBan = false;
             automaticCalculation = false;
             locked = false;
