@@ -63,6 +63,7 @@ public class WindowProperty extends AbstractPacket {
         if(buf.readableBytes() > 0) {
             byte[] readable = new byte[buf.readableBytes()];
             buf.readBytes(readable);
+            //everything below is debug
             StringBuilder packetBuffer = new StringBuilder();
             for(byte b : readable) {
                 packetBuffer.append(Integer.toHexString(b)).append(" ");
