@@ -20,7 +20,7 @@
 # 4. Underscores are not essential as spaces will be replaced by _ when loaded
 # 5. more reasons and offences per reason = longer plugin load times
 
-Minor_Chat_Offence:
+MINOR_CHAT_OFFENCE:
   1:
     type: 'WARN'
   2:
@@ -35,7 +35,7 @@ Minor_Chat_Offence:
   5:
     type: 'MUTE'
     length: 10080
-Major_Chat_Offence:
+MAJOR_CHAT_OFFENCE:
   1:
     type: 'WARN'
   2:
@@ -50,7 +50,7 @@ Major_Chat_Offence:
   5:
     type: 'MUTE'
     length: 20160
-DDoS_DoX_Threats:
+DDOS_DOX_THREATS:
   1:
     type: 'MUTE'
     length: 4320
@@ -63,10 +63,7 @@ DDoS_DoX_Threats:
   4:
     type: 'MUTE'
     length: 5.256e+7
-  5:
-    type: 'MUTE'
-    length: 5.256e+7
-Inappropriate_Link:
+INAPPROPRIATE_LINK:
   1:
     type: 'MUTE'
     length: 4320
@@ -79,10 +76,7 @@ Inappropriate_Link:
   4:
     type: 'MUTE'
     length: 5.256e+7
-  5:
-    type: 'MUTE'
-    length: 5.256e+7
-Scamming:
+SCAMMING:
   1:
     type: 'MUTE'
     length: 1440
@@ -95,10 +89,7 @@ Scamming:
   4:
     type: 'MUTE'
     length: 20160
-  5:
-    type: 'MUTE'
-    length: 20160
-X_Raying:
+X_RAYING:
   1:
     type: 'BAN'
     length: 10080
@@ -108,13 +99,7 @@ X_Raying:
   3:
     type: 'BAN'
     length: 5.256e+7
-  4:
-    type: 'BAN'
-    length: 5.256e+7
-  5:
-    type: 'BAN'
-    length: 5.256e+7
-AutoClicker:
+AUTOCLICKER:
   1:
     type: 'BAN'
     length: 10080
@@ -124,13 +109,7 @@ AutoClicker:
   3:
     type: 'BAN'
     length: 5.256e+7
-  4:
-    type: 'BAN'
-    length: 5.256e+7
-  5:
-    type: 'BAN'
-    length: 5.256e+7
-Fly_Speed_Hacking:
+FLY_SPEED_HACKING:
   1:
     type: 'BAN'
     length: 10080
@@ -140,29 +119,14 @@ Fly_Speed_Hacking:
   3:
     type: 'BAN'
     length: 5.256e+7
-  4:
-    type: 'BAN'
-    length: 5.256e+7
-  5:
-    type: 'BAN'
-    length: 5.256e+7
-Malicious_PvP_Hacks:
+MALICIOUS_PVP_HACKS:
   1:
     type: 'BAN'
     length: 43200
   2:
     type: 'BAN'
     length: 5.256e+7
-  3:
-    type: 'BAN'
-    length: 5.256e+7
-  4:
-    type: 'BAN'
-    length: 5.256e+7
-  5:
-    type: 'BAN'
-    length: 5.256e+7
-Disallowed_Mods:
+DISALLOWED_MODS:
   1:
     type: 'BAN'
     length: 10080
@@ -172,29 +136,11 @@ Disallowed_Mods:
   3:
     type: 'BAN'
     length: 5.256e+7
-  4:
-    type: 'BAN'
-    length: 5.256e+7
-  5:
-    type: 'BAN'
-    length: 5.256e+7
-Server_Advertisement:
+SERVER_ADVERTISEMENT:
   1:
     type: 'BAN'
     length: 5.256e+7
-  2:
-    type: 'BAN'
-    length: 5.256e+7
-  3:
-    type: 'BAN'
-    length: 5.256e+7
-  4:
-    type: 'BAN'
-    length: 5.256e+7
-  5:
-    type: 'BAN'
-    length: 5.256e+7
-Greifing:
+GREIFING:
   1:
     type: 'BAN'
     length: 10080
@@ -204,13 +150,7 @@ Greifing:
   3:
     type: 'BAN'
     length: 5.256e+7
-  4:
-    type: 'BAN'
-    length: 5.256e+7
-  5:
-    type: 'BAN'
-    length: 5.256e+7
-Exploiting:
+EXPLOITING:
   1:
     type: 'BAN'
     length: 10080
@@ -220,13 +160,7 @@ Exploiting:
   3:
     type: 'BAN'
     length: 5.256e+7
-  4:
-    type: 'BAN'
-    length: 5.256e+7
-  5:
-    type: 'BAN'
-    length: 5.256e+7
-Tpa_Trapping:
+TP_TRAPPING:
   1:
     type: 'BAN'
     length: 10080
@@ -236,13 +170,7 @@ Tpa_Trapping:
   3:
     type: 'BAN'
     length: 5.256e+7
-  4:
-    type: 'BAN'
-    length: 5.256e+7
-  5:
-    type: 'BAN'
-    length: 5.256e+7
-Impersonation:
+IMPERSONATION:
   1:
     type: 'WARN'
   2:
