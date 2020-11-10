@@ -1,4 +1,4 @@
-# TODO: 9/11/2020 this can probably replace all the classes in com.i54m.punisher.objects.gui also separate files for each or no?
+# TODO: 9/11/2020 this can probably replace all the classes in com.i54m.punisher.objects.gui needs confirmation gui
 # pseudo code for creating guis:
 # for each key in this file:
 #  construct a gui based on defined values
@@ -12,7 +12,6 @@ name: "&c"
 lore:
   - "&f"
   - "&f"
-
 reason: ""
 #
 #
