@@ -10,7 +10,7 @@ import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 
 import java.util.ArrayList;
-
+@Deprecated
 public class ConfirmationGUI {
 
     public static final IconMenu MENU = new IconMenu(InventoryType.GENERIC_9X3);

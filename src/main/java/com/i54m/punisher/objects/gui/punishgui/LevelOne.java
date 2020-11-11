@@ -9,7 +9,7 @@ import com.i54m.punisher.objects.gui.ConfirmationGUI;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
-
+@Deprecated
 public class LevelOne {
 
     public static final IconMenu MENU = new IconMenu(InventoryType.GENERIC_9X2);
