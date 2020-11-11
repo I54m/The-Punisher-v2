@@ -508,3 +508,30 @@ LEVEL_THREE:
       material: "RED_STAINED_GLASS_PANE"
       amount: 1
       name: " "
+
+#confirmation gui is special and only requires specific items to be defined
+#it is also the only gui that placeholders currently work in
+CONFIRMATION:
+  items:
+    confirm:
+      material: "LIME_STAINED_GLASS_PANE"
+      amount: 1
+      name: "&a&lConfirm"
+    deny:
+      material: "RED_STAINED_GLASS_PANE"
+      amount: 1
+      name: "&a&lDeny"
+    info:
+      material: "PAPER"
+      amount: 1
+      name: "&c&lWARNING!!"
+      lore:
+        - "&cPlease confirm the following punishment:"
+        - "&cPunishing: &f%targetname%"
+        - "&cReason: &f%reason%"
+        - " "
+        - "&c&lThink before you punish!!"
+    fill:
+      material: "GRAY_STAINED_GLASS_PANE"
+      amount: 1
+      name: " "
