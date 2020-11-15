@@ -15,11 +15,7 @@ import com.i54m.punisher.managers.ReputationManager;
 import com.i54m.punisher.managers.WorkerManager;
 import com.i54m.punisher.managers.storage.StorageManager;
 import com.i54m.punisher.managers.storage.StorageType;
-import com.i54m.punisher.objects.gui.ConfirmationGUI;
-import com.i54m.punisher.objects.gui.punishgui.LevelOne;
-import com.i54m.punisher.objects.gui.punishgui.LevelThree;
-import com.i54m.punisher.objects.gui.punishgui.LevelTwo;
-import com.i54m.punisher.objects.gui.punishgui.LevelZero;
+import com.i54m.punisher.objects.GUIS;
 import com.i54m.punisher.utils.LuckPermsHook;
 import com.i54m.punisher.utils.Permissions;
 import com.i54m.punisher.utils.UpdateChecker;
@@ -47,8 +43,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.*;
 import java.util.logging.Formatter;
+import java.util.logging.*;
 
 public class PunisherPlugin extends Plugin {
 
@@ -194,8 +190,8 @@ public class PunisherPlugin extends Plugin {
             //initialize permissions module and hooks
             Permissions.init();
 
-            //preload gui menus
-            setupMenus();
+            //pre-construct gui menus
+            GUIS.preConstructGUIs();
             //register commands
             registerCommands();
             //register event listeners
@@ -383,17 +379,6 @@ public class PunisherPlugin extends Plugin {
         ItemsModule.initModule();
         InventoryModule.initModule();
         WorldModule.initModule();
-    }
-
-    /**
-     * this method is used to setup and pre load all our gui menus.
-     */
-    private void setupMenus() {
-        LevelZero.setupMenu();
-        LevelOne.setupMenu();
-        LevelTwo.setupMenu();
-        LevelThree.setupMenu();
-        ConfirmationGUI.setupMenu();
     }
 
     /**
