@@ -23,53 +23,43 @@ LEVEL_ZERO:
   items:
     12:
       material: "BLUE_ICE"
-      amount: 1
       name: "&cMinor Chat Offence"
       lore:
         - "&fSpam, Flood ETC"
       reason: "MINOR_CHAT_OFFENCE"
     13:
       material: "MAGMA_BLOCK"
-      amount: 1
       name: "&cMajor Chat Offence"
       lore:
         - "&fRacism, Disrespect ETC"
       reason: "MAJOR_CHAT_OFFENCE"
     14:
       material: "ZOMBIE_HEAD"
-      amount: 1
       name: "&cOther Offence"
       lore:
         - "&fFor other not listed offences"
         - "&f(Will ban for 30 minutes regardless of offence)"
       reason: "MANUAL:BAN:30m"
     fill:
-      material: "RED_STAINED_GLASS_PANE"
-      amount: 1
-      name: " "
-      
-      
+      material: "RED_STAINED_GLASS_PANE" 
 
 LEVEL_ONE:
   rows: 2
   items:
     11:
       material: "BLUE_ICE"
-      amount: 1
       name: "&cMinor Chat Offence"
       lore:
         - "&fSpam, Flood ETC"
       reason: "MINOR_CHAT_OFFENCE"
     12:
       material: "MAGMA_BLOCK"
-      amount: 1
       name: "&cMajor Chat Offence"
       lore:
         - "&fRacism, Disrespect ETC"
       reason: "MAJOR_CHAT_OFFENCE"
     13:
       material: "IRON_BOOTS"
-      amount: 1
       name: "&cDDoS/DoX Threats"
       lore:
         - "&fIncludes hinting at it and saying"
@@ -79,46 +69,37 @@ LEVEL_ONE:
       reason: "DDOS_DOX_THREATS"
     14:
       material: "WRITABLE_BOOK"
-      amount: 1
       name: "&cInappropriate Link"
       lore:
         - "&fIncludes private messages"
       reason: "INAPPROPRIATE_LINK"
     15:
       material: "DRAGON_HEAD"
-      amount: 1
       name: "&cScamming"
       lore:
         - "&fWhen a player is unfairly taking a player's"
         - "&fmoney or items through a fake scheme"
       reason: "SCAMMING"
     fill:
-      material: "RED_STAINED_GLASS_PANE"
-      amount: 1
-      name: " "
-      
-      
+      material: "RED_STAINED_GLASS_PANE"  
         
 LEVEL_TWO:
   rows: 4
   items:
     11:
       material: "BLUE_ICE"
-      amount: 1
       name: "&cMinor Chat Offence"
       lore:
         - "&fSpam, Flood ETC"
       reason: "MINOR_CHAT_OFFENCE"
     12:
       material: "MAGMA_BLOCK"
-      amount: 1
       name: "&cMajor Chat Offence"
       lore:
         - "&fRacism, Disrespect ETC"
       reason: "MAJOR_CHAT_OFFENCE"
     13:
       material: "IRON_BOOTS"
-      amount: 1
       name: "&cDDoS/DoX Threats"
       lore:
         - "&fIncludes hinting at it and saying"
@@ -128,14 +109,12 @@ LEVEL_TWO:
       reason: "DDOS_DOX_THREATS"
     14:
       material: "WRITABLE_BOOK"
-      amount: 1
       name: "&cInappropriate Link"
       lore:
         - "&fIncludes private messages"
       reason: "INAPPROPRIATE_LINK"
     15:
       material: "DRAGON_HEAD"
-      amount: 1
       name: "&cScamming"
       lore:
         - "&fWhen a player is unfairly taking a player's"
@@ -143,7 +122,6 @@ LEVEL_TWO:
       reason: "SCAMMING"
     18:
       material: "GLASS"
-      amount: 1
       name: "&cX-RAYING"
       lore:
         - "&fMining straight to Ores/Bases/Chests"
@@ -151,7 +129,6 @@ LEVEL_TWO:
       reason: "X_RAYING"     
     19:
       material: "WOODEN_SWORD"
-      amount: 1
       name: "&cAutoClicker (non PvP)"
       lore:
         - "&fUsing AutoClicker to farm mods ETC"
@@ -160,14 +137,12 @@ LEVEL_TWO:
       reason: "AUTOCLICKER"
     20:
       material: "FEATHER"
-      amount: 1
       name: "&cFly/Speed Hacking"
       lore:
         - "&fIncludes hacks such as water walking/dolphin and spider"
       reason: "FLY_SPEED_HACKING"
     21:
       material: "DIAMOND_SWORD"
-      amount: 1
       name: "&cMalicious PvP Hacks"
       lore:
         - "&fIncludes hacks such as Kill Aura or Reach"
@@ -176,7 +151,6 @@ LEVEL_TWO:
       reason: "MALICIOUS_PVP_HACKS"
     22:
       material: "IRON_SWORD"
-      amount: 1
       name: "&cDisallowed Mods"
       lore:
         - "&fIncludes miscellaneous hacks such as derp or headless"
@@ -185,7 +159,6 @@ LEVEL_TWO:
       reason: "DISALLOWED_MODS"
     23:
       material: "TNT"
-      amount: 1
       name: "&cGreifing"
       lore:
         - "&fExcludes cobble monstering and bypassing land claims"
@@ -193,28 +166,24 @@ LEVEL_TWO:
       reason: "GREIFING"
     24:
       material: "SIGN"
-      amount: 1
       name: "&cServer Advertisement"
       lore:
         - "&fWarning: Must also clear chat after you have proof!!"
       reason: "SERVER_ADVERTISEMENT"
     25:
       material: "PURPLE_SHULKER_BOX"
-      amount: 1
       name: "&cExploiting"
       lore:
         - "&fIncludes bypassing land claims and cobble monstering"
       reason: "EXPLOITING"
     26:
       material: "IRON_TRAPDOOR"
-      amount: 1
       name: "&cTP-Trapping"
       lore:
         - "&fTrapping/killing someone when they teleport"
       reason: "TP_TRAPPING"
     30:
       material: "ZOMBIE_HEAD"
-      amount: 1
       name: "&cOther Minor Offence"
       lore:
         - "&fFor other minor offences"
@@ -222,46 +191,37 @@ LEVEL_TWO:
       reason: "MANUAL:BAN:7d"
     31:
       material: "PLAYER_HEAD"
-      amount: 1
       name: "&cImpersonation"
       lore:
         - "&fAny type of impersonation"
       reason: "IMPERSONATION"
     32:
       material: "CREEPER_HEAD"
-      amount: 1
       name: "&cOther Major Offence"
       lore:
         - "&fIncludes inappropriate IGNs and other major offences"
         - "&f30 day ban regardless of offence"
       reason: "MANUAL:BAN:30d"
     fill:
-      material: "RED_STAINED_GLASS_PANE"
-      amount: 1
-      name: " "
-      
-      
+      material: "RED_STAINED_GLASS_PANE"      
 
 LEVEL_THREE:
   rows: 6
   items:
     11:
       material: "BLUE_ICE"
-      amount: 1
       name: "&cMinor Chat Offence"
       lore:
         - "&fSpam, Flood ETC"
       reason: "MINOR_CHAT_OFFENCE"
     12:
       material: "MAGMA_BLOCK"
-      amount: 1
       name: "&cMajor Chat Offence"
       lore:
         - "&fRacism, Disrespect ETC"
       reason: "MAJOR_CHAT_OFFENCE"
     13:
       material: "IRON_BOOTS"
-      amount: 1
       name: "&cDDoS/DoX Threats"
       lore:
         - "&fIncludes hinting at it and saying"
@@ -271,14 +231,12 @@ LEVEL_THREE:
       reason: "DDOS_DOX_THREATS"
     14:
       material: "WRITABLE_BOOK"
-      amount: 1
       name: "&cInappropriate Link"
       lore:
         - "&fIncludes private messages"
       reason: "INAPPROPRIATE_LINK"
     15:
       material: "DRAGON_HEAD"
-      amount: 1
       name: "&cScamming"
       lore:
         - "&fWhen a player is unfairly taking a player's"
@@ -286,7 +244,6 @@ LEVEL_THREE:
       reason: "SCAMMING"
     18:
       material: "GLASS"
-      amount: 1
       name: "&cX-RAYING"
       lore:
         - "&fMining straight to Ores/Bases/Chests"
@@ -294,7 +251,6 @@ LEVEL_THREE:
       reason: "X_RAYING"
     19:
       material: "WOODEN_SWORD"
-      amount: 1
       name: "&cAutoClicker (non PvP)"
       lore:
         - "&fUsing AutoClicker to farm mods ETC"
@@ -303,14 +259,12 @@ LEVEL_THREE:
       reason: "AUTOCLICKER"
     20:
       material: "FEATHER"
-      amount: 1
       name: "&cFly/Speed Hacking"
       lore:
         - "&fIncludes hacks such as water walking/dolphin and spider"
       reason: "FLY_SPEED_HACKING"
     21:
       material: "DIAMOND_SWORD"
-      amount: 1
       name: "&cMalicious PvP Hacks"
       lore:
         - "&fIncludes hacks such as Kill Aura or Reach"
@@ -319,7 +273,6 @@ LEVEL_THREE:
       reason: "MALICIOUS_PVP_HACKS"
     22:
       material: "IRON_SWORD"
-      amount: 1
       name: "&cDisallowed Mods"
       lore:
         - "&fIncludes miscellaneous hacks such as derp or headless"
@@ -328,7 +281,6 @@ LEVEL_THREE:
       reason: "DISALLOWED_MODS"
     23:
       material: "TNT"
-      amount: 1
       name: "&cGreifing"
       lore:
         - "&fExcludes cobble monstering and bypassing land claims"
@@ -336,28 +288,24 @@ LEVEL_THREE:
       reason: "GREIFING"
     24:
       material: "SIGN"
-      amount: 1
       name: "&cServer Advertisement"
       lore:
         - "&fWarning: Must also clear chat after you have proof!!"
       reason: "SERVER_ADVERTISEMENT"
     25:
       material: "PURPLE_SHULKER_BOX"
-      amount: 1
       name: "&cExploiting"
       lore:
         - "&fIncludes bypassing land claims and cobble monstering"
       reason: "EXPLOITING"
     26:
       material: "IRON_TRAPDOOR"
-      amount: 1
       name: "&cTP-Trapping"
       lore:
         - "&fTrapping/killing someone when they teleport"
       reason: "TP_TRAPPING"
     30:
       material: "ZOMBIE_HEAD"
-      amount: 1
       name: "&cOther Minor Offence"
       lore:
         - "&fFor other minor offences"
@@ -365,14 +313,12 @@ LEVEL_THREE:
       reason: "MANUAL:BAN:7d"
     31:
       material: "PLAYER_HEAD"
-      amount: 1
       name: "&cImpersonation"
       lore:
         - "&fAny type of impersonation"
       reason: "IMPERSONATION"
     32:
       material: "CREEPER_HEAD"
-      amount: 1
       name: "&cOther Major Offence"
       lore:
         - "&fIncludes inappropriate IGNs and other major offences"
@@ -380,150 +326,127 @@ LEVEL_THREE:
       reason: "MANUAL:BAN:30d"
     36:
       material: "BLACKSTONE"
-      amount: 1
       name: "&cWarn"
       lore:
         - "&fManually the player"
       reason: "MANUAL:WARN"
     37:
       material: "COAL"
-      amount: 1
       name: "&c1 Hour Mute"
       lore:
         - "&fManually Mute the player for 1 Hour"
       reason: "MANUAL:MUTE:1h"
     38:
       material: "IRON_INGOT"
-      amount: 1
       name: "&c1 Day Mute"
       lore:
         - "&fManually Mute the player for 1 day"
       reason: "MANUAL:MUTE:1d"
     39:
       material: "GOLD_INGOT"
-      amount: 1
       name: "&c3 Day Mute"
       lore:
         - "&fManually Mute the player for 3 days"
       reason: "MANUAL:MUTE:3d"
     40:
       material: "LAPIS_LAZULI"
-      amount: 1
       name: "&c1 Week Mute"
       lore:
         - "&fManually Mute the player for 1 week"
       reason: "MANUAL:MUTE:1w"
     41:
       material: "REDSTONE"
-      amount: 1
       name: "&c2 Week Mute"
       lore:
         - "&fManually Mute the player for 2 weeks"
       reason: "MANUAL:MUTE:2w"
     42:
       material: "DIAMOND"
-      amount: 1
       name: "&c3 Week Mute"
       lore:
         - "&fManually Mute the player for 3 weeks"
       reason: "MANUAL:MUTE:3w"
     43:
       material: "EMERALD"
-      amount: 1
       name: "&c1 Month Mute"
       lore:
         - "&fManually Mute the player for 1 month"
       reason: "MANUAL:MUTE:1M"
     44:
       material: "BARRIER"
-      amount: 1
       name: "&cPermanent Mute"
       lore:
         - "&fManually Mute the player permanently"
       reason: "MANUAL:MUTE:perm"
     45:
       material: "STONE"
-      amount: 1
       name: "&cKick"
       lore:
         - "&fManually Kick the player"
       reason: "MANUAL:KICK"
     46:
       material: "COAL_ORE"
-      amount: 1
       name: "&c1 Hour Ban"
       lore:
         - "&fManually Ban the player for 1 hour"
       reason: "MANUAL:BAN:1h"
     47:
       material: "IRON_ORE"
-      amount: 1
       name: "&c1 Day Ban"
       lore:
         - "&fManually Ban the player for 1 day"
       reason: "MANUAL:BAN:1d"
     48:
       material: "GOLD_ORE"
-      amount: 1
       name: "&c3 Day Ban"
       lore:
         - "&fManually Ban the player for 3 days"
       reason: "MANUAL:BAN:3d"
     49:
       material: "LAPIS_ORE"
-      amount: 1
       name: "&c1 Week Ban"
       lore:
         - "&fManually Ban the player for 1 week"
       reason: "MANUAL:BAN:1w"
     50:
       material: "REDSTONE_ORE"
-      amount: 1
       name: "&c2 Week Ban"
       lore:
         - "&fManually Ban the player for 2 weeks"
       reason: "MANUAL:BAN:2w"
     51:
       material: "DIAMOND_ORE"
-      amount: 1
       name: "&c3 Week Ban"
       lore:
         - "&fManually Ban the player for 3 weeks"
       reason: "MANUAL:BAN:3w"
     52:
       material: "EMERALD_ORE"
-      amount: 1
       name: "&c1 Month Ban"
       lore:
         - "&fManually Ban the player for 1 month"
       reason: "MANUAL:BAN:1M"
     53:
       material: "BEDROCK"
-      amount: 1
       name: "&cPermanent Ban"
       lore:
         - "&fManually Ban the player permanently"
       reason: "MANUAL:BAN:perm"
     fill:
       material: "RED_STAINED_GLASS_PANE"
-      amount: 1
-      name: " "
 
 #confirmation gui is special and only requires specific items to be defined
-#it is also the only gui that placeholders currently work in
+#it is also the only gui that placeholders currently work in (they only work on the info item)
 CONFIRMATION:
   items:
     confirm:
       material: "LIME_STAINED_GLASS_PANE"
-      amount: 1
       name: "&a&lConfirm"
     deny:
       material: "RED_STAINED_GLASS_PANE"
-      amount: 1
       name: "&a&lDeny"
     info:
       material: "PAPER"
-      amount: 1
       name: "&c&lWARNING!!"
       lore:
         - "&cPlease confirm the following punishment:"
@@ -533,5 +456,3 @@ CONFIRMATION:
         - "&c&lThink before you punish!!"
     fill:
       material: "GRAY_STAINED_GLASS_PANE"
-      amount: 1
-      name: " "
