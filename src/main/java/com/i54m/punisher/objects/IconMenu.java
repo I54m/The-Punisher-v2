@@ -92,6 +92,12 @@ public class IconMenu implements Listener {
         this.items.put(position, getItem(item, name, lore));
     }
 
+    public void addButton(int position, ItemStack item, String name, List<String> lore) {
+        item.setDisplayName(name);
+        item.setLore(lore);
+        this.items.put(position, item);
+    }
+
     private ItemStack getItem(ItemStack item, String name, String... lore) {
         item.setDisplayName(name);
         item.setLore(Arrays.asList(lore));
