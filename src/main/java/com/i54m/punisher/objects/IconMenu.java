@@ -61,6 +61,7 @@ public class IconMenu implements Listener {
 
     public void close(ProxiedPlayer p) {
         InventoryModule.closeInventory(menu, p);
+        viewing.remove(p.getUniqueId());
     }
 
     @EventHandler
@@ -69,7 +70,7 @@ public class IconMenu implements Listener {
             ProxiedPlayer p = event.getPlayer();
             if (event.getInventory() != null && event.getClickedItem() != null && event.getInventory().equals(menu)) {
                 event.setCancelled(true);
-                if (click.click(p, this, event.getSlot(), event.getClickedItem()))
+                if (click.click(p, this, event.getSlot(), event.getClickedItem()) && viewing.contains(p.getUniqueId()))
                     close(p);
             }
         }
