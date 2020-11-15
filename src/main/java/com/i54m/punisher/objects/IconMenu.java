@@ -1,5 +1,6 @@
 package com.i54m.punisher.objects;
 
+import com.i54m.protocol.api.util.ReflectionUtil;
 import com.i54m.protocol.inventory.Inventory;
 import com.i54m.protocol.inventory.InventoryModule;
 import com.i54m.protocol.inventory.InventoryType;
@@ -29,6 +30,8 @@ public class IconMenu implements Listener {
     private final Map<Integer, ItemStack> items = new HashMap<>();
     private final List<UUID> viewing = new ArrayList<>();
     private final Inventory menu;
+    @Setter
+    private ItemStack fill;
 
     public IconMenu(InventoryType type) {
         this.menu = new Inventory(type, new TextComponent("Icon Menu"));
@@ -50,12 +53,21 @@ public class IconMenu implements Listener {
 
         if (this.type != null && !items.isEmpty()) {
             if (this.title == null) this.title = new TextComponent[]{new TextComponent("Icon Menu")};
-
+            fillInventory(p);
             this.menu.setItems(items);
             InventoryModule.sendInventory(p, menu);
             viewing.add(p.getUniqueId());
         } else {
             PunisherPlugin.getInstance().getLogger().severe("Error: Cannot open an IconMenu that is missing a type or items!");
+        }
+    }
+
+    private void fillInventory(ProxiedPlayer p) {
+        if (fill != null) {
+            int size = menu.getType().getTypicalSize(ReflectionUtil.getProtocolVersion(p));
+            for (int i = 0; i < size; i ++) {
+                items.computeIfAbsent(i, k -> fill);
+            }
         }
     }
 
@@ -77,7 +89,7 @@ public class IconMenu implements Listener {
     }
 
     public void addButton(int position, ItemStack item, String name, String... lore) {
-        items.put(position, getItem(item, name, lore));
+        this.items.put(position, getItem(item, name, lore));
     }
 
     private ItemStack getItem(ItemStack item, String name, String... lore) {
