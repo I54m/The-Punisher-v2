@@ -377,7 +377,7 @@ public class PunishmentManager implements Manager {// TODO: 7/11/2020 fully impl
         if (targetname == null)
             targetname = NameFetcher.getName(punishment.getTargetUUID());
 
-        if (!punishment.isActive()){
+        if (!punishment.isActive()) {
             if (player != null)
                 player.sendMessage(new ComponentBuilder(PLUGIN.getPrefix()).append("You cannot remove a punishment that is not active!").color(ChatColor.RED).create());
             else
@@ -386,7 +386,7 @@ public class PunishmentManager implements Manager {// TODO: 7/11/2020 fully impl
         }
 
         if (punishment.hasMetaData())
-            if (punishment.getMetaData().isLocked()){
+            if (punishment.getMetaData().isLocked()) {
                 if (player != null)
                     player.sendMessage(new ComponentBuilder(PLUGIN.getPrefix()).append("This punishment is currently locked and must be unlocked before any actions can be taken on it!").color(ChatColor.RED).create());// TODO: 9/11/2020 make a way for admins to unlock/lock punishments
                 else
@@ -454,6 +454,7 @@ public class PunishmentManager implements Manager {// TODO: 7/11/2020 fully impl
         storageManager.updatePunishment(punishment);
     }
 
+    @Deprecated
     public long calculateExpiration(Punishment punishment) throws PunishmentsStorageException {//todo verify that this is actually calculating correctly
         switch (punishment.getReason()) {
             case "Other_Minor_Offence":
@@ -469,12 +470,52 @@ public class PunishmentManager implements Manager {// TODO: 7/11/2020 fully impl
         return (long) (60000 * PLUGIN.getPunishments().getDouble(punishment.getReason() + "." + punishmentno + ".length")) + System.currentTimeMillis();
     }
 
-    public Punishment.Type calculateType(UUID targetuuid, String reason) throws PunishmentCalculationException, PunishmentsStorageException {
-        if (reason.contains("Manual") || reason.equals("Custom") || reason.contains("Other"))
-            throw new PunishmentCalculationException("Punishment reason must be an automatic punishment type when calculating punishment type!", "type");
+    public long calculateExpiration(UUID targetUUID, String reason) throws PunishmentsStorageException {
+        if (reason.toUpperCase().contains("MANUAL:")) {
+            String[] reasonargs = reason.toUpperCase().split(":");
+            Punishment.Type type = Punishment.Type.valueOf(reasonargs[1]);
+            if (type != Punishment.Type.BAN && type != Punishment.Type.MUTE) return 0;
+            return translateExpiration(reasonargs[2]);
+        }
+
+        int punishmentno = storageManager.getOffences(targetUUID, reason);
+        punishmentno++;
+        if (punishmentno > storageManager.getPunishmentReasons().get(reason.toUpperCase()))
+            punishmentno = storageManager.getPunishmentReasons().get(reason.toUpperCase());
+
+        Punishment.Type type = Punishment.Type.valueOf(PLUGIN.getPunishments().getString(reason + "." + punishmentno + ".type").toUpperCase());
+        if (type != Punishment.Type.BAN && type != Punishment.Type.MUTE) return 0;
+
+        return translateExpiration(PLUGIN.getPunishments().getString(reason + "." + punishmentno + ".length"));
+    }
+
+    public long translateExpiration(String length) { // TODO: 15/11/2020 implement more widely
+        if (length.toLowerCase().contains("perm"))
+            return (long) 3.154e+12 + System.currentTimeMillis();
+        else if (length.endsWith("M"))
+            return (long) 2.628e+9 * (long) Integer.parseInt(length.replace("M", "")) + System.currentTimeMillis();
+        else if (length.toLowerCase().endsWith("w"))
+            return (long) 6.048e+8 * (long) Integer.parseInt(length.replace("w", "")) + System.currentTimeMillis();
+        else if (length.toLowerCase().endsWith("d"))
+            return (long) 8.64e+7 * (long) Integer.parseInt(length.replace("d", "")) + System.currentTimeMillis();
+        else if (length.toLowerCase().endsWith("h"))
+            return (long) 3.6e+6 * (long) Integer.parseInt(length.replace("h", "")) + System.currentTimeMillis();
+        else if (length.endsWith("m"))
+            return 60000 * (long) Integer.parseInt(length.replace("m", "")) + System.currentTimeMillis();
+        else if (length.toLowerCase().endsWith("s"))
+            return 1000 * (long) Integer.parseInt(length.replace("s", "")) + System.currentTimeMillis();
+        else return 0;
+    }
+
+    public Punishment.Type calculateType(UUID targetuuid, String reason) throws PunishmentsStorageException {
+        if (reason.toUpperCase().contains("MANUAL:"))
+            return Punishment.Type.valueOf(reason.toUpperCase().split(":")[1]);
+
         int punishmentno = storageManager.getOffences(targetuuid, reason);
         punishmentno++;
-        if (punishmentno > 5) punishmentno = 5;
+        if (punishmentno > storageManager.getPunishmentReasons().get(reason.toUpperCase()))
+            punishmentno = storageManager.getPunishmentReasons().get(reason.toUpperCase());
+
         return Punishment.Type.valueOf(PLUGIN.getPunishments().getString(reason + "." + punishmentno + ".type").toUpperCase());
     }
 
@@ -493,80 +534,21 @@ public class PunishmentManager implements Manager {// TODO: 7/11/2020 fully impl
         }
     }
 
-    public String[] translate(int slot, String item) throws PunishmentCalculationException {// TODO: 9/11/2020 is this needed anymore? maybe convert to look through gui configs to find the reason that the item represents
-        if ((slot == 11 || slot == 12) && item.contains("Spam, Flood ETC"))
-            return new String[]{"Minor_Chat_Offence", "Minor Chat Offence"};
-        else if ((slot == 12 || slot == 13) && item.contains("Racism, Disrespect ETC"))
-            return new String[]{"Major_Chat_Offence", "Major Chat Offence"};
-        else if (slot == 14 && item.contains("For Other Not Listed Offences"))
-            return new String[]{"Other_Offence", "Other Offence"};
-        else if (slot == 13 && item.contains("Includes Hinting At It and"))
-            return new String[]{"DDoS_DoX_Threats", "DDoS/DoX Threats"};
-        else if (slot == 14 && item.contains("Includes Pm's"))
-            return new String[]{"Inappropriate_Link", "Inappropriate Link"};
-        else if (slot == 15 && item.contains("When a player is unfairly taking a player's"))
-            return new String[]{"Scamming", "Scamming"};
-        else if (slot == 18 && item.contains("Mining Straight to Ores/Bases/Chests"))
-            return new String[]{"X_Raying", "X-Raying"};
-        else if (slot == 19 && item.contains("Using AutoClicker to Farm Mobs ETC"))
-            return new String[]{"AutoClicker", "AutoClicker(Non PvP)"};
-        else if (slot == 20 && item.contains("Includes Hacks Such as Jesus and Spider"))
-            return new String[]{"Fly_Speed_Hacking", "Fly/Speed Hacking"};
-        else if (slot == 21 && item.contains("Includes Hacks Such as Kill Aura and Reach"))
-            return new String[]{"Malicious_PvP_Hacks", "Malicious PvP Hacks"};
-        else if (slot == 22 && item.contains("Includes Hacks Such as Derp and Headless"))
-            return new String[]{"Disallowed_Mods", "Disallowed Mods"};
-        else if (slot == 23 && item.contains("Excludes Cobble Monstering and Bypassing land claims"))
-            return new String[]{"Greifing", "Greifing"};
-        else if (slot == 24 && item.contains("Warning: Must Also Clear Chat After you have proof!"))
-            return new String[]{"Server_Advertisement", "Server Advertisement"};
-        else if (slot == 25 && item.contains("Includes Bypassing Land Claims and Cobble Monstering"))
-            return new String[]{"Exploiting", "Exploiting"};
-        else if (slot == 26 && item.contains("Sending a TPA Request to Someone"))
-            return new String[]{"Tpa_Trapping", "TPA-Trapping"};
-        else if (slot == 30 && item.contains("For Other Minor Offences"))
-            return new String[]{"Other_Minor_Offence", "Other Minor Offence"};
-        else if (slot == 31 && item.contains("Any type of Impersonation"))
-            return new String[]{"Impersonation", "Player Impersonation"};
-        else if (slot == 32 && item.contains("Includes Inappropriate IGN's and Other Major Offences"))
-            return new String[]{"Other_Major_Offence", "Other Major Offence"};
-        else if (slot == 36 && item.contains("Manually Warn the Player"))
-            return new String[]{"Custom", "WARN", "Manually Warned"};
-        else if (slot == 37 && item.contains("Manually Mute the Player For 1 Hour"))
-            return new String[]{"Custom", "MUTE", "Manually Muted for 1 Hour", String.valueOf((long) 3.6e+6 + System.currentTimeMillis())};
-        else if (slot == 38 && item.contains("Manually Mute the Player For 1 Day"))
-            return new String[]{"Custom", "MUTE", "Manually Muted for 1 Day", String.valueOf((long) 8.64e+7 + System.currentTimeMillis())};
-        else if (slot == 39 && item.contains("Manually Mute the Player For 3 Days"))
-            return new String[]{"Custom", "MUTE", "Manually Muted for 3 Days", String.valueOf((long) 2.592e+8 + System.currentTimeMillis())};
-        else if (slot == 40 && item.contains("Manually Mute the Player For 1 Week"))
-            return new String[]{"Custom", "MUTE", "Manually Muted for 1 Week", String.valueOf((long) 6.048e+8 + System.currentTimeMillis())};
-        else if (slot == 41 && item.contains("Manually Mute the Player For 2 Weeks"))
-            return new String[]{"Custom", "MUTE", "Manually Muted for 2 Weeks", String.valueOf((long) 1.21e+9 + System.currentTimeMillis())};
-        else if (slot == 42 && item.contains("Manually Mute the Player For 3 Weeks"))
-            return new String[]{"Custom", "MUTE", "Manually Muted for 3 Weeks", String.valueOf((long) 1.814e+9 + System.currentTimeMillis())};
-        else if (slot == 43 && item.contains("Manually Mute the Player For 1 Month"))
-            return new String[]{"Custom", "MUTE", "Manually Muted for 1 Month", String.valueOf((long) 2.628e+9 + System.currentTimeMillis())};
-        else if (slot == 44 && item.contains("Manually Mute the Player Permanently"))
-            return new String[]{"Custom", "MUTE", "Manually Muted Permanently", String.valueOf((long) 3.154e+12 + System.currentTimeMillis())};
-        else if (slot == 45 && item.contains("Manually Kick the Player"))
-            return new String[]{"Custom", "KICK", "Manually Kicked"};
-        else if (slot == 46 && item.contains("Manually Ban The Player For 1 Hour"))
-            return new String[]{"Custom", "BAN", "Manually Banned for 1 Hour", String.valueOf((long) 3.6e+6 + System.currentTimeMillis())};
-        else if (slot == 47 && item.contains("Manually Ban the Player For 1 Day"))
-            return new String[]{"Custom", "BAN", "Manually Banned for 1 Day", String.valueOf((long) 8.64e+7 + System.currentTimeMillis())};
-        else if (slot == 48 && item.contains("Manually Ban the Player For 3 Days"))
-            return new String[]{"Custom", "BAN", "Manually Banned for 3 Days", String.valueOf((long) 2.592e+8 + System.currentTimeMillis())};
-        else if (slot == 49 && item.contains("Manually Ban the Player For 1 Week"))
-            return new String[]{"Custom", "BAN", "Manually Banned for 1 Week", String.valueOf((long) 6.048e+8 + System.currentTimeMillis())};
-        else if (slot == 50 && item.contains("Manually Ban the Player For 2 Weeks"))
-            return new String[]{"Custom", "BAN", "Manually Banned for 2 Weeks", String.valueOf((long) 1.21e+9 + System.currentTimeMillis())};
-        else if (slot == 51 && item.contains("Manually Ban the Player For 3 Weeks"))
-            return new String[]{"Custom", "BAN", "Manually Banned for 3 Weeks", String.valueOf((long) 1.814e+9 + System.currentTimeMillis())};
-        else if (slot == 52 && item.contains("Manually Ban the Player For 1 Month"))
-            return new String[]{"Custom", "BAN", "Manually Banned For 1 Month", String.valueOf((long) 2.628e+9 + System.currentTimeMillis())};
-        else if (slot == 53 && item.contains("Manually Ban the Player Permanently"))
-            return new String[]{"Custom", "BAN", "Manually Banned Permanently", String.valueOf((long) 3.154e+12 + System.currentTimeMillis())};
-        throw new PunishmentCalculationException("Could not translate clicked item to punishment properties", "Translating sent item to punishment properties");
+    public Punishment constructPunishment(UUID targetUUID, String reason, UUID punisherUUID) {
+        try {
+            return new Punishment(
+                    calculateType(targetUUID, reason),
+                    reason,
+                    calculateExpiration(targetUUID, reason),
+                    targetUUID,
+                    NameFetcher.getName(targetUUID),
+                    punisherUUID,
+                    reason.toLowerCase().replace("_", " ").replace(":", " "),
+                    new Punishment.MetaData());
+        } catch (PunishmentsStorageException pse) {
+            ERROR_HANDLER.log(new PunishmentCalculationException("Storage exception in either type or expiration calculation", "Punishment construction", pse));
+            return null;
+        }
     }
 
     public boolean isBanned(UUID targetUUID) {
