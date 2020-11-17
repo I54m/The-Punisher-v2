@@ -17,4 +17,11 @@ public enum StorageType {
     StorageType (StorageManager storageManager) {
         this.storageManager = storageManager;
     }
+
+    public static StorageType getStorageTypeFromManager(StorageManager storageManager) {
+        for (StorageType storageType : StorageType.values()) {
+            if (storageType.getStorageManager().equals(storageManager)) return storageType;
+        }
+        return null;
+    }
 }
