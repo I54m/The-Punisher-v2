@@ -17,7 +17,7 @@ public interface StorageManager extends Manager {// TODO: 9/11/2020 Add Javadocs
 
     TreeMap<Integer, Punishment> PUNISHMENT_CACHE = new TreeMap<>();
     Map<UUID, ActivePunishments> ACTIVE_PUNISHMENT_CACHE = new HashMap<>();
-    Map<String, Integer> PUNISHMENT_REASONS = new HashMap<>();// TODO: 9/11/2020 string = reason, int = max number of offences, all defined in punishments.yml
+    Map<String, Integer> PUNISHMENT_REASONS = new HashMap<>();
 
     default TreeMap<Integer, Punishment> getPunishmentCache() {
         return PUNISHMENT_CACHE;
