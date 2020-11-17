@@ -16,10 +16,7 @@ public class UserFetcher implements Callable<User> {
     }
 
     @Override
-    public User call() throws Exception {
-//        RegisteredServiceProvider<LuckPerms> provider = Bukkit.getServicesManager().getRegistration(LuckPerms.class);
-//        if (provider == null)
-//            throw new ClassNotFoundException("Luckperms is not enabled!");
+    public User call() {
         UserManager userManager = PunisherPlugin.getInstance().getLuckPermsHook().getApi().getUserManager();
         CompletableFuture<User> userFuture = userManager.loadUser(uuid);
         return userFuture.join();
