@@ -17,7 +17,6 @@ import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -63,18 +62,11 @@ public class UnpunishCommand extends Command {
                 player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Manual Punishments may not be removed from history!").color(ChatColor.RED).create());
                 return;
             }
-            ArrayList<String> reasonslist = new ArrayList<>();
-            StringBuilder reasons = new StringBuilder();
-//            for (Punishment.Reason reason1 : Punishment.Reason.values()) {
-//                if (!reason1.toString().contains("Manual")) {
-//                    reasons.append(reason1.toString()).append(" ");
-//                }
-//                reasonslist.add(reason1.toString());
-//            }
-            if (!reasonslist.contains(reasonString)) {
+
+            if (!plugin.getStorageManager().getPunishmentReasons().containsKey(reasonString)) {
                 player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("That is not a punishment reason!").color(ChatColor.RED).create());
                 player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Reasons are as follows (Case Sensitive):").color(ChatColor.RED).create());
-                player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append(reasons.toString()).color(ChatColor.RED).create());
+                player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append(plugin.getStorageManager().getPunishmentReasons().toString().replace("[", "").replace("]", "")).color(ChatColor.RED).create());
                 return;
             }
             if (future != null) {
@@ -97,7 +89,7 @@ public class UnpunishCommand extends Command {
                 }
                 try {
 //                    Punishment.Reason Reason = Punishment.Reason.valueOf(reasonString);
-                    //todo NEED to find out type & issuedate or maybe just get them to give an id?
+                    //todo NEED to figure out how to get the punishment that they are wanting to remove
                     punishmentManager.remove(punishmentManager.punishmentLookup(null, Punishment.Type.ALL, "Reason", "test", (long) 123456789, targetuuid), player, true, true, true);
                 } catch (SQLException e) {
                     try {
