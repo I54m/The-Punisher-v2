@@ -81,14 +81,10 @@ public class PunisherPlugin extends Plugin {
 
     /*
      * Config variables
-     *  TODO: 8/06/2020 implement new gui configs
      */
-//    private File levelZeroGUIFile, levelOneGUIFile, levelTwoGUIFile, levelThreeGUIFile, confirmationGUIFile, historyGUIFile;
     private File configFile, punishmentsFile;
     @Getter
     private Configuration punishments, config;
-//    @Getter
-//    private Configuration levelZeroGUI, levelOneGUI, levelTwoGUI, levelThreeGUI, confirmationGUI, historyGUI;
 
     /*
      * Logging system variables
