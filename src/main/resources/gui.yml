@@ -1,22 +1,28 @@
-# TODO: 9/11/2020 this can probably replace all the classes in com.i54m.punisher.objects.gui needs confirmation gui
-# pseudo code for creating guis:
-# for each key in this file:
-#  construct a gui based on defined values
-#  store gui with name (key) in a hashmap
+#This File contains the item definitions for the 4 punishment guis and the confirmation gui
+#Example of how to define items in the gui:
+#    <slot number>:
+#      material: "<Item Type>"
+#      name: "<name of item with colorcodes>"
+#      lore:
+#        - "<lore line 1>"
+#        _ "<lore line 2>"
+#        _ "<etc...>"
+#      flags:
+#        - "<Flag to set to true>"
+#      reason: "<corresponding reason in punishments.yml>"
+# - There is no need to define an amount as it will always be 1
+# - No need to define lore or flags if there are none you wish to define
+# - There is no slot number definition for the confirmation gui as it only needs the pre defined items configured
 #
-# then need to figure out how to integrate that into current design of menus
+###########################################################################################################
+# Manual reason definition (will execute punishment with given parameters without any automatic calculation
 #
-material: ""
-amount: 1
-name: "&c"
-lore:
-  - "&f"
-  - "&f"
-reason: ""
+#      reason: "MANUAL:<type of punishment>:<length of punishment provided in the same way you would in the command, omit for kick and warn>"
 #
-#
-#
-#
+###########################################################################################################
+#Fill item definition only requires and item type
+#    fill:
+#      material: "<Item Type>"
 #
 LEVEL_ZERO:
   rows: 2
