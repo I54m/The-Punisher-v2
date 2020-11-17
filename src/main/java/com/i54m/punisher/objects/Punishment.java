@@ -94,7 +94,7 @@ public class Punishment {
      * @param message The message that the target will see as the reason.
      * @param metaData The MetaData of the punishment.
      */
-    public Punishment(@NotNull Type type, @NotNull String reason, @Nullable Long expiration, @NotNull UUID targetUUID, @NotNull String targetName, @NotNull UUID punisherUUID, @Nullable String message, @Nullable MetaData metaData) {
+    public Punishment(@NotNull Type type, @NotNull String reason, @Nullable Long expiration, @NotNull UUID targetUUID, @NotNull String targetName, @NotNull UUID punisherUUID, @Nullable String message, @NotNull MetaData metaData) {
         StorageManager storageManager = PunisherPlugin.getInstance().getStorageManager();
         this.id = storageManager.getNextID();
         this.type = type;
@@ -107,8 +107,7 @@ public class Punishment {
         this.removerUUID = null;
         this.status = Status.Created;
         storageManager.NewPunishment(this);
-        if (metaData != null)
-            this.metaData = metaData;
+        this.metaData = metaData;
     }
 
     /**
@@ -126,7 +125,7 @@ public class Punishment {
      * @param removerUUID The UUID of the person that removed the punishment, If the punishment has not yet been removed then this is null.
      * @param metaData The MetaData of the punishment.
      */
-    public Punishment(@NotNull Integer id, @NotNull Type type, @NotNull String reason, @Nullable String issueDate, @Nullable Long expiration, @NotNull UUID targetUUID, @Nullable String targetName, @NotNull UUID punisherUUID, @Nullable String message, @NotNull Status status, @Nullable UUID removerUUID, @Nullable MetaData metaData) {// TODO: 9/11/2020 make metadata required
+    public Punishment(@NotNull Integer id, @NotNull Type type, @NotNull String reason, @Nullable String issueDate, @Nullable Long expiration, @NotNull UUID targetUUID, @Nullable String targetName, @NotNull UUID punisherUUID, @Nullable String message, @NotNull Status status, @Nullable UUID removerUUID, @NotNull MetaData metaData) {
         this.id = id;
         this.type = type;
         this.reason = reason;
@@ -139,8 +138,7 @@ public class Punishment {
         this.status = status;
         if (removerUUID != null)
             this.removerUUID = removerUUID;
-        if (metaData != null)
-            this.metaData = metaData;
+        this.metaData = metaData;
     }
 
     /**
@@ -156,15 +154,6 @@ public class Punishment {
     public enum Status {
         Created, Pending, Active, Issued, Overridden, Expired, Removed
     }
-
-    /*
-     * The reason we are issuing the punishment for.
-     */
-//    @Deprecated
-//    public enum Reason { // TODO: 8/06/2020 make config for these
-//        Minor_Chat_Offence, Major_Chat_Offence, DDoS_DoX_Threats, Inappropriate_Link, Scamming, X_Raying, AutoClicker, Fly_Speed_Hacking, Disallowed_Mods, Malicious_PvP_Hacks, Server_Advertisement,
-//        Greifing, Exploiting, Tpa_Trapping, Impersonation, Other_Minor_Offence, Other_Major_Offence, Other_Offence, Custom
-//    }
 
     /**
      * A punishment is considered permanent if it is 10 or more years.
