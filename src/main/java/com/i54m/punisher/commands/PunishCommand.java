@@ -1,12 +1,6 @@
 package com.i54m.punisher.commands;
 
-import com.i54m.protocol.items.ItemStack;
-import com.i54m.protocol.items.ItemType;
-import com.i54m.punisher.objects.gui.ConfirmationGUI;
-import com.i54m.punisher.objects.gui.punishgui.LevelOne;
-import com.i54m.punisher.objects.gui.punishgui.LevelThree;
-import com.i54m.punisher.objects.gui.punishgui.LevelTwo;
-import com.i54m.punisher.objects.gui.punishgui.LevelZero;
+import com.i54m.punisher.objects.GUIS;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
@@ -19,31 +13,20 @@ public class PunishCommand extends Command {
 
     @Override
     public void execute(CommandSender commandSender, String[] strings) {
-        if (commandSender instanceof ProxiedPlayer){
+        if (commandSender instanceof ProxiedPlayer) {
             ProxiedPlayer player = (ProxiedPlayer) commandSender;
-            if (strings.length >=1){
-                switch (strings[0].toLowerCase()){
-                    case "levelzero": {
-                        LevelZero.open(player, player.getUniqueId().toString(), player.getName(), "(0/0)");
-                        player.getPendingConnection().getVersion();
-                        return;
-                    }
-                    case "levelone": {
-                        LevelOne.open(player, player.getUniqueId().toString(), player.getName(), "(0/0)");
-                        return;
-                    }
-                    case "leveltwo": {
-                        LevelTwo.open(player, player.getUniqueId().toString(), player.getName(),"(0/0)");
-                        return;
-                    }
-                    case "confirmation": {
-                        ConfirmationGUI.open(player, player.getUniqueId().toString(), player.getName(), new ItemStack(ItemType.NO_DATA), 0);
-                        return;
-                    }
-                    case "levelthree": {
-                        LevelThree.open(player, player.getUniqueId().toString(), player.getName(), "(0/0)");
-                    }
-                }
+            if (strings.length >= 1) {
+                // TODO: 17/11/2020 begin work on punish command
+                /*
+                fetch uuid
+                then
+                fetch rep & correct name
+                then
+                decide gui based on permission lvl
+                then
+                open correct gui
+                 */
+                GUIS.openMenu(GUIS.GUI.valueOf(strings[0].toUpperCase()), player, player.getUniqueId(), player.getName(), "(0/0)");
             }
         }
     }
