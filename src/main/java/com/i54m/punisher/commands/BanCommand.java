@@ -105,13 +105,10 @@ public class BanCommand extends Command {
             try {
                 targetuuid = future.get(1, TimeUnit.SECONDS);
             } catch (Exception e) {
-                try {
-                    throw new DataFetchException("UUID Required for next step", strings[0], "UUID", this.getName(), e);
-                } catch (DataFetchException dfe) {
-                    ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
-                    errorHandler.log(dfe);
-                    errorHandler.alert(dfe, commandSender);
-                }
+                ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
+                DataFetchException dfe = new DataFetchException(this.getName(), "UUID", strings[0], e, "UUID Required for next step");
+                errorHandler.log(dfe);
+                errorHandler.alert(dfe, commandSender);
                 executorService.shutdown();
                 return;
             }
@@ -144,14 +141,10 @@ public class BanCommand extends Command {
                 return;
             }
         } catch (Exception e) {
-            try {
-                throw new DataFetchException("User instance required for punishment level checking", player.getName(), "User Instance", Permissions.class.getName(), e);
-            } catch (DataFetchException dfe) {
-                ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
-                errorHandler.log(dfe);
-                errorHandler.alert(e, player);
-                return;
-            }
+            ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
+            DataFetchException dfe = new DataFetchException(Permissions.class.getName(), "User Instance", player.getName(), e, "User instance required for punishment level checking");
+            errorHandler.log(dfe);
+            errorHandler.alert(dfe, commandSender);
         }
         try {
             Punishment ban = new Punishment(Punishment.Type.BAN, "CUSTOM", length, targetuuid, targetname, player.getUniqueId(), reason.toString(), null);

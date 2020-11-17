@@ -61,13 +61,10 @@ public class PlayerInfoCommand extends Command {
             try {
                 targetuuid = future.get(1, TimeUnit.SECONDS);
             } catch (Exception e) {
-                try {
-                    throw new DataFetchException("UUID Required for next step", strings[0], "UUID", this.getName(), e);
-                } catch (DataFetchException dfe) {
-                    ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
-                    errorHandler.log(dfe);
-                    errorHandler.alert(dfe, commandSender);
-                }
+                ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
+                DataFetchException dfe = new DataFetchException(this.getName(), "UUID", strings[0], e, "UUID Required for next step");
+                errorHandler.log(dfe);
+                errorHandler.alert(dfe, commandSender);
                 executorService.shutdown();
                 return;
             }
@@ -99,13 +96,10 @@ public class PlayerInfoCommand extends Command {
         try{
             info = futureInfo.get(2, TimeUnit.SECONDS);
         } catch (Exception e) {
-            try {
-                throw new DataFetchException("Player Info was required for next step", strings[0], "player info", this.getName(), e);
-            }catch (DataFetchException dfe){
-                ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
-                errorHandler.log(dfe);
-                errorHandler.alert(dfe, commandSender);
-            }
+            ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
+            DataFetchException dfe = new DataFetchException(this.getName(), "Player Info", strings[0], e, "Player Info Required for next step");
+            errorHandler.log(dfe);
+            errorHandler.alert(dfe, commandSender);
             executorServiceinfo.shutdown();
             return;
         }
@@ -114,13 +108,10 @@ public class PlayerInfoCommand extends Command {
         try{
             status = futurestatus.get(500, TimeUnit.MILLISECONDS);
         } catch (Exception e) {
-            try {
-                throw new DataFetchException("Status was required for player info", targetname, "Punishment Status", this.getName(), e);
-            } catch (DataFetchException dfe) {
-                ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
-                errorHandler.log(dfe);
-                errorHandler.alert(dfe, commandSender);
-            }
+            ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
+            DataFetchException dfe = new DataFetchException(this.getName(), "Punishment Status", targetname, e, "Status was required for Player Info");
+            errorHandler.log(dfe);
+            errorHandler.alert(dfe, commandSender);
             executorService1.shutdown();
             return;
         }

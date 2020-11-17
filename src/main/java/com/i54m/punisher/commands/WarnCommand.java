@@ -56,14 +56,10 @@ public class WarnCommand extends Command {
                 return;
             }
         } catch (Exception e) {
-            try {
-                throw new DataFetchException("User instance required for punishment level checking", player.getName(), "User Instance", Permissions.class.getName(), e);
-            } catch (DataFetchException dfe) {
-                ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
-                errorHandler.log(dfe);
-                errorHandler.alert(e, player);
-                return;
-            }
+            ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
+            DataFetchException dfe = new DataFetchException(Permissions.class.getName(), "User Instance", player.getName(), e, "User instance required for punishment level checking");
+            errorHandler.log(dfe);
+            errorHandler.alert(dfe, commandSender);
         }
         try {
             Punishment warn = new Punishment(Punishment.Type.WARN, "CUSTOM", null, targetuuid, target.getName(), player.getUniqueId(), sb.toString(), null);

@@ -1,7 +1,6 @@
 package com.i54m.punisher.fetchers;
 
 import com.i54m.punisher.PunisherPlugin;
-import com.i54m.punisher.chats.StaffChat;
 import com.i54m.punisher.exceptions.DataFetchException;
 import com.i54m.punisher.handlers.ErrorHandler;
 import com.i54m.punisher.managers.PlayerDataManager;
@@ -62,7 +61,7 @@ public class PlayerInfo implements Callable<Map<String, String>> {
             try {
                 user = userFuture.get(500, TimeUnit.MILLISECONDS);
             } catch (Exception e) {
-                errorHandler.log(new DataFetchException("User prefix required for player info fetch, all player permission and prefix data will not be fetched!", targetName, "User Instance", StaffChat.class.getName(), e));
+                errorHandler.log(new DataFetchException(this.getClass().getName(), "User Instance", targetName, e, "User prefix required for player info fetch, all player permission and prefix data will not be fetched!"));
                 user = null;
             }
             executorService.shutdown();

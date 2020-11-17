@@ -57,13 +57,10 @@ public class AltsCommand extends Command {
                         try {
                             targetuuid = future.get(1, TimeUnit.SECONDS);
                         } catch (Exception e) {
-                            try {
-                                throw new DataFetchException("UUID Required for next step", strings[0], "UUID", this.getName(), e);
-                            } catch (DataFetchException dfe) {
-                                ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
-                                errorHandler.log(dfe);
-                                errorHandler.alert(dfe, commandSender);
-                            }
+                            ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
+                            DataFetchException dfe = new DataFetchException(this.getName(), "UUID", strings[0], e, "UUID Required for next step");
+                            errorHandler.log(dfe);
+                            errorHandler.alert(dfe, commandSender);
                             executorService.shutdown();
                             return;
                         }
@@ -109,13 +106,10 @@ public class AltsCommand extends Command {
                         try {
                             status = futurestatus.get(500, TimeUnit.MILLISECONDS);
                         } catch (Exception e) {
-                            try {
-                                throw new DataFetchException("Status was required for alts check", targetname, "Punishment Status", this.getName(), e);
-                            } catch (DataFetchException dfe) {
-                                ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
-                                errorHandler.log(dfe);
-                                errorHandler.alert(dfe, commandSender);
-                            }
+                            ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
+                            DataFetchException dfe = new DataFetchException(this.getName(), "Punishment Status", targetname, e, "Status was required for alts check");
+                            errorHandler.log(dfe);
+                            errorHandler.alert(dfe, commandSender);
                             executorService1.shutdown();
                             return;
                         }
@@ -160,13 +154,10 @@ public class AltsCommand extends Command {
                         try {
                             status = futurestatus.get(500, TimeUnit.MILLISECONDS);
                         } catch (Exception e) {
-                            try {
-                                throw new DataFetchException("Status was required for alts check", targetname, "Punishment Status", this.getName(), e);
-                            } catch (DataFetchException dfe) {
-                                ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
-                                errorHandler.log(dfe);
-                                errorHandler.alert(dfe, commandSender);
-                            }
+                            ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
+                            DataFetchException dfe = new DataFetchException(this.getName(), "Punishment Status", targetname, e, "Status was required for alts check");
+                            errorHandler.log(dfe);
+                            errorHandler.alert(dfe, commandSender);
                             executorService1.shutdown();
                             return;
                         }

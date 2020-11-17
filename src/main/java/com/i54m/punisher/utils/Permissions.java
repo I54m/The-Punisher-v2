@@ -1,7 +1,6 @@
 package com.i54m.punisher.utils;
 
 import com.i54m.punisher.PunisherPlugin;
-import com.i54m.punisher.chats.StaffChat;
 import com.i54m.punisher.exceptions.DataFetchException;
 import com.i54m.punisher.handlers.ErrorHandler;
 import net.luckperms.api.LuckPerms;
@@ -100,12 +99,8 @@ public class Permissions {
             try {
                 user = userFuture.get(500, TimeUnit.MILLISECONDS);
             } catch (Exception e) {
-                try {
-                    throw new DataFetchException("User prefix required for chat message to avoid issues the prefix was set to \"\"", targetUUID.toString(), "User Instance", StaffChat.class.getName(), e);
-                } catch (DataFetchException dfe) {
-                    ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
-                    errorHandler.log(dfe);
-                }
+                ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
+                errorHandler.log(new DataFetchException(Permissions.class.getName(), "User Instance", NameFetcher.getName(targetUUID), e, "User prefix required for prefix request, to avoid issues the prefix was set to \"\""));
                 return "";
             }
             executorService.shutdown();
@@ -119,8 +114,7 @@ public class Permissions {
             ContextManager cm = LUCKPERMS_API.getContextManager();
             QueryOptions queryOptions = cm.getQueryOptions(user).orElse(cm.getStaticQueryOptions());
             return user.getCachedData().getMetaData(queryOptions).getPrefix() == null ? "" : user.getCachedData().getMetaData(queryOptions).getPrefix();
-        } else
-            return "";
+        } else return "";
     }
 
     public static boolean higher(UUID player1UUID, UUID player2UUID) {
@@ -147,12 +141,10 @@ public class Permissions {
             try {
                 user = userFuture.get(500, TimeUnit.MILLISECONDS);
             } catch (Exception e) {
-                try {
-                    throw new DataFetchException("User instance required for punishment level checking", uuid.toString(), "User Instance", Permissions.class.getName(), e);
-                } catch (DataFetchException dfe) {
-                    ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
-                    errorHandler.log(dfe);
-                }
+                ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
+                DataFetchException dfe = new DataFetchException(Permissions.class.getName(), "User Instance", NameFetcher.getName(uuid), e, "User instance required for User fetching");
+                errorHandler.log(dfe);
+                errorHandler.alert(dfe, PunisherPlugin.getInstance().getProxy().getConsole());
                 user = null;
             }
             executorService.shutdown();

@@ -54,13 +54,10 @@ public class UnbanCommand extends Command {
                 try {
                     targetuuid = future.get(1, TimeUnit.SECONDS);
                 } catch (Exception e) {
-                    try {
-                        throw new DataFetchException("UUID Required for next step", strings[0], "UUID", this.getName(), e);
-                    } catch (DataFetchException dfe) {
-                        ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
-                        errorHandler.log(dfe);
-                        errorHandler.alert(dfe, commandSender);
-                    }
+                    ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
+                    DataFetchException dfe = new DataFetchException(this.getName(), "UUID", strings[0], e, "UUID Required for next step");
+                    errorHandler.log(dfe);
+                    errorHandler.alert(dfe, commandSender);
                     executorService.shutdown();
                     return;
                 }
@@ -119,13 +116,10 @@ public class UnbanCommand extends Command {
                 try {
                     targetuuid = future.get(1, TimeUnit.SECONDS);
                 } catch (Exception e) {
-                    try {
-                        throw new DataFetchException("UUID Required for next step", strings[0], "UUID", this.getName(), e);
-                    } catch (DataFetchException dfe) {
-                        ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
-                        errorHandler.log(dfe);
-                        errorHandler.alert(dfe, commandSender);
-                    }
+                    ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
+                    DataFetchException dfe = new DataFetchException(this.getName(), "UUID", strings[0], e, "UUID Required for next step");
+                    errorHandler.log(dfe);
+                    errorHandler.alert(dfe, commandSender);
                     executorService.shutdown();
                     return;
                 }

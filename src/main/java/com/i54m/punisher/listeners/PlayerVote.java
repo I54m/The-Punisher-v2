@@ -43,13 +43,10 @@ public class PlayerVote implements Listener {
             try {
                 reputationManager.addRep(future.get(1, TimeUnit.SECONDS), plugin.getConfig().getDouble("Voting.amountOfRepToAdd", 0.1));
             } catch (Exception e) {
-                try {
-                    throw new DataFetchException("UUID Required for next step", username, "UUID", PlayerVote.class.getName(), e);
-                } catch (DataFetchException dfe) {
-                    ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
-                    errorHandler.log(dfe);
-                    errorHandler.adminChatAlert(dfe, plugin.getProxy().getConsole());
-                }
+                ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
+                DataFetchException dfe = new DataFetchException(this.getClass().getName(), "UUID", username, e, "UUID Required for next step");
+                errorHandler.log(dfe);
+                errorHandler.alert(dfe, plugin.getProxy().getConsole());
                 executorService.shutdown();
                 return;
             }

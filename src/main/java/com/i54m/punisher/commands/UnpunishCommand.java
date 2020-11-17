@@ -81,13 +81,10 @@ public class UnpunishCommand extends Command {
                 try {
                     targetuuid = future.get(1, TimeUnit.SECONDS);
                 } catch (Exception e) {
-                    try {
-                        throw new DataFetchException("UUID Required for next step", strings[0], "UUID", this.getName(), e);
-                    } catch (DataFetchException dfe) {
-                        ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
-                        errorHandler.log(dfe);
-                        errorHandler.alert(dfe, commandSender);
-                    }
+                    ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
+                    DataFetchException dfe = new DataFetchException(this.getName(), "UUID", strings[0], e, "UUID Required for next step");
+                    errorHandler.log(dfe);
+                    errorHandler.alert(dfe, commandSender);
                     executorService.shutdown();
                     return;
                 }
@@ -100,7 +97,7 @@ public class UnpunishCommand extends Command {
                 }
                 try {
 //                    Punishment.Reason Reason = Punishment.Reason.valueOf(reasonString);
-                    //todo NEED to find out type & issuedate third or maybe just get them to give an id?
+                    //todo NEED to find out type & issuedate or maybe just get them to give an id?
                     punishmentManager.remove(punishmentManager.punishmentLookup(null, Punishment.Type.ALL, "Reason", "test", (long) 123456789, targetuuid), player, true, true, true);
                 } catch (SQLException e) {
                     try {
