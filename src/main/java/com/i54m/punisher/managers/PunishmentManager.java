@@ -24,7 +24,6 @@ import org.jetbrains.annotations.Nullable;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.*;
 
 public class PunishmentManager implements Manager {// TODO: 7/11/2020 fully implement metadata
@@ -693,13 +692,9 @@ public class PunishmentManager implements Manager {// TODO: 7/11/2020 fully impl
             if (punishment.isActive()) {
                 try {
                     remove(punishment, null, false, false, false);
-                } catch (SQLException e) {
-                    try {
-                        throw new PunishmentsStorageException("Revoking punishment", punishment.getTargetName(), this.getClass().getName(), e);
-                    } catch (PunishmentsStorageException pse) {
-                        ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
-                        errorHandler.log(pse);
-                    }
+                } catch (Exception e) {
+                    ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
+                    errorHandler.log(new PunishmentsStorageException("Revoking punishment", punishment.getTargetName(), this.getClass().getName(), e));
                 }
                 PunisherPlugin.getLOGS().info(punishment.getTargetName() + "'s punishment expired so it was removed");
             }
