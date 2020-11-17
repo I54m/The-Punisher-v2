@@ -16,7 +16,6 @@ import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 
-import java.sql.SQLException;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -25,8 +24,8 @@ import java.util.concurrent.TimeUnit;
 
 public class UnpunishCommand extends Command {
     private final PunisherPlugin plugin = PunisherPlugin.getInstance();
-    private UUID targetuuid;
     private final PunishmentManager punishmentManager = PunishmentManager.getINSTANCE();
+    private UUID targetuuid;
 
     public UnpunishCommand() {
         super("unpunish", "punisher.unpunish", "unpun");
@@ -91,14 +90,11 @@ public class UnpunishCommand extends Command {
 //                    Punishment.Reason Reason = Punishment.Reason.valueOf(reasonString);
                     //todo NEED to figure out how to get the punishment that they are wanting to remove
                     punishmentManager.remove(punishmentManager.punishmentLookup(null, Punishment.Type.ALL, "Reason", "test", (long) 123456789, targetuuid), player, true, true, true);
-                } catch (SQLException e) {
-                    try {
-                        throw new PunishmentsStorageException("Unpunishing a player", targetname, this.getName(), e, "/unpunish", strings);
-                    } catch (PunishmentsStorageException pse) {
-                        ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
-                        errorHandler.log(pse);
-                        errorHandler.alert(pse, commandSender);
-                    }
+                } catch (Exception e) {
+                    PunishmentsStorageException pse = new PunishmentsStorageException("Unpunishing a player", targetname, this.getName(), e, "/unpunish", strings);
+                    ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
+                    errorHandler.log(pse);
+                    errorHandler.alert(pse, commandSender);
                 }
             } else {
                 player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("That is not a player's name").color(ChatColor.RED).create());

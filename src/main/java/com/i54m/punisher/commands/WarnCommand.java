@@ -15,7 +15,6 @@ import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 
-import java.sql.SQLException;
 import java.util.UUID;
 
 public class WarnCommand extends Command {
@@ -64,14 +63,11 @@ public class WarnCommand extends Command {
         try {
             Punishment warn = new Punishment(Punishment.Type.WARN, "CUSTOM", null, targetuuid, target.getName(), player.getUniqueId(), sb.toString(), null);
             punishMnger.issue(warn, player, true, true, true);
-        } catch (SQLException e) {
-            try {
-                throw new PunishmentsStorageException("Issuing warn on a player", target.getName(), this.getName(), e, "/warn", strings);
-            } catch (PunishmentsStorageException pse) {
-                ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
-                errorHandler.log(pse);
-                errorHandler.alert(pse, commandSender);
-            }
+        } catch (Exception e) {
+            PunishmentsStorageException pse = new PunishmentsStorageException("Issuing warn on a player", target.getName(), this.getName(), e, "/warn", strings);
+            ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
+            errorHandler.log(pse);
+            errorHandler.alert(pse, commandSender);
         }
     }
 }

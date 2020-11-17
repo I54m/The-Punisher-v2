@@ -15,7 +15,6 @@ import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 
-import java.sql.SQLException;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -84,14 +83,11 @@ public class UnbanCommand extends Command {
                     } else {
                         player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append(targetname + " is not currently banned!").color(ChatColor.RED).create());
                     }
-                } catch (SQLException e) {
-                    try {
-                        throw new PunishmentsStorageException("Unbanning a player", targetname, this.getName(), e, "/unban", strings);
-                    } catch (PunishmentsStorageException pse) {
-                        ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
-                        errorHandler.log(pse);
-                        errorHandler.alert(pse, commandSender);
-                    }
+                } catch (Exception e) {
+                    PunishmentsStorageException pse = new PunishmentsStorageException("Unbanning a player", targetname, this.getName(), e, "/unban", strings);
+                    ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
+                    errorHandler.log(pse);
+                    errorHandler.alert(pse, commandSender);
                 }
             } else {
                 player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("That is not a player's name!").color(ChatColor.RED).create());
@@ -146,14 +142,11 @@ public class UnbanCommand extends Command {
                     } else {
                         commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append(targetname + " is not currently banned!").color(ChatColor.RED).create());
                     }
-                } catch (SQLException e) {
-                    try {
-                        throw new PunishmentsStorageException("Unbanning a player", targetname, this.getName(), e, "/unban", strings);
-                    } catch (PunishmentsStorageException pse) {
-                        ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
-                        errorHandler.log(pse);
-                        errorHandler.alert(pse, commandSender);
-                    }
+                } catch (Exception e) {
+                    PunishmentsStorageException pse = new PunishmentsStorageException("Unbanning a player", targetname, this.getName(), e, "/unban", strings);
+                    ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
+                    errorHandler.log(pse);
+                    errorHandler.alert(pse, commandSender);
                 }
             } else {
                 commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("That is not a player's name!").color(ChatColor.RED).create());

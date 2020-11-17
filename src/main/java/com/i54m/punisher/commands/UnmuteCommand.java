@@ -15,7 +15,6 @@ import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 
-import java.sql.SQLException;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -24,8 +23,8 @@ import java.util.concurrent.TimeUnit;
 
 public class UnmuteCommand extends Command {
     private final PunisherPlugin plugin = PunisherPlugin.getInstance();
-    private UUID targetuuid;
     private final PunishmentManager punishMnger = PunishmentManager.getINSTANCE();
+    private UUID targetuuid;
 
     public UnmuteCommand() {
         super("unmute", "punisher.unmute");
@@ -84,14 +83,11 @@ public class UnmuteCommand extends Command {
                     } else {
                         player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append(targetname + " is not currently muted!").color(ChatColor.RED).create());
                     }
-                } catch (SQLException e) {
-                    try {
-                        throw new PunishmentsStorageException("Unmuting a player", targetname, this.getName(), e, "/unmute", strings);
-                    } catch (PunishmentsStorageException pse) {
-                        ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
-                        errorHandler.log(pse);
-                        errorHandler.alert(pse, commandSender);
-                    }
+                } catch (Exception e) {
+                    PunishmentsStorageException pse = new PunishmentsStorageException("Unmuting a player", targetname, this.getName(), e, "/unmute", strings);
+                    ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
+                    errorHandler.log(pse);
+                    errorHandler.alert(pse, commandSender);
                 }
             } else {
                 player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("That is not a player's name!").color(ChatColor.RED).create());
@@ -137,15 +133,11 @@ public class UnmuteCommand extends Command {
                     } else {
                         commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append(targetname + " is not currently muted!").color(ChatColor.RED).create());
                     }
-                } catch (SQLException e) {
-                    try {
-                        throw new PunishmentsStorageException("Unmuting a player", targetname, this.getName(), e, "/unmute", strings);
-                    } catch (PunishmentsStorageException pse) {
-                        ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
-                        errorHandler.log(pse);
-                        errorHandler.alert(pse, commandSender);
-
-                    }
+                } catch (Exception e) {
+                    PunishmentsStorageException pse = new PunishmentsStorageException("Unmuting a player", targetname, this.getName(), e, "/unmute", strings);
+                    ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
+                    errorHandler.log(pse);
+                    errorHandler.alert(pse, commandSender);
                 }
             } else {
                 commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("That is not a player's name!").color(ChatColor.RED).create());
