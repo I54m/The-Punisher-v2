@@ -23,6 +23,7 @@
 # 5. more reasons and offences per reason = longer plugin load times
 
 MINOR_CHAT_OFFENCE:
+  ##todo implement message config so that they can define a message specific to the reason message: "Minor chat offence"
   1:
     type: 'WARN'
   2:
