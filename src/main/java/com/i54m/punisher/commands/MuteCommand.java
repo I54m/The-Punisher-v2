@@ -18,7 +18,6 @@ import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 
-import java.sql.SQLException;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -28,10 +27,10 @@ import java.util.concurrent.TimeUnit;
 public class MuteCommand extends Command {
 
     private final PunisherPlugin plugin = PunisherPlugin.getInstance();
+    private final PunishmentManager punishMnger = PunishmentManager.getINSTANCE();
     private long length;
     private UUID targetuuid;
     private String targetname;
-    private final PunishmentManager punishMnger = PunishmentManager.getINSTANCE();
 
     public MuteCommand() {
         super("mute", "punisher.mute", "tempmute");
@@ -154,14 +153,11 @@ public class MuteCommand extends Command {
         try {
             Punishment mute = new Punishment(Punishment.Type.MUTE, "CUSTOM", length, targetuuid, targetname, player.getUniqueId(), reason.toString(), null);
             punishMnger.issue(mute, player, true, true, true);
-        } catch (SQLException e) {
-            try {
-                throw new PunishmentsStorageException("Issuing mute on a player", targetname, this.getName(), e, "/mute", strings);
-            } catch (PunishmentsStorageException pse) {
-                ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
-                errorHandler.log(pse);
-                errorHandler.alert(pse, commandSender);
-            }
+        } catch (Exception e) {
+            PunishmentsStorageException pse = new PunishmentsStorageException("Issuing mute on a player", targetname, this.getName(), e, "/mute", strings);
+            ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
+            errorHandler.log(pse);
+            errorHandler.alert(pse, commandSender);
         }
     }
 }

@@ -14,7 +14,6 @@ import net.md_5.bungee.api.event.ChatEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
 
-import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
 
@@ -92,16 +91,13 @@ public class PlayerChat implements Listener {
                     }
                 }
             }
-        } catch (SQLException e) {
-            try {
-                throw new PunishmentsStorageException("Removing mute on a player", targetname, this.getClass().getName(), e);
-            } catch (PunishmentsStorageException pse) {
-                ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
-                errorHandler.log(pse);
-                errorHandler.alert(pse, player);
-                errorHandler.adminChatAlert(pse, player);
-                event.setCancelled(true);
-            }
+        } catch (Exception e) {
+            PunishmentsStorageException pse = new PunishmentsStorageException("Removing mute on a player", targetname, this.getClass().getName(), e);
+            ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
+            errorHandler.log(pse);
+            errorHandler.alert(pse, player);
+            errorHandler.adminChatAlert(pse, player);
+            event.setCancelled(true);
         }
     }
 }
