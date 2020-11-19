@@ -152,7 +152,7 @@ PermBan Message:
 
 #How much reputation should be taken off the player for each offence number
 #KICK and WARN only have 1 offence
-ReputationScale:
+ReputationScale: #todo move to punishments.yml and allow defined rep loss for each reason
   BAN:
     1: 1.0
     2: 2.0
@@ -169,6 +169,8 @@ ReputationScale:
   WARN: 0.2
 
 Reputation:
+  #max rep is always 10
+  #rep will always only show 2 decimal places
   Starting-Rep: 5.0
   Rep-Ban:
     enabled: true
@@ -180,7 +182,7 @@ Voting:
   addRepOnVote: true
   amountOfRepToAdd: 0.1
 
-
+# not yet implemented todo reimplement discord bot from old v1 src code
 DiscordIntegration:
   Enabled: false
   BotToken: "<insert bot token here>"
