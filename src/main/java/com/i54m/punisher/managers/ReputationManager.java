@@ -6,8 +6,10 @@ import com.i54m.punisher.objects.Punishment;
 import com.i54m.punisher.utils.NameFetcher;
 import com.i54m.punisher.utils.UUIDFetcher;
 import lombok.Getter;
+import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.config.Configuration;
 
+import java.text.DecimalFormat;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -97,12 +99,33 @@ public class ReputationManager implements Manager {
 
     }
 
-    public String getRep(UUID uuid) {
+    public double getRep(UUID uuid) {
+        if (locked) {
+            ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
+            return 0;
+        }
+        return PLAYER_DATA_MANAGER.getPlayerData(uuid, false).getDouble("Reputation", startingRep);
+    }
+
+    public String getFormattedRep(UUID uuid) {
         if (locked) {
             ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
             return null;
         }
-        return String.valueOf(PLAYER_DATA_MANAGER.getPlayerData(uuid, false).getDouble("Reputation", startingRep));
+        double rep = getRep(uuid);
+        StringBuilder reputation = new StringBuilder();
+        if (rep == 5){
+            reputation.append(ChatColor.WHITE).append("(").append(new DecimalFormat("##.##").format(rep)).append("/10").append(")");
+        }else if (rep > 5){
+            reputation.append(ChatColor.GREEN).append("(").append(new DecimalFormat("##.##").format(rep)).append("/10").append(")");
+        }else if (rep < 5 && rep > -1){
+            reputation.append(ChatColor.YELLOW).append("(").append(new DecimalFormat("##.##").format(rep)).append("/10").append(")");
+        }else if (rep < -1 && rep > -8){
+            reputation.append(ChatColor.GOLD).append("(").append(new DecimalFormat("##.##").format(rep)).append("/10").append(")");
+        }else if (rep < -8){
+            reputation.append(ChatColor.RED).append("(").append(new DecimalFormat("##.##").format(rep)).append("/10").append(")");
+        }
+        return reputation.toString();
     }
 
     private void repBan(UUID targetUUID) {
