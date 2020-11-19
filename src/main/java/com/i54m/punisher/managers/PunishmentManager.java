@@ -366,7 +366,7 @@ public class PunishmentManager implements Manager {// TODO: 7/11/2020 fully impl
         }
     }
 
-    public void remove(@NotNull Punishment punishment, @Nullable ProxiedPlayer player, boolean removed, boolean removeHistory, boolean announce) throws PunishmentsStorageException {// TODO: 12/03/2020  need to rewrite this
+    public void remove(@NotNull Punishment punishment, @Nullable ProxiedPlayer player, boolean removed, boolean removeHistory, boolean announce) throws PunishmentsStorageException {
         if (locked) {
             ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
             return;
@@ -444,7 +444,7 @@ public class PunishmentManager implements Manager {// TODO: 7/11/2020 fully impl
 
         removeActive(punishment);
 
-        if (removeHistory) {// TODO: 22/06/2020  need to rewrite this part to check for MetaData.appliesToHistory
+        if (removeHistory && !punishment.getMetaData().appliesToHistory()) {
             punishment.getMetaData().setAppliesToHistory(false);
             if (player != null) {
                 PunisherPlugin.getLOGS().info(player.getName() + " removed punishment: " + reason + " on player: " + targetname + " through unpunish");
@@ -558,7 +558,7 @@ public class PunishmentManager implements Manager {// TODO: 7/11/2020 fully impl
                     NameFetcher.getName(targetUUID),
                     punisherUUID,
                     fetchMessage(reason),
-                    new Punishment.MetaData());
+                    new Punishment.MetaData(false, true, false, true));
         } catch (PunishmentsStorageException pse) {
             ERROR_HANDLER.log(new PunishmentCalculationException("Storage exception in either type or expiration calculation", "Punishment construction", pse));
             return null;
