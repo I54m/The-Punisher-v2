@@ -444,7 +444,7 @@ public class PunishmentManager implements Manager {// TODO: 7/11/2020 fully impl
 
         removeActive(punishment);
 
-        if (removeHistory && !punishment.getMetaData().appliesToHistory()) {
+        if (removeHistory && !punishment.getMetaData().appliesToHistory()) {// TODO: 19/11/2020 refund lost reputation
             punishment.getMetaData().setAppliesToHistory(false);
             if (player != null) {
                 PunisherPlugin.getLOGS().info(player.getName() + " removed punishment: " + reason + " on player: " + targetname + " through unpunish");
@@ -522,18 +522,10 @@ public class PunishmentManager implements Manager {// TODO: 7/11/2020 fully impl
             ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
             return 0;
         }
-        if (punishment.isManual() && (punishment.isBan() || punishment.isMute()))
-            return PLUGIN.getConfig().getDouble("ReputationScale." + punishment.getType().toString() + "." + 5);
-        if (punishment.isManual() && (punishment.isWarn() || punishment.isKick()))
-            return PLUGIN.getConfig().getDouble("ReputationScale." + punishment.getType().toString());
-        if (punishment.isBan() || punishment.isMute()) {
-            int offence = storageManager.getOffences(punishment.getTargetUUID(), punishment.getReason());
-            offence++;
-            if (offence > 5) offence = 5;
-            return PLUGIN.getConfig().getDouble("ReputationScale." + punishment.getType().toString() + "." + offence);
-        } else {
-            return PLUGIN.getConfig().getDouble("ReputationScale." + punishment.getType().toString());
-        }
+        if (punishment.isManual())
+            return PLUGIN.getConfig().getDouble("Reputation.Manual Punishment Rep Loss." + punishment.getType().toString());
+        else
+            return PLUGIN.getPunishments().getDouble(punishment.getReason() + "." + storageManager.getOffences(punishment.getTargetUUID(), punishment.getReason()) + ".repLoss");
     }
 
     public String fetchMessage(String reason) {
