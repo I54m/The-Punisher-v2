@@ -92,10 +92,10 @@ public class SQLManager implements StorageManager {// TODO: 7/11/2020 implement 
             if (e.getCause() != null)
                 PunisherPlugin.getLOGS().severe("Error Cause Message: " + e.getCause().getMessage());
             ProxyServer.getInstance().getLogger().severe(" ");
-            ProxyServer.getInstance().getLogger().severe(PLUGIN.getPrefix() + ChatColor.RED + "An error was encountered and debug info was logged to log file!");
-            ProxyServer.getInstance().getLogger().severe(PLUGIN.getPrefix() + ChatColor.RED + "Error Message: " + e.getMessage());
+            ProxyServer.getInstance().getLogger().severe(ChatColor.RED + "An error was encountered and debug info was logged to log file!");
+            ProxyServer.getInstance().getLogger().severe(ChatColor.RED + "Error Message: " + e.getMessage());
             if (e.getCause() != null)
-                ProxyServer.getInstance().getLogger().severe(PLUGIN.getPrefix() + ChatColor.RED + "Error Cause Message: " + e.getCause().getMessage());
+                ProxyServer.getInstance().getLogger().severe(ChatColor.RED + "Error Cause Message: " + e.getCause().getMessage());
             ProxyServer.getInstance().getLogger().severe(" ");
             throw new Exception(storageType.toString() + " connection failed", e);
         }

@@ -44,16 +44,16 @@ public class WorkerManager implements Manager {
         locked = true;
         try {
             if (!workers.isEmpty()) {
-                PLUGIN.getLogger().info(PLUGIN.getPrefix() + ChatColor.GREEN + "Pausing main thread while workers finish up!");
+                PLUGIN.getLogger().info(ChatColor.GREEN + "Pausing main thread while workers finish up!");
                 mainThread.wait();
             }
         } catch (InterruptedException e) {
-            PLUGIN.getLogger().severe(PLUGIN.getPrefix() + ChatColor.RED + "Error: main thread was interrupted while waiting for workers to finish!");
-            PLUGIN.getLogger().severe(PLUGIN.getPrefix() + ChatColor.RED + "Interrupting workers, this may cause data loss!!");
+            PLUGIN.getLogger().severe(ChatColor.RED + "Error: main thread was interrupted while waiting for workers to finish!");
+            PLUGIN.getLogger().severe(ChatColor.RED + "Interrupting workers, this may cause data loss!!");
             PunisherPlugin.getLOGS().severe("Error: main thread was interrupted while waiting for workers to finish!");
             PunisherPlugin.getLOGS().severe("Interrupting workers, this may cause data loss!!");
             for (Worker worker : workers) {
-                PLUGIN.getLogger().severe(PLUGIN.getPrefix() + ChatColor.RED + "Interrupting " + worker.getName());
+                PLUGIN.getLogger().severe(ChatColor.RED + "Interrupting " + worker.getName());
                 PunisherPlugin.getLOGS().severe("Interrupting " + worker.getName());
                 worker.interrupt();
             }
