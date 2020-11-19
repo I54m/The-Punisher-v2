@@ -65,31 +65,8 @@ public class viewRepCommand extends Command {
                 if (targetname == null) {
                     targetname = strings[0];
                 }
-                StringBuilder reputation = new StringBuilder();
-                String rep = ReputationManager.getINSTANCE().getRep(targetuuid);
-                if (!(rep == null)) {
-                    double repDouble;
-                    try {
-                        repDouble = Double.parseDouble(rep);
-                    }catch(NumberFormatException e){
-                        player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("An internal error occurred: That player's reputation is not a number! Reputation System returned: ").color(ChatColor.RED).append(rep).color(ChatColor.RED).create());
-                        return;
-                    }
-                    if (repDouble == 5){
-                        reputation.append(ChatColor.WHITE).append("(").append(rep).append("/10").append(")");
-                    }else if (repDouble > 5){
-                        reputation.append(ChatColor.GREEN).append("(").append(rep).append("/10").append(")");
-                    }else if (repDouble < 5 && repDouble > -1){
-                        reputation.append(ChatColor.YELLOW).append("(").append(rep).append("/10").append(")");
-                    }else if (repDouble < -1 && repDouble > -8){
-                        reputation.append(ChatColor.GOLD).append("(").append(rep).append("/10").append(")");
-                    }else if (repDouble < -8){
-                        reputation.append(ChatColor.RED).append("(").append(rep).append("/10").append(")");
-                    }
-                } else {
-                    reputation.append(ChatColor.WHITE).append("(").append("-").append(ChatColor.WHITE).append(")");
-                }
-                player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append(targetname + "'s Reputation is: ").color(ChatColor.RED).append(reputation.toString()).color(ChatColor.RED).create());
+                String rep = ReputationManager.getINSTANCE().getFormattedRep(targetuuid);
+                player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append(targetname + "'s Reputation is: ").color(ChatColor.RED).appendLegacy(rep).create());
             } else {
                 player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("That is not a player's name").color(ChatColor.RED).create());
             }

@@ -78,9 +78,9 @@ public class ReputationCommand extends Command {
             try {
                 double amount = Double.parseDouble(strings[2]);
                 reputationManager.addRep(uuid, amount);
-                String currentRep = reputationManager.getRep(uuid);
+                String currentRep = reputationManager.getFormattedRep(uuid);
                 player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Added: " + new DecimalFormat("##.##").format(amount) + " to: " + name + "'s reputation").color(ChatColor.RED).create());
-                player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("New Reputation: " + new DecimalFormat("##.##").format(currentRep)).color(ChatColor.RED).create());
+                player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("New Reputation: ").color(ChatColor.RED).appendLegacy(currentRep).create());
             }catch (NumberFormatException e){
                 player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("That is not a valid amount!").color(ChatColor.RED).create());
                 player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Add/Minus/Set a player's reputation score").color(ChatColor.RED).append("\nUsage: /reputation <player> <add|minus|set> <amount>").color(ChatColor.WHITE).create());
@@ -89,9 +89,9 @@ public class ReputationCommand extends Command {
             try {
                 double amount = Double.parseDouble(strings[2]);
                 reputationManager.minusRep(uuid, amount);
-                String currentRep = reputationManager.getRep(uuid);
+                String currentRep = reputationManager.getFormattedRep(uuid);
                 player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Removed: " + new DecimalFormat("##.##").format(amount) + " from: " + name + "'s reputation").color(ChatColor.RED).create());
-                player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("New Reputation: " + new DecimalFormat("##.##").format(currentRep)).color(ChatColor.RED).create());
+                player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("New Reputation: ").color(ChatColor.RED).appendLegacy(currentRep).create());
             }catch (NumberFormatException e){
                 player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("That is not a valid amount!").color(ChatColor.RED).create());
                 player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Add/Minus/Set a player's reputation score").color(ChatColor.RED).append("\nUsage: /reputation <player> <add|minus|set> <amount>").color(ChatColor.WHITE).create());
@@ -100,8 +100,9 @@ public class ReputationCommand extends Command {
             try {
                 double amount = Double.parseDouble(strings[2]);
                 reputationManager.setRep(uuid, amount);
+                String currentRep = reputationManager.getFormattedRep(uuid);
                 player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Set: " + name + "'s reputation to: " + new DecimalFormat("##.##").format(amount)).color(ChatColor.RED).create());
-                player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("New Reputation: " + new DecimalFormat("##.##").format(amount)).color(ChatColor.RED).create());
+                player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("New Reputation: ").color(ChatColor.RED).appendLegacy(currentRep).create());
             } catch (NumberFormatException e) {
                 player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("That is not a valid amount!").color(ChatColor.RED).create());
                 player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Add/Minus/Set a player's reputation score").color(ChatColor.RED).append("\nUsage: /reputation <player> <add|minus|set> <amount>").color(ChatColor.WHITE).create());

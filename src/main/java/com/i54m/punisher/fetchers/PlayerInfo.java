@@ -98,7 +98,7 @@ public class PlayerInfo implements Callable<Map<String, String>> {
                 altslist.append(NameFetcher.getName(alt)).append(" ");
             }
         info.put("alts", altslist.toString());
-        info.put("reputation", reputationManager.getRep(targetuuid));
+        info.put("reputation", reputationManager.getFormattedRep(targetuuid));
         if (playerData != null) {
             info.put("firstjoin", playerData.getString("firstjoin"));
             info.put("lastserver", playerData.getString("lastserver"));
