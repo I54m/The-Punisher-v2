@@ -120,7 +120,7 @@ public class ReputationManager implements Manager {
                         targetUUID,
                         targetName,
                         UUIDFetcher.getBLANK_UUID(),
-                        "Overly Toxic (Rep dropped below " + banAt + ")", // TODO: 7/11/2020 make repban message configurable
+                        PLUGIN.getConfig().getString("Reputation.Rep-Ban.Message", "Overly Toxic (Rep dropped below " + banAt + ")"),
                         repbanMetaData);
                 PUNISHMENT_MANAGER.issue(ban, null, false, true, false);
             } catch (Exception e) {
