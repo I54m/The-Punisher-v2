@@ -62,10 +62,13 @@ public class PunishmentManager implements Manager {// TODO: 7/11/2020 fully impl
             return;
         }
         locked = true;
-
     }
 
     public void issue(@NotNull final Punishment punishment, @Nullable ProxiedPlayer player, final boolean addHistory, final boolean announce, final boolean minusRep) throws PunishmentsStorageException {
+        if (locked) {
+            ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
+            return;
+        }
         @Nullable final ProxiedPlayer finalPlayer = player;
         WORKER_MANAGER.runWorker(new WorkerManager.Worker(() -> {
             try {
@@ -368,6 +371,10 @@ public class PunishmentManager implements Manager {// TODO: 7/11/2020 fully impl
     }
 
     public void remove(@NotNull Punishment punishment, @Nullable ProxiedPlayer player, boolean removed, boolean removeHistory, boolean announce) throws PunishmentsStorageException {// TODO: 12/03/2020  need to rewrite this
+        if (locked) {
+            ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
+            return;
+        }
         UUID targetuuid = punishment.getTargetUUID();
         storageManager.loadUser(targetuuid, true);
         String reason = punishment.getReason();
@@ -454,6 +461,10 @@ public class PunishmentManager implements Manager {// TODO: 7/11/2020 fully impl
     }
 
     public long calculateExpiration(UUID targetUUID, String reason) throws PunishmentsStorageException { // TODO: 19/11/2020 verify that this is calculating correctly
+        if (locked) {
+            ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
+            return 0;
+        }
         if (reason.toUpperCase().contains("MANUAL:")) {
             String[] reasonargs = reason.toUpperCase().split(":");
             Punishment.Type type = Punishment.Type.valueOf(reasonargs[1]);
@@ -473,6 +484,10 @@ public class PunishmentManager implements Manager {// TODO: 7/11/2020 fully impl
     }
 
     public long translateExpiration(String length) { // TODO: 15/11/2020 implement more widely
+        if (locked) {
+            ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
+            return 0;
+        }
         if (length.toLowerCase().contains("perm"))
             return (long) 3.154e+12 + System.currentTimeMillis();
         else if (length.endsWith("M"))
@@ -491,6 +506,10 @@ public class PunishmentManager implements Manager {// TODO: 7/11/2020 fully impl
     }
 
     public Punishment.Type calculateType(UUID targetuuid, String reason) throws PunishmentsStorageException {
+        if (locked) {
+            ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
+            return null;
+        }
         if (reason.toUpperCase().contains("MANUAL:"))
             return Punishment.Type.valueOf(reason.toUpperCase().split(":")[1]);
 
@@ -503,6 +522,10 @@ public class PunishmentManager implements Manager {// TODO: 7/11/2020 fully impl
     }
 
     public double calculateRepLoss(@NotNull Punishment punishment) throws PunishmentsStorageException {
+        if (locked) {
+            ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
+            return 0;
+        }
         if (punishment.isManual() && (punishment.isBan() || punishment.isMute()))
             return PLUGIN.getConfig().getDouble("ReputationScale." + punishment.getType().toString() + "." + 5);
         if (punishment.isManual() && (punishment.isWarn() || punishment.isKick()))
@@ -518,10 +541,18 @@ public class PunishmentManager implements Manager {// TODO: 7/11/2020 fully impl
     }
 
     public String fetchMessage(String reason) {
+        if (locked) {
+            ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
+            return null;
+        }
         return PLUGIN.getPunishments().getString(reason + ".message", reason.toLowerCase().replace("_", " ").replace(":", " "));
     }
 
     public Punishment constructPunishment(UUID targetUUID, String reason, UUID punisherUUID) {
+        if (locked) {
+            ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
+            return null;
+        }
         try {
             return new Punishment(
                     calculateType(targetUUID, reason),
@@ -538,6 +569,7 @@ public class PunishmentManager implements Manager {// TODO: 7/11/2020 fully impl
         }
     }
 
+    // TODO: 19/11/2020 make the below check if the player is loaded
     public boolean isBanned(UUID targetUUID) {
         if (hasActivePunishment(targetUUID))
             return storageManager.getActivePunishmentCache().get(targetUUID).banActive();
@@ -581,6 +613,8 @@ public class PunishmentManager implements Manager {// TODO: 7/11/2020 fully impl
         return storageManager.getPunishmentCache().size();
     }
 
+    // TODO: 19/11/2020 make the below check if the player is loaded
+
     public Punishment getBan(UUID targetUUID) {
         if (!isBanned(targetUUID)) return null;
         return getActivePunishments(targetUUID).getBan();
@@ -623,6 +657,10 @@ public class PunishmentManager implements Manager {// TODO: 7/11/2020 fully impl
     }
 
     public Punishment punishmentLookup(@Nullable Integer id, @NotNull Punishment.Type type, @NotNull String reason, @NotNull String issueDate, @Nullable Long expiration, @NotNull UUID targetUUID) {
+        if (locked) {
+            ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
+            return null;
+        }
         if (id != null && storageManager.getPunishmentCache().containsKey(id))
             return storageManager.getPunishmentCache().get(id);
         for (Punishment punishment : storageManager.getPunishmentCache().values()) {
@@ -639,15 +677,27 @@ public class PunishmentManager implements Manager {// TODO: 7/11/2020 fully impl
     }
 
     public void lock(UUID targetuuid) {
+        if (locked) {
+            ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
+            return;
+        }
         if (!isLocked(targetuuid))
             lockedUsers.add(targetuuid);
     }
 
     public void unlock(UUID targetuuid) {
+        if (locked) {
+            ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
+            return;
+        }
         lockedUsers.remove(targetuuid);
     }
 
     private void removeActive(@NotNull Punishment punishment) {
+        if (locked) {
+            ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
+            return;
+        }
         UUID targetuuid = punishment.getTargetUUID();
         if (hasActivePunishment(targetuuid)) {
             ActivePunishments activePunishments = storageManager.getActivePunishmentCache().get(targetuuid);
@@ -657,6 +707,10 @@ public class PunishmentManager implements Manager {// TODO: 7/11/2020 fully impl
     }
 
     private void addActive(@NotNull Punishment punishment) {
+        if (locked) {
+            ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
+            return;
+        }
         UUID targetuuid = punishment.getTargetUUID();
         ActivePunishments activePunishments = hasActivePunishment(targetuuid) ? getActivePunishments(targetuuid) : new ActivePunishments();
         if (punishment.getType() == Punishment.Type.BAN) activePunishments.setBan(punishment);
@@ -666,6 +720,10 @@ public class PunishmentManager implements Manager {// TODO: 7/11/2020 fully impl
     }
 
     public String getTimeLeftRaw(@NotNull Punishment punishment) {
+        if (locked) {
+            ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
+            return null;
+        }
         long millis = punishment.getExpiration() - System.currentTimeMillis();
         int yearsleft = (int) (millis / 3.154e+10);
         int monthsleft = (int) (millis / 2.628e+9 % 12);
@@ -705,6 +763,10 @@ public class PunishmentManager implements Manager {// TODO: 7/11/2020 fully impl
     }
 
     public String getTimeLeft(@NotNull Punishment punishment) {
+        if (locked) {
+            ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
+            return null;
+        }
         String timeLeftRaw = getTimeLeftRaw(punishment);
         if (timeLeftRaw.equals(String.valueOf(0)))
             return "Punishment has Expired!";
@@ -715,11 +777,19 @@ public class PunishmentManager implements Manager {// TODO: 7/11/2020 fully impl
     }
 
     public boolean isLocked(UUID targetUUID) {
+        if (locked) {
+            ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
+            return false;
+        }
         return lockedUsers.contains(targetUUID);
     }
 
     @Nullable
     public Punishment override(@NotNull Punishment punishment1, @NotNull Punishment punishment2) {// TODO: 19/11/2020 maybe we make duration stack if the punishment is for the same reason as previous
+        if (locked) {
+            ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
+            return null;
+        }
         if (punishment1.getType() != punishment2.getType()) return null;
         if (Permissions.higher(punishment1.getPunisherUUID(), punishment2.getPunisherUUID())) return punishment1;
         else return punishment2;
