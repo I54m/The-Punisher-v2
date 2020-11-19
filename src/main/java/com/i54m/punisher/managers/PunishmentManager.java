@@ -1,5 +1,8 @@
 package com.i54m.punisher.managers;
 
+import com.i54m.protocol.world.Sound;
+import com.i54m.protocol.world.SoundCategory;
+import com.i54m.protocol.world.WorldModule;
 import com.i54m.punisher.PunisherPlugin;
 import com.i54m.punisher.chats.StaffChat;
 import com.i54m.punisher.exceptions.ManagerNotStartedException;
@@ -21,9 +24,6 @@ import net.md_5.bungee.api.connection.ProxiedPlayer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
 import java.util.*;
 
 public class PunishmentManager implements Manager {// TODO: 7/11/2020 fully implement metadata
@@ -140,15 +140,13 @@ public class PunishmentManager implements Manager {// TODO: 7/11/2020 fully impl
                     reasonMessage = reason;
                 if (target != null && target.isConnected()) {
                     if (PLUGIN.getConfig().getBoolean("Warn Sound.Enabled")) {
-                        try {
-                            ByteArrayOutputStream outbytes = new ByteArrayOutputStream();
-                            DataOutputStream out = new DataOutputStream(outbytes);
-                            out.writeUTF("playsound");
-                            out.writeUTF(PLUGIN.getConfig().getString("Warn Sound.Sound"));
-                            target.getServer().sendData("punisher:minor", outbytes.toByteArray());
-                        } catch (IOException ioe) {
-                            ioe.printStackTrace();
-                        }
+                        WorldModule.playSound(
+                                target,
+                                Sound.valueOf(PLUGIN.getConfig().getString("Warn Sound.Sound")),
+                                SoundCategory.MASTER,
+                                PLUGIN.getConfig().getInt("Warn Sound.Volume"),
+                                PLUGIN.getConfig().getFloat("Warn Sound.Pitch")
+                        );
                     }
                     if (PLUGIN.getConfig().getBoolean("Warn Title.Enabled")) {
                         String titleText = PLUGIN.getConfig().getString("Warn Title.Title Message");
@@ -262,16 +260,14 @@ public class PunishmentManager implements Manager {// TODO: 7/11/2020 fully impl
                 }
                 String timeleft = getTimeLeft(punishment);
                 if (target != null && target.isConnected()) {
-                    if (PLUGIN.getConfig().getBoolean("Mute Sound.Enabled")) {// TODO: 19/11/2020 implement new packet sytem for punishment sounds
-                        try {
-                            ByteArrayOutputStream outbytes = new ByteArrayOutputStream();
-                            DataOutputStream out = new DataOutputStream(outbytes);
-                            out.writeUTF("playsound");
-                            out.writeUTF(PLUGIN.getConfig().getString("Mute Sound.Sound"));
-                            target.getServer().sendData("punisher:minor", outbytes.toByteArray());
-                        } catch (IOException ioe) {
-                            ioe.printStackTrace();
-                        }
+                    if (PLUGIN.getConfig().getBoolean("Mute Sound.Enabled")) {
+                        WorldModule.playSound(
+                                target,
+                                Sound.valueOf(PLUGIN.getConfig().getString("Mute Sound.Sound")),
+                                SoundCategory.MASTER,
+                                PLUGIN.getConfig().getInt("Mute Sound.Volume"),
+                                PLUGIN.getConfig().getFloat("Mute Sound.Pitch")
+                        );
                     }
                     if (PLUGIN.getConfig().getBoolean("Mute Title.Enabled")) {
                         String titleText = PLUGIN.getConfig().getString("Mute Title.Title Message");
@@ -298,7 +294,7 @@ public class PunishmentManager implements Manager {// TODO: 7/11/2020 fully impl
                     storageManager.incrementStaffHistory(punishment);
                 }
                 if (hasActivePunishment(targetuuid) && isMuted(targetuuid)) {
-                    storageManager.updatePunishment(getMute(targetuuid).setStatus(Punishment.Status.Overridden));// TODO: 8/03/2020 maybe stack duration if they are the same reason else we override with PunishmentManager#override()
+                    storageManager.updatePunishment(getMute(targetuuid).setStatus(Punishment.Status.Overridden));// TODO: 19/11/2020 maybe stack duration if they are the same reason else we override with PunishmentManager#override()
                     removeActive(punishment);
                 }
                 storageManager.updatePunishment(punishment.setExpiration(expiration)
