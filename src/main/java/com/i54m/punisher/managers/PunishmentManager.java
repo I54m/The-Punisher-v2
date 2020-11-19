@@ -80,7 +80,7 @@ public class PunishmentManager implements Manager {// TODO: 7/11/2020 fully impl
         if (player != null && player.isConnected() && punishment.getPunisherUUID() == null)
             storageManager.updatePunishment(punishment.setPunisherUUID(player.getUniqueId()));
         if ((punishment.isMute() || punishment.isBan()) && !punishment.hasExpiration())
-            storageManager.updatePunishment(punishment.setExpiration(calculateExpiration(punishment)));
+            storageManager.updatePunishment(punishment.setExpiration(calculateExpiration(punishment.getTargetUUID(), punishment.getReason())));
 
         punishment.verify();
 
@@ -259,7 +259,7 @@ public class PunishmentManager implements Manager {// TODO: 7/11/2020 fully impl
                 }
                 String timeleft = getTimeLeft(punishment);
                 if (target != null && target.isConnected()) {
-                    if (PLUGIN.getConfig().getBoolean("Mute Sound.Enabled")) {
+                    if (PLUGIN.getConfig().getBoolean("Mute Sound.Enabled")) {// TODO: 19/11/2020 implement new packet sytem for punishment sounds
                         try {
                             ByteArrayOutputStream outbytes = new ByteArrayOutputStream();
                             DataOutputStream out = new DataOutputStream(outbytes);
@@ -295,7 +295,7 @@ public class PunishmentManager implements Manager {// TODO: 7/11/2020 fully impl
                     storageManager.incrementStaffHistory(punishment);
                 }
                 if (hasActivePunishment(targetuuid) && isMuted(targetuuid)) {
-                    storageManager.updatePunishment(getMute(targetuuid).setStatus(Punishment.Status.Overridden));// TODO: 8/03/2020 maybe make a way for the expiration to stack rather than just overriding it although doesn't litebans do this too?
+                    storageManager.updatePunishment(getMute(targetuuid).setStatus(Punishment.Status.Overridden));// TODO: 8/03/2020 maybe stack duration if they are the same reason else we override with PunishmentManager#override()
                     removeActive(punishment);
                 }
                 storageManager.updatePunishment(punishment.setExpiration(expiration)
@@ -453,23 +453,7 @@ public class PunishmentManager implements Manager {// TODO: 7/11/2020 fully impl
         storageManager.updatePunishment(punishment);
     }
 
-    @Deprecated
-    public long calculateExpiration(Punishment punishment) throws PunishmentsStorageException {//todo verify that this is actually calculating correctly
-        switch (punishment.getReason()) {
-            case "Other_Minor_Offence":
-                return (long) 6.048e+8 + System.currentTimeMillis();
-            case "Other_Major_Offence":
-                return (long) 2.628e+9 + System.currentTimeMillis();
-            case "Other_Offence":
-                return (long) 1.8e+6 + System.currentTimeMillis();
-        }
-        int punishmentno = storageManager.getOffences(punishment.getTargetUUID(), punishment.getReason());
-        punishmentno++;
-        if (punishmentno > 5) punishmentno = 5;
-        return (long) (60000 * PLUGIN.getPunishments().getDouble(punishment.getReason() + "." + punishmentno + ".length")) + System.currentTimeMillis();
-    }
-
-    public long calculateExpiration(UUID targetUUID, String reason) throws PunishmentsStorageException {
+    public long calculateExpiration(UUID targetUUID, String reason) throws PunishmentsStorageException { // TODO: 19/11/2020 verify that this is calculating correctly
         if (reason.toUpperCase().contains("MANUAL:")) {
             String[] reasonargs = reason.toUpperCase().split(":");
             Punishment.Type type = Punishment.Type.valueOf(reasonargs[1]);
@@ -533,6 +517,10 @@ public class PunishmentManager implements Manager {// TODO: 7/11/2020 fully impl
         }
     }
 
+    public String fetchMessage(String reason) {
+        return PLUGIN.getPunishments().getString(reason + ".message", reason.toLowerCase().replace("_", " ").replace(":", " "));
+    }
+
     public Punishment constructPunishment(UUID targetUUID, String reason, UUID punisherUUID) {
         try {
             return new Punishment(
@@ -542,7 +530,7 @@ public class PunishmentManager implements Manager {// TODO: 7/11/2020 fully impl
                     targetUUID,
                     NameFetcher.getName(targetUUID),
                     punisherUUID,
-                    reason.toLowerCase().replace("_", " ").replace(":", " "),
+                    fetchMessage(reason),
                     new Punishment.MetaData());
         } catch (PunishmentsStorageException pse) {
             ERROR_HANDLER.log(new PunishmentCalculationException("Storage exception in either type or expiration calculation", "Punishment construction", pse));
@@ -731,7 +719,7 @@ public class PunishmentManager implements Manager {// TODO: 7/11/2020 fully impl
     }
 
     @Nullable
-    public Punishment override(@NotNull Punishment punishment1, @NotNull Punishment punishment2) {
+    public Punishment override(@NotNull Punishment punishment1, @NotNull Punishment punishment2) {// TODO: 19/11/2020 maybe we make duration stack if the punishment is for the same reason as previous
         if (punishment1.getType() != punishment2.getType()) return null;
         if (Permissions.higher(punishment1.getPunisherUUID(), punishment2.getPunisherUUID())) return punishment1;
         else return punishment2;
