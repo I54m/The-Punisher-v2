@@ -1,22 +1,27 @@
 #Punishment lengths are done in minutes (Punishment is consider permanent if the length is more than 10 years)
 #specify the punishment reason then the message to be displayed for that punishment then
-#the type and length for each offence like so:
+#the reputation lost, type and length for each offence like so:
 #
 #EXAMPLE_PUNISHMENT_REASON:
 #  message: "example punishment message"
 #  1:
 #    type: 'KICK'
+#    repLoss: 0.5
 #  2:
 #    type: 'WARN'
+#    repLoss: 1.0
 #  3:
 #    type: 'MUTE'
 #    length: "1d"
+#    repLoss: 1.5
 #  4:
 #    type: 'BAN'
 #    length: "3d"
+#    repLoss: 2.0
 #  5:
 #    type: 'BAN'
 #    length: "perm"
+#    repLoss: 3.0
 #SPECIFC RULES TO FOLLOW:
 # 1. WARN and KICK do not need a length
 # 2. DO NOT INCLUDE SYMBOLS IN THE PUNISHMENT REASONS!!
@@ -28,185 +33,238 @@ MINOR_CHAT_OFFENCE:
   message: "Minor chat offence"
   1:
     type: 'WARN'
+    repLoss: 0.1
   2:
     type: 'MUTE'
     length: "1h"
+    repLoss: 0.5
   3:
     type: 'MUTE'
     length: "12h"
+    repLoss: 1.0
   4:
     type: 'MUTE'
     length: "1d"
+    repLoss: 1.5
   5:
     type: 'MUTE'
     length: "3d"
+    repLoss: 2.0
   6:
     type: 'MUTE'
     length: "1w"
+    repLoss: 2.0
 MAJOR_CHAT_OFFENCE:
   message: "Major chat offence"
   1:
     type: 'WARN'
+    repLoss: 0.5
   2:
     type: 'MUTE'
     length: "1d"
+    repLoss: 1.5
   3:
     type: 'MUTE'
     length: "3d"
+    repLoss: 2.0
   4:
     type: 'MUTE'
     length: "1w"
+    repLoss: 2.5
   5:
     type: 'MUTE'
     length: "3w"
+    repLoss: 3.0
 DDOS_DOX_THREATS:
   message: "Threatening to DDoS or DoX"
   1:
     type: 'MUTE'
     length: "3d"
+    repLoss: 1.5
   2:
     type: 'MUTE'
     length: "1w"
+    repLoss: 2.0
   3:
     type: 'MUTE'
     length: "1M"
+    repLoss: 2.5
   4:
     type: 'MUTE'
     length: "perm"
+    repLoss: 4.0
 INAPPROPRIATE_LINK:
   message: "Sending inappropriate links"
   1:
     type: 'MUTE'
     length: "3d"
+    repLoss: 1.0
   2:
     type: 'MUTE'
     length: "1w"
+    repLoss: 2.0
   3:
     type: 'MUTE'
     length: "1M"
+    repLoss: 2.5
   4:
     type: 'MUTE'
     length: "perm"
+    repLoss: 4.0
 SCAMMING:
   message: "Scamming"
   1:
     type: 'MUTE'
     length: "1d"
+    repLoss: 0.8
   2:
     type: 'MUTE'
     length: "3d"
+    repLoss: 1.5
   3:
     type: 'MUTE'
     length: "1w"
+    repLoss: 2.0
   4:
     type: 'MUTE'
     length: "2w"
+    repLoss: 2.5
   5:
     type: 'BAN'
     length: "2w"
+    repLoss: 3.0
 X_RAYING:
   message: "X-Raying ores or similar"
   1:
     type: 'BAN'
     length: "1w"
+    repLoss: 1.0
   2:
     type: 'BAN'
     length: "1M"
+    repLoss: 3.0
   3:
     type: 'BAN'
     length: "perm"
+    repLoss: 4.0
 AUTOCLICKER:
   message: "Using an auto clicker (non pvp)"
   1:
     type: 'BAN'
     length: "1w"
+    repLoss: 1.0
   2:
     type: 'BAN'
     length: "1M"
+    repLoss: 3.0
   3:
     type: 'BAN'
     length: "perm"
+    repLoss: 5.0
 FLY_SPEED_HACKING:
   message: "Using fly or speed hacks"
   1:
     type: 'BAN'
     length: "1w"
+    repLoss: 2.0
   2:
     type: 'BAN'
     length: "1M"
+    repLoss: 4.0
   3:
     type: 'BAN'
     length: "perm"
+    repLoss: 6.0
 MALICIOUS_PVP_HACKS:
   message: "Using malicious pvp hacks"
   1:
     type: 'BAN'
     length: "1M"
+    repLoss: 3.0
   2:
     type: 'BAN'
     length: "perm"
+    repLoss: 5.0
 DISALLOWED_MODS:
   message: "Using disallowed mods"
   1:
     type: 'BAN'
     length: "1w"
+    repLoss: 1.0
   2:
     type: 'BAN'
     length: "1M"
+    repLoss: 3.0
   3:
     type: 'BAN'
     length: "perm"
+    repLoss: 4.0
 SERVER_ADVERTISEMENT:
   message: "Advertising another server"
   1:
     type: 'BAN'
     length: "perm"
+    repLoss: 8.0
 GREIFING:
   message: "Greifing or related"
   1:
     type: 'BAN'
     length: "1w"
+    repLoss: 2.0
   2:
     type: 'BAN'
     length: "1M"
+    repLoss: 3.0
   3:
     type: 'BAN'
     length: "perm"
+    repLoss: 4.0
 EXPLOITING:
   message: "Exploiting game mechanics or bugs"
   1:
     type: 'BAN'
     length: "1w"
+    repLoss: 2.0
   2:
     type: 'BAN'
     length: "1M"
+    repLoss: 4.0
   3:
     type: 'BAN'
     length: "perm"
+    repLoss: 6.0
 TP_TRAPPING:
   message: "Tp trapping"
   1:
     type: 'BAN'
     length: "1w"
+    repLoss: 1.0
   2:
     type: 'BAN'
     length: "1M"
+    repLoss: 2.0
   3:
     type: 'BAN'
     length: "perm"
+    repLoss: 4.0
 IMPERSONATION:
   message: "Impersonation"
   1:
     type: 'WARN'
+    repLoss: 0.8
   2:
     type: 'MUTE'
     length: "1d"
+    repLoss: 1.0
   3:
     type: 'MUTE'
     length: "3d"
+    repLoss: 2.0
   4:
     type: 'MUTE'
     length: "1w"
+    repLoss: 2.5
   5:
     type: 'MUTE'
     length: "2w"
+    repLoss: 4.0
