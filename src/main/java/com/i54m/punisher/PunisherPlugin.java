@@ -97,7 +97,7 @@ public class PunisherPlugin extends Plugin {
     /*
      * Miscellaneous variables
      */
-    @Getter // TODO: 8/06/2020 only send prefix in messages that will show in chat
+    @Getter
     private String prefix = ChatColor.GRAY + "[" + ChatColor.RED + "Punisher" + ChatColor.GRAY + "] " + ChatColor.RESET;
     @Getter
     private LuckPermsHook luckPermsHook;
@@ -218,10 +218,10 @@ public class PunisherPlugin extends Plugin {
             AdminChat.prefix = ChatColor.translateAlternateColorCodes('&', config.getString("Plugin-prefixes.Admin-Chat", "&7[&3AC&7] &7[%server%] %player%: "));
             BroadcastCommand.prefix = ChatColor.translateAlternateColorCodes('&', config.getString("Plugin-prefixes.broadcast-prefix", "&7[&3Broadcast&7] &7[%server%] %player%: "));
             SuperBroadcast.prefix = ChatColor.translateAlternateColorCodes('&', config.getString("Plugin-prefixes.superbroadcast-prefix", "&b&lAnnouncement: &r"));
-            StaffChat.color = ChatColor.valueOf(config.getString("Staff-Chat-Color", "RED"));
-            AdminChat.color = ChatColor.valueOf(config.getString("Admin-Chat-Color", "AQUA"));
-            BroadcastCommand.color = ChatColor.valueOf(config.getString("Broadcast-Chat-Color", "WHITE"));
-            SuperBroadcast.color = ChatColor.valueOf(config.getString("SuperBroadcast-Chat-Color", "WHITE"));
+            StaffChat.color = ChatColor.of(config.getString("Staff-Chat-Color", "RED"));
+            AdminChat.color = ChatColor.of(config.getString("Admin-Chat-Color", "AQUA"));
+            BroadcastCommand.color = ChatColor.of(config.getString("Broadcast-Chat-Color", "WHITE"));
+            SuperBroadcast.color = ChatColor.of(config.getString("SuperBroadcast-Chat-Color", "WHITE"));
             if (!config.getString("superbroadcast-title").equalsIgnoreCase("none")) {
                 String[] titleargs = config.getString("superbroadcast-title").split(":");
                 try {
@@ -235,7 +235,7 @@ public class PunisherPlugin extends Plugin {
             }
 
             //check for plugin update
-            getLogger().info(prefix + ChatColor.GREEN + "Checking for updates...");
+            getLogger().info(ChatColor.GREEN + "Checking for updates...");
             if (!this.getDescription().getVersion().contains("BETA")
                     && !this.getDescription().getVersion().contains("PRE-RELEASE")
                     && !this.getDescription().getVersion().contains("DEV-BUILD")
@@ -243,7 +243,7 @@ public class PunisherPlugin extends Plugin {
                     && !this.getDescription().getVersion().contains("LEGACY")) { // if not a special version name then check for updates normally
                 try {
                     if (UpdateChecker.getCurrentVersion() == null) {
-                        getLogger().info(prefix + ChatColor.GREEN + "Could not check for update!");
+                        getLogger().info(ChatColor.GREEN + "Could not check for update!");
                         isUpdate = false;
                     } else if (UpdateChecker.check("${project.version}")) {
                         getLogger().warning(ChatColor.RED + "Update checker found an update, current version: " + this.getDescription().getVersion() + " latest version: " + UpdateChecker.getCurrentVersion());
@@ -280,7 +280,12 @@ public class PunisherPlugin extends Plugin {
                 getProxy().getPluginManager().registerListener(this, new PlayerVote());
             }
 
-            //start selected storage manager, this must be started first to allow other managers to save and load data correctly
+            //start worker manager
+            //this should be started first so that other managers may start doing operations with workers when during startup
+            //as some managers rely on this inorder to correctly maintain a cache and load users on login
+            getLogger().info(ChatColor.GREEN + "Starting Worker Manager...");
+            WORKER_MANAGER.start();
+            //start selected storage manager, this must be started second to allow other managers to save and load data correctly
             getLogger().info(ChatColor.GREEN + "Starting Storage Manager...");
             try {
                 storageType = StorageType.valueOf(config.getString("Storage-Type").toUpperCase().replace(" ", "_"));
@@ -298,12 +303,7 @@ public class PunisherPlugin extends Plugin {
             REPUTATION_MANAGER.start();
             //start punishment manager
             getLogger().info(ChatColor.GREEN + "Starting Punishment Manager...");
-            // TODO: 9/11/2020 make this work punManager.start();
-            //start worker manager
-            //this should be started last so that other managers don't start doing operations with workers when the plugin has not fully loaded
-            //as this could cause errors while the server is not fully started and a player joins
-            getLogger().info(ChatColor.GREEN + "Starting Worker Manager...");
-            WORKER_MANAGER.start();
+            PUNISHMENT_MANAGER.start();
             //storage manager can only start caching data once we have started all the other managers up
             storageManager.startCaching();
             startStaffFlagging();
@@ -335,6 +335,9 @@ public class PunisherPlugin extends Plugin {
             //unregister all commands and listeners in an attempt to limit operations that use the managers.
             getProxy().getPluginManager().unregisterListeners(this);
             getProxy().getPluginManager().unregisterCommands(this);
+            //the worker manager is stopped first so that we can safely stop any workers that have not yet finished
+            if (WORKER_MANAGER.isStarted())
+                WORKER_MANAGER.stop();
             //punishment manager is stopped second so that we no longer accept any new punishment activity
             if (PUNISHMENT_MANAGER.isStarted())
                 PUNISHMENT_MANAGER.stop();
@@ -344,16 +347,13 @@ public class PunisherPlugin extends Plugin {
             //the reputation manager is stopped next as it depends on the player data manager and must be stopped before it
             if (REPUTATION_MANAGER.isStarted())
                 REPUTATION_MANAGER.stop();
-            //the player data manager is stopped next as it is the last manager left before we stop all worker threads
+            //the player data manager is stopped next as it is the last manager left
             if (PLAYER_DATA_MANAGER.isStarted())
                 PLAYER_DATA_MANAGER.stop();
-            //the worker manager is stopped last so that we can safely stop any workers that have not yet finished
-            if (WORKER_MANAGER.isStarted())
-                WORKER_MANAGER.stop();
 
 //            DiscordMain.shutdown();
 
-            //stop logging and tidy up logs files last as we need to allow errors from shutting managers down to be logged
+            //stop logging and tidy up log files last as we need to allow errors from shutting managers down to be logged
             File latestLogs = new File(getDataFolder() + "/logs/latest.log");
             if (latestLogs.length() != 0) {
                 LOGS.info("****END OF LOGS ENDING DATE: " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MMM-yyyy HH:mm:ss")) + "****");
@@ -371,7 +371,7 @@ public class PunisherPlugin extends Plugin {
      * This method is used to initialize the required modules for the protocol side of the plugin.
      */
     private void initProtocol() {
-        ProxyServer.getInstance().getPluginManager().registerListener(this, new PlayerListener(this));
+        getProxy().getPluginManager().registerListener(this, new PlayerListener(this));
         ItemsModule.initModule();
         InventoryModule.initModule();
         WorldModule.initModule();
@@ -381,7 +381,7 @@ public class PunisherPlugin extends Plugin {
      * This method is used to register all our event listeners.
      */
     private void registerListeners() {
-        getLogger().info(prefix + ChatColor.GREEN + "Registering Listeners...");
+        getLogger().info(ChatColor.GREEN + "Registering Listeners...");
         getProxy().getPluginManager().registerListener(this, new PlayerChat());
         getProxy().getPluginManager().registerListener(this, new PrePlayerLogin());
         getProxy().getPluginManager().registerListener(this, new PlayerVote());
@@ -395,8 +395,7 @@ public class PunisherPlugin extends Plugin {
      * This method is used to register all our commands.
      */
     private void registerCommands() {
-        getProxy().getPluginManager().registerCommand(this, new PunishCommand());
-        getLogger().info(prefix + ChatColor.GREEN + "Registering Commands...");
+        getLogger().info(ChatColor.GREEN + "Registering Commands...");
         getProxy().getPluginManager().registerCommand(this, new AdminCommands());
         getProxy().getPluginManager().registerCommand(this, new AltsCommand());
         getProxy().getPluginManager().registerCommand(this, new BanCommand());
@@ -411,6 +410,7 @@ public class PunisherPlugin extends Plugin {
         getProxy().getPluginManager().registerCommand(this, new PingCommand());
         getProxy().getPluginManager().registerCommand(this, new PlayerInfoCommand());
         getProxy().getPluginManager().registerCommand(this, new PunHelpCommand());
+        getProxy().getPluginManager().registerCommand(this, new PunishCommand());
         getProxy().getPluginManager().registerCommand(this, new ReportCommand());
         getProxy().getPluginManager().registerCommand(this, new ReputationCommand());
         getProxy().getPluginManager().registerCommand(this, new SeenCommand());
@@ -451,7 +451,7 @@ public class PunisherPlugin extends Plugin {
                 if (!loggingStarted) {
                     //start logging to logs file
                     loggingStarted = true;
-                    getLogger().info(prefix + ChatColor.GREEN + "First log received!, Beginning Logging...");
+                    getLogger().info(ChatColor.GREEN + "First log received!, Beginning Logging...");
                     LOGS.info("****START OF LOGS BEGINNING DATE: " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MMM-yyyy HH:mm:ss")) + "****");
                 }
                 if (record.getLevel() != Level.SEVERE)
@@ -498,17 +498,6 @@ public class PunisherPlugin extends Plugin {
     public void saveConfig() {
         try {
             ConfigurationProvider.getProvider(YamlConfiguration.class).save(config, configFile);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * This method saves the punishments config file.
-     */
-    public void savePunishments() {
-        try {
-            ConfigurationProvider.getProvider(YamlConfiguration.class).save(punishments, punishmentsFile);
         } catch (IOException e) {
             e.printStackTrace();
         }
