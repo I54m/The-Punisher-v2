@@ -1,7 +1,9 @@
 #Punishment lengths are done in minutes (Punishment is consider permanent if the length is more than 10 years)
-#specify the punishment reason then the type and length like so:
+#specify the punishment reason then the message to be displayed for that punishment then
+#the type and length for each offence like so:
 #
 #EXAMPLE_PUNISHMENT_REASON:
+#  message: "example punishment message"
 #  1:
 #    type: 'KICK'
 #  2:
@@ -23,7 +25,7 @@
 # 5. more reasons and offences per reason = longer plugin load times
 
 MINOR_CHAT_OFFENCE:
-  ##todo implement message config so that they can define a message specific to the reason message: "Minor chat offence"
+  message: "Minor chat offence"
   1:
     type: 'WARN'
   2:
@@ -42,6 +44,7 @@ MINOR_CHAT_OFFENCE:
     type: 'MUTE'
     length: "1w"
 MAJOR_CHAT_OFFENCE:
+  message: "Major chat offence"
   1:
     type: 'WARN'
   2:
@@ -57,6 +60,7 @@ MAJOR_CHAT_OFFENCE:
     type: 'MUTE'
     length: "3w"
 DDOS_DOX_THREATS:
+  message: "Threatening to DDoS or DoX"
   1:
     type: 'MUTE'
     length: "3d"
@@ -70,6 +74,7 @@ DDOS_DOX_THREATS:
     type: 'MUTE'
     length: "perm"
 INAPPROPRIATE_LINK:
+  message: "Sending inappropriate links"
   1:
     type: 'MUTE'
     length: "3d"
@@ -83,6 +88,7 @@ INAPPROPRIATE_LINK:
     type: 'MUTE'
     length: "perm"
 SCAMMING:
+  message: "Scamming"
   1:
     type: 'MUTE'
     length: "1d"
@@ -99,6 +105,7 @@ SCAMMING:
     type: 'BAN'
     length: "2w"
 X_RAYING:
+  message: "X-Raying ores or similar"
   1:
     type: 'BAN'
     length: "1w"
@@ -109,6 +116,7 @@ X_RAYING:
     type: 'BAN'
     length: "perm"
 AUTOCLICKER:
+  message: "Using an auto clicker (non pvp)"
   1:
     type: 'BAN'
     length: "1w"
@@ -119,6 +127,7 @@ AUTOCLICKER:
     type: 'BAN'
     length: "perm"
 FLY_SPEED_HACKING:
+  message: "Using fly or speed hacks"
   1:
     type: 'BAN'
     length: "1w"
@@ -129,6 +138,7 @@ FLY_SPEED_HACKING:
     type: 'BAN'
     length: "perm"
 MALICIOUS_PVP_HACKS:
+  message: "Using malicious pvp hacks"
   1:
     type: 'BAN'
     length: "1M"
@@ -136,6 +146,7 @@ MALICIOUS_PVP_HACKS:
     type: 'BAN'
     length: "perm"
 DISALLOWED_MODS:
+  message: "Using disallowed mods"
   1:
     type: 'BAN'
     length: "1w"
@@ -146,10 +157,12 @@ DISALLOWED_MODS:
     type: 'BAN'
     length: "perm"
 SERVER_ADVERTISEMENT:
+  message: "Advertising another server"
   1:
     type: 'BAN'
     length: "perm"
 GREIFING:
+  message: "Greifing or related"
   1:
     type: 'BAN'
     length: "1w"
@@ -160,6 +173,7 @@ GREIFING:
     type: 'BAN'
     length: "perm"
 EXPLOITING:
+  message: "Exploiting game mechanics or bugs"
   1:
     type: 'BAN'
     length: "1w"
@@ -170,6 +184,7 @@ EXPLOITING:
     type: 'BAN'
     length: "perm"
 TP_TRAPPING:
+  message: "Tp trapping"
   1:
     type: 'BAN'
     length: "1w"
@@ -180,6 +195,7 @@ TP_TRAPPING:
     type: 'BAN'
     length: "perm"
 IMPERSONATION:
+  message: "Impersonation"
   1:
     type: 'WARN'
   2:
