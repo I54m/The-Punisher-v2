@@ -75,8 +75,9 @@ Warn Title:
 
   Warn Sound:
     Enabled: true
-    #       SOUNDNAME:VOLUME:PITCH
-    Sound: "UI_TOAST_CHALLENGE_COMPLETE:100:0.5"
+    Sound: "UI_TOAST_CHALLENGE_COMPLETE"
+    Volume: 100
+    Pitch: 0.5
 
 Warn Message:
   "\n&cYou have been Warned, Reason: %reason%!
@@ -95,8 +96,9 @@ Mute Title:
 
   Mute Sound:
     Enabled: true
-    #       SOUNDNAME:VOLUME:PITCH
-    Sound: "UI_TOAST_CHALLENGE_COMPLETE:100:0.5"
+    Sound: "UI_TOAST_CHALLENGE_COMPLETE"
+    Volume: 100
+    Pitch: 0.5
 
 TempMute Message:
   "\n&cYou have been Muted, reason: &f%reason%!
