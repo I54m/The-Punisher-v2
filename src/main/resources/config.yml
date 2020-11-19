@@ -172,6 +172,7 @@ Reputation:
     enabled: true
     #the players reputation must drop below this before they will be rep-banned
     Ban-At: -10.0
+    Message: "Overly Toxic (Reputation dropped below -10.0)"
 
 Voting:
   addRepOnVote: true
