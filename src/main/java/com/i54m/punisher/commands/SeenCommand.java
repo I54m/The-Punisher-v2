@@ -21,12 +21,11 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 public class SeenCommand extends Command {
+    private final PunisherPlugin plugin = PunisherPlugin.getInstance();
+    private final PlayerDataManager playerDataManager = PlayerDataManager.getINSTANCE();
     public SeenCommand() {
         super("seen", "punisher.seen", "lastseen");
     }
-    
-    private final PunisherPlugin plugin = PunisherPlugin.getInstance();
-    private final PlayerDataManager playerDataManager = PlayerDataManager.getINSTANCE();
 
     @Override
     public void execute(CommandSender commandSender, String[] strings) {
@@ -60,7 +59,8 @@ public class SeenCommand extends Command {
             int minutesago = (int) (lastlogin / (1000 * 60) % 60);
             int secondsago = (int) (lastlogin / 1000 % 60);
             if (secondsago <= 0) secondsago = 1;
-            if (daysago >= 1) lastloginString = daysago + "d " + hoursago + "h " + minutesago + "m " + secondsago + "s " + " ago";
+            if (daysago >= 1)
+                lastloginString = daysago + "d " + hoursago + "h " + minutesago + "m " + secondsago + "s " + " ago";
             else if (hoursago >= 1) lastloginString = hoursago + "h " + minutesago + "m " + secondsago + "s " + " ago";
             else if (minutesago >= 1) lastloginString = minutesago + "m " + secondsago + "s " + " ago";
             else lastloginString = secondsago + "s " + " ago";
@@ -69,14 +69,16 @@ public class SeenCommand extends Command {
             minutesago = (int) (lastlogout / (1000 * 60) % 60);
             secondsago = (int) (lastlogout / 1000 % 60);
             if (secondsago <= 0) secondsago = 1;
-            if (daysago >= 1) lastlogoutString = daysago + "d " + hoursago + "h " + minutesago + "m " + secondsago + "s " + " ago";
+            if (daysago >= 1)
+                lastlogoutString = daysago + "d " + hoursago + "h " + minutesago + "m " + secondsago + "s " + " ago";
             else if (hoursago >= 1) lastlogoutString = hoursago + "h " + minutesago + "m " + secondsago + "s " + " ago";
             else if (minutesago >= 1) lastlogoutString = minutesago + "m " + secondsago + "s " + " ago";
             else lastlogoutString = secondsago + "s " + " ago";
             commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Last seen Information for " + targetname + "(#" + playerData.getInt("joinId") + ")").color(ChatColor.RED).create());
             commandSender.sendMessage(new ComponentBuilder("First Joined Date: ").color(ChatColor.RED).append(playerData.getString("firstJoin")).color(ChatColor.GREEN).create());
             commandSender.sendMessage(new ComponentBuilder("Last Login: ").color(ChatColor.RED).append(lastloginString).color(ChatColor.GREEN).create());
-            commandSender.sendMessage(new ComponentBuilder("Last Server Played: ").color(ChatColor.RED).append(playerData.getString("lastServer")).color(ChatColor.GREEN).create());
+            if (playerData.contains("lastserver") || playerData.getString("lastserver") == null)
+                commandSender.sendMessage(new ComponentBuilder("Last Server Played: ").color(ChatColor.RED).append(playerData.getString("lastServer")).color(ChatColor.GREEN).create());
             if (playerData.contains("lastLogout"))
                 commandSender.sendMessage(new ComponentBuilder("Last Logout: ").color(ChatColor.RED).append(lastlogoutString).color(ChatColor.GREEN).create());
             return;
@@ -117,7 +119,7 @@ public class SeenCommand extends Command {
             }
         }
         Configuration playerData = playerDataManager.getPlayerData(targetuuid, false);
-        if (playerData == null){
+        if (playerData == null) {
             commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append(targetname + " has not joined the server yet!").color(ChatColor.RED).create());
             return;
         }
@@ -129,7 +131,8 @@ public class SeenCommand extends Command {
         int minutesago = (int) (lastlogin / (1000 * 60) % 60);
         int secondsago = (int) (lastlogin / 1000 % 60);
         if (secondsago <= 0) secondsago = 1;
-        if (daysago >= 1) lastloginString = daysago + "d " + hoursago + "h " + minutesago + "m " + secondsago + "s " + " ago";
+        if (daysago >= 1)
+            lastloginString = daysago + "d " + hoursago + "h " + minutesago + "m " + secondsago + "s " + " ago";
         else if (hoursago >= 1) lastloginString = hoursago + "h " + minutesago + "m " + secondsago + "s " + " ago";
         else if (minutesago >= 1) lastloginString = minutesago + "m " + secondsago + "s " + " ago";
         else lastloginString = secondsago + "s " + " ago";
@@ -138,14 +141,16 @@ public class SeenCommand extends Command {
         minutesago = (int) (lastlogout / (1000 * 60) % 60);
         secondsago = (int) (lastlogout / 1000 % 60);
         if (secondsago <= 0) secondsago = 1;
-        if (daysago >= 1) lastlogoutString = daysago + "d " + hoursago + "h " + minutesago + "m " + secondsago + "s " + " ago";
+        if (daysago >= 1)
+            lastlogoutString = daysago + "d " + hoursago + "h " + minutesago + "m " + secondsago + "s " + " ago";
         else if (hoursago >= 1) lastlogoutString = hoursago + "h " + minutesago + "m " + secondsago + "s " + " ago";
         else if (minutesago >= 1) lastlogoutString = minutesago + "m " + secondsago + "s " + " ago";
         else lastlogoutString = secondsago + "s " + " ago";
         commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Last seen Information for " + targetname + "(#" + playerData.getInt("joinId") + ")").color(ChatColor.RED).create());
         commandSender.sendMessage(new ComponentBuilder("First Joined Date: ").color(ChatColor.RED).append(playerData.getString("firstJoin")).color(ChatColor.GREEN).create());
         commandSender.sendMessage(new ComponentBuilder("Last Login: ").color(ChatColor.RED).append(lastloginString).color(ChatColor.GREEN).create());
-        commandSender.sendMessage(new ComponentBuilder("Last Server Played: ").color(ChatColor.RED).append(playerData.getString("lastServer")).color(ChatColor.GREEN).create());
+        if (playerData.contains("lastserver") || playerData.getString("lastserver") == null)
+            commandSender.sendMessage(new ComponentBuilder("Last Server Played: ").color(ChatColor.RED).append(playerData.getString("lastServer")).color(ChatColor.GREEN).create());
         if (playerData.contains("lastLogout"))
             commandSender.sendMessage(new ComponentBuilder("Last Logout: ").color(ChatColor.RED).append(lastlogoutString).color(ChatColor.GREEN).create());
     }
