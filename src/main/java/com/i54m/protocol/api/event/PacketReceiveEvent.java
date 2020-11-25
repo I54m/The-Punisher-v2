@@ -11,6 +11,8 @@ import net.md_5.bungee.api.plugin.Event;
 import net.md_5.bungee.protocol.AbstractPacketHandler;
 import net.md_5.bungee.protocol.DefinedPacket;
 
+import java.lang.reflect.Constructor;
+
 public class PacketReceiveEvent<T extends DefinedPacket> extends Event {
 
     private final Connection connection;
@@ -18,6 +20,7 @@ public class PacketReceiveEvent<T extends DefinedPacket> extends Event {
     private T packet;
     private boolean cancelled, dirty;
     private ServerInfo serverInfo;
+    private Constructor constructor;
 
     public PacketReceiveEvent(final Connection connection, final AbstractPacketHandler packetHandler, final T packet) {
         this.connection = connection;

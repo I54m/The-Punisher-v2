@@ -8,6 +8,7 @@ import com.i54m.protocol.inventory.Inventory;
 import com.i54m.protocol.inventory.InventoryModule;
 import com.i54m.protocol.inventory.packet.WindowConfirmation;
 import com.i54m.protocol.items.*;
+import net.md_5.bungee.protocol.DefinedPacket;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -20,46 +21,47 @@ public class WindowConfirmationAdapter extends PacketAdapter<WindowConfirmation>
     }
 
     @Override
-    public void receive(final PacketReceiveEvent<WindowConfirmation> event) {
-        final WindowConfirmation packet = event.getPacket();
+    public void receive(final PacketReceiveEvent<? extends DefinedPacket> event) {
+        if (!(event.getPacket() instanceof WindowConfirmation)) return;
+        final WindowConfirmation packet = (WindowConfirmation) event.getPacket();
         final UUID uniqueId = event.getPlayer().getUniqueId();
         final InventoryAction action = InventoryModule.getInventoryAction(uniqueId, packet.getWindowId(), packet.getActionNumber());
-        if(action == null || InventoryModule.isSpigotInventoryTracking()) {
+        if (action == null || InventoryModule.isSpigotInventoryTracking()) {
             return;
         }
-        if(packet.isAccepted()) {
+        if (packet.isAccepted()) {
             final PlayerInventory playerInventory = InventoryManager.getInventory(uniqueId, event.getServerInfo().getName());
             final Inventory inventory = InventoryModule.getInventory(uniqueId, packet.getWindowId());
-            if(action.isBeginningDragging()) {
+            if (action.isBeginningDragging()) {
                 playerInventory.setDragging(true);
             }
-            if(action.isDragAction()) {
+            if (action.isDragAction()) {
                 playerInventory.getDraggingSlots().add(action.getDragSlot());
             }
-            if(action.isEndingDragging()) {
+            if (action.isEndingDragging()) {
                 final ClickType type = action.getDragType();
                 final ItemStack cursor = playerInventory.getOnCursor().deepClone();
                 int remnant = playerInventory.getOnCursor().getAmount();
                 filterSlots(playerInventory.getDraggingSlots(), cursor, inventory);
-                for(final int slot : playerInventory.getDraggingSlots()) {
+                for (final int slot : playerInventory.getDraggingSlots()) {
                     final ItemStack stack = cursor.deepClone();
                     final int i = inventory.getItem(slot) == null ? 0 : inventory.getItem(slot).getAmount();
                     computeStackSize(playerInventory.getDraggingSlots(), type, stack, i);
-                    if(stack.getAmount() > stack.getType().getMaxStackSize()) {
+                    if (stack.getAmount() > stack.getType().getMaxStackSize()) {
                         stack.setAmount((byte) stack.getType().getMaxStackSize());
                     }
                     action.setItem(slot, stack);
                     remnant -= stack.getAmount() - i;
                 }
                 cursor.setAmount((byte) remnant);
-                if(cursor.getAmount() <= 0) {
+                if (cursor.getAmount() <= 0) {
                     action.setNewCursor(null);
                 } else {
                     action.setNewCursor(cursor);
                 }
                 playerInventory.setDragging(false);
             }
-            if(packet.getWindowId() == 0) {
+            if (packet.getWindowId() == 0) {
                 playerInventory.apply(action);
             } else {
                 InventoryModule.getInventory(uniqueId, packet.getWindowId()).apply(action);
@@ -71,14 +73,14 @@ public class WindowConfirmationAdapter extends PacketAdapter<WindowConfirmation>
 
     private void filterSlots(final Set<Integer> draggingSlots, final ItemStack cursor, final Inventory inventory) {
         final Set<Integer> toDel = new HashSet<>();
-        for(final int slot : draggingSlots) {
+        for (final int slot : draggingSlots) {
             final ItemStack inSlot = inventory.getItem(slot);
             final int i = inSlot == null ? 0 : inSlot.getAmount();
             boolean flag = inSlot == null || inSlot.getType() == ItemType.NO_DATA;
-            if(inSlot != null && inSlot.canBeStacked(cursor)) {
+            if (inSlot != null && inSlot.canBeStacked(cursor)) {
                 flag |= inSlot.getAmount() + i <= inSlot.getType().getMaxStackSize();
             }
-            if(!flag) {
+            if (!flag) {
                 toDel.add(slot);
             }
         }
@@ -101,6 +103,6 @@ public class WindowConfirmationAdapter extends PacketAdapter<WindowConfirmation>
                 break;
 
         }
-        cursor.setAmount((byte) (cursor.getAmount()+stackSize));
+        cursor.setAmount((byte) (cursor.getAmount() + stackSize));
     }
 }

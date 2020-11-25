@@ -14,6 +14,7 @@ import com.i54m.protocol.inventory.packet.WindowConfirmation;
 import com.i54m.protocol.items.*;
 import com.i54m.protocol.items.packet.SetSlot;
 import net.md_5.bungee.api.ProxyServer;
+import net.md_5.bungee.protocol.DefinedPacket;
 
 import static com.i54m.protocol.api.util.ProtocolVersions.MINECRAFT_1_8;
 
@@ -24,9 +25,10 @@ public class ClickWindowAdapter extends PacketAdapter<ClickWindow> {
     }
 
     @Override
-    public void receive(final PacketReceiveEvent<ClickWindow> event) {
-        final ClickWindow clickWindow = event.getPacket();
-        if(event.getPlayer() == null)
+    public void receive(final PacketReceiveEvent<? extends DefinedPacket> event) {
+        if (!(event.getPacket() instanceof ClickWindow)) return;
+        final ClickWindow clickWindow = (ClickWindow) event.getPacket();
+        if (event.getPlayer() == null)
             return;
         final Inventory inventory = InventoryModule.getInventory(event.getPlayer().getUniqueId(), clickWindow.getWindowId());
         if (inventory == null)
@@ -44,17 +46,17 @@ public class ClickWindowAdapter extends PacketAdapter<ClickWindow> {
 
         if (clickEvent.isCancelled() || inventory.isHomebrew()) {
             event.setCancelled(true);
-            if(InventoryModule.getInventory(event.getPlayer().getUniqueId(), clickWindow.getWindowId()) != null) {
+            if (InventoryModule.getInventory(event.getPlayer().getUniqueId(), clickWindow.getWindowId()) != null) {
                 if (inventory.getType() != InventoryType.PLAYER)
                     InventoryModule.sendInventory(event.getPlayer(), inventory);
                 else
                     InventoryManager.getInventory(event.getPlayer().getUniqueId()).update();
-                if(clickEvent.getClickType().name().startsWith("NUMBER_BUTTON")) {
-                    event.getPlayer().unsafe().sendPacket(new WindowConfirmation((byte)clickWindow.getWindowId(), (short) clickWindow.getActionNumber(), false));
-                    event.getPlayer().unsafe().sendPacket(new SetSlot((byte) 0, (short)(clickEvent.getClickType().getButton() + 36), new ItemStack(ItemType.NO_DATA)));
-                } else if(clickEvent.getClickType().name().startsWith("SHIFT_")) {
-                    event.getPlayer().unsafe().sendPacket(new WindowConfirmation((byte)clickWindow.getWindowId(), (short) clickWindow.getActionNumber(), false));
-                    event.getPlayer().unsafe().sendPacket(new SetSlot((byte) 0, (short)44, new ItemStack(ItemType.NO_DATA)));
+                if (clickEvent.getClickType().name().startsWith("NUMBER_BUTTON")) {
+                    event.getPlayer().unsafe().sendPacket(new WindowConfirmation((byte) clickWindow.getWindowId(), (short) clickWindow.getActionNumber(), false));
+                    event.getPlayer().unsafe().sendPacket(new SetSlot((byte) 0, (short) (clickEvent.getClickType().getButton() + 36), new ItemStack(ItemType.NO_DATA)));
+                } else if (clickEvent.getClickType().name().startsWith("SHIFT_")) {
+                    event.getPlayer().unsafe().sendPacket(new WindowConfirmation((byte) clickWindow.getWindowId(), (short) clickWindow.getActionNumber(), false));
+                    event.getPlayer().unsafe().sendPacket(new SetSlot((byte) 0, (short) 44, new ItemStack(ItemType.NO_DATA)));
                 } else {
                     event.getPlayer().unsafe().sendPacket(new SetSlot((byte) -1, (short) -1, new ItemStack(ItemType.NO_DATA)));
                 }
@@ -83,7 +85,7 @@ public class ClickWindowAdapter extends PacketAdapter<ClickWindow> {
         }
     }
 
-    private void handleClick(final InventoryClickEvent clickEvent, final PacketReceiveEvent<ClickWindow> event) {
+    private void handleClick(final InventoryClickEvent clickEvent, final PacketReceiveEvent<? extends DefinedPacket> event) {
         final PlayerInventory playerInventory = InventoryManager.getInventory(event.getPlayer().getUniqueId(), event.getServerInfo().getName());
         final InventoryAction action = new InventoryAction();
         action.setPreviousCursor(playerInventory.getOnCursor());
@@ -170,7 +172,7 @@ public class ClickWindowAdapter extends PacketAdapter<ClickWindow> {
 //                newCursor.setAmount((byte) newCursor.getType().getMaxStackSize());
 //                action.setNewCursor(newCursor);
 //            } else {
-                action.setNewCursor(playerInventory.getOnCursor());
+            action.setNewCursor(playerInventory.getOnCursor());
 //            }
         } else if (clickEvent.getClickType() == ClickType.DROP) {
             if (clickEvent.getSlot() == -999) {

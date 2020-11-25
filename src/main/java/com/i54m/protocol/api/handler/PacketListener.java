@@ -16,13 +16,13 @@ public interface PacketListener<T extends DefinedPacket> {
      * Called when a desired packet arrives at the stream
      * @param event the event containing the information
      */
-    void receive(PacketReceiveEvent<T> event);
+    void receive(PacketReceiveEvent<? extends DefinedPacket> event);
 
     /**
      * Called when a desired packet wants to leave the stream
      * @param event the event containing the information
      */
-    void send(PacketSendEvent<T> event);
+    void send(PacketSendEvent<? extends DefinedPacket> event);
 
     Stream getStream();
     Class<T> getPacketClass();

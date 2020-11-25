@@ -9,6 +9,7 @@ import com.i54m.protocol.inventory.event.InventoryOpenEvent;
 import com.i54m.protocol.inventory.packet.OpenWindow;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
+import net.md_5.bungee.protocol.DefinedPacket;
 
 public class OpenWindowAdapter extends PacketAdapter<OpenWindow> {
 
@@ -17,9 +18,10 @@ public class OpenWindowAdapter extends PacketAdapter<OpenWindow> {
     }
 
     @Override
-    public void receive(final PacketReceiveEvent<OpenWindow> event) {
+    public void receive(final PacketReceiveEvent<? extends DefinedPacket> event) {
+        if (!(event.getPacket() instanceof OpenWindow)) return;
         final ProxiedPlayer p = event.getPlayer();
-        final OpenWindow packet = event.getPacket();
+        final OpenWindow packet = (OpenWindow) event.getPacket();
 
         Inventory inventory = new Inventory(packet.getInventoryType(), packet.getTitle());
         final Inventory original = inventory;
@@ -28,13 +30,13 @@ public class OpenWindowAdapter extends PacketAdapter<OpenWindow> {
 
         final InventoryOpenEvent openEvent = new InventoryOpenEvent(p, inventory, windowId);
         ProxyServer.getInstance().getPluginManager().callEvent(openEvent);
-        if(openEvent.isCancelled()) {
+        if (openEvent.isCancelled()) {
             event.setCancelled(true);
             return;
         }
         inventory = openEvent.getInventory();
         windowId = openEvent.getWindowId();
-        if(!inventory.equals(original) || packet.getWindowId() != windowId) {
+        if (!inventory.equals(original) || packet.getWindowId() != windowId) {
             event.markForRewrite();
             packet.setWindowId(windowId);
             packet.setInventoryType(inventory.getType());

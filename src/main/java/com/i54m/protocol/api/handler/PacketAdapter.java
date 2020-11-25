@@ -37,11 +37,11 @@ public class PacketAdapter<T extends DefinedPacket> implements PacketListener<T>
         this.priority = priority;
     }
 
-    public void receive(final PacketReceiveEvent<T> event) {
+    public void receive(final PacketReceiveEvent<? extends DefinedPacket> event) {
         // To be overwritten
     }
 
-    public void send(final PacketSendEvent<T> event) {
+    public void send(final PacketSendEvent<? extends DefinedPacket> event) {
         // To be overwritten
     }
 

@@ -5,6 +5,7 @@ import com.i54m.protocol.api.handler.PacketAdapter;
 import com.i54m.protocol.api.protocol.Stream;
 import com.i54m.protocol.items.*;
 import com.i54m.protocol.items.packet.WindowItems;
+import net.md_5.bungee.protocol.DefinedPacket;
 
 public class WindowItemsAdapter extends PacketAdapter<WindowItems> {
 
@@ -13,8 +14,9 @@ public class WindowItemsAdapter extends PacketAdapter<WindowItems> {
     }
 
     @Override
-    public void receive(final PacketReceiveEvent<WindowItems> event) {
-        final WindowItems packet = event.getPacket();
+    public void receive(final PacketReceiveEvent<? extends DefinedPacket> event) {
+        if (!(event.getPacket() instanceof WindowItems)) return;
+        final WindowItems packet = (WindowItems) event.getPacket();
         if(packet.getWindowId() != 0)
             return;
         final PlayerInventory playerInventory = InventoryManager.getCombinedSendInventory(event.getPlayer().getUniqueId(), event.getServerInfo().getName());

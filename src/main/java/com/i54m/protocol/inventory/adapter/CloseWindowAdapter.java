@@ -8,6 +8,7 @@ import com.i54m.protocol.inventory.InventoryModule;
 import com.i54m.protocol.inventory.event.InventoryCloseEvent;
 import com.i54m.protocol.inventory.packet.CloseWindow;
 import net.md_5.bungee.api.ProxyServer;
+import net.md_5.bungee.protocol.DefinedPacket;
 
 public class CloseWindowAdapter extends PacketAdapter<CloseWindow> {
 
@@ -16,13 +17,15 @@ public class CloseWindowAdapter extends PacketAdapter<CloseWindow> {
     }
 
     @Override
-    public void receive(final PacketReceiveEvent<CloseWindow> event) {
-        if(event.getPlayer() == null)
+    public void receive(final PacketReceiveEvent<? extends DefinedPacket> event) {
+        if (!(event.getPacket() instanceof CloseWindow)) return;
+        if (event.getPlayer() == null)
             return;
-        final Inventory inv = InventoryModule.getInventory(event.getPlayer().getUniqueId(), event.getPacket().getWindowId());
-        if(inv == null)
+        final int windowID =  ((CloseWindow) event.getPacket()).getWindowId();
+        final Inventory inv = InventoryModule.getInventory(event.getPlayer().getUniqueId(), windowID);
+        if (inv == null)
             return;
-        InventoryModule.registerInventory(event.getPlayer().getUniqueId(), event.getPacket().getWindowId(), null);
-        ProxyServer.getInstance().getPluginManager().callEvent(new InventoryCloseEvent(event.getPlayer(), inv, null, event.getPacket().getWindowId()));
+        InventoryModule.registerInventory(event.getPlayer().getUniqueId(), windowID, null);
+        ProxyServer.getInstance().getPluginManager().callEvent(new InventoryCloseEvent(event.getPlayer(), inv, null, windowID));
     }
 }

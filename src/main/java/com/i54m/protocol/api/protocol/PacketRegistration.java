@@ -2,6 +2,8 @@ package com.i54m.protocol.api.protocol;
 
 import com.google.common.base.Preconditions;
 import com.i54m.punisher.PunisherPlugin;
+import com.i54m.punisher.exceptions.ProtocolException;
+import com.i54m.punisher.handlers.ErrorHandler;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.TObjectIntMap;
 import net.md_5.bungee.api.ProxyServer;
@@ -9,7 +11,10 @@ import net.md_5.bungee.protocol.DefinedPacket;
 import net.md_5.bungee.protocol.Protocol;
 import net.md_5.bungee.protocol.ProtocolConstants.Direction;
 
-import java.lang.reflect.*;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.function.Supplier;
 import java.util.logging.Level;
@@ -19,17 +24,16 @@ import java.util.logging.Level;
  */
 public final class PacketRegistration {
 
-    private Constructor protocolMappingConstructor;
+    private final ErrorHandler ERROR_HANDLER = ErrorHandler.getINSTANCE();
     private Method getIdMethod;
-    private Class<?> mappingClass, directionDataClass, protocolDataClass;
     private Field toServerField, toClientField, protocolsField, protocolDataPacketMapField, protocolDataConstructorsField;
 
     {
         try {
-            mappingClass = Class.forName("net.md_5.bungee.protocol.Protocol$ProtocolMapping");
-            directionDataClass = Class.forName("net.md_5.bungee.protocol.Protocol$DirectionData");
-            protocolDataClass = Class.forName("net.md_5.bungee.protocol.Protocol$ProtocolData");
-            protocolMappingConstructor = mappingClass.getConstructor(int.class, int.class);
+            Class<?> mappingClass = Class.forName("net.md_5.bungee.protocol.Protocol$ProtocolMapping");
+            Class<?> directionDataClass = Class.forName("net.md_5.bungee.protocol.Protocol$DirectionData");
+            Class<?> protocolDataClass = Class.forName("net.md_5.bungee.protocol.Protocol$ProtocolData");
+            Constructor<?> protocolMappingConstructor = mappingClass.getConstructor(int.class, int.class);
             protocolMappingConstructor.setAccessible(true);
             protocolsField = directionDataClass.getDeclaredField("protocols");
             protocolsField.setAccessible(true);
@@ -45,16 +49,17 @@ public final class PacketRegistration {
             toClientField = Protocol.class.getDeclaredField("TO_CLIENT");
             toClientField.setAccessible(true);
         } catch (final Exception e) {
-            ProxyServer.getInstance().getLogger().log(Level.SEVERE,"Exception occurred while initializing PacketRegistration: ", e);
+            ProxyServer.getInstance().getLogger().log(Level.SEVERE, "Exception occurred while initializing PacketRegistration: ", e);
         }
     }
 
     /**
      * This method registers a {@link AbstractPacket} for the PLAY / GAME protocol in direction to the client. This method is equal to
      * {@code registerPacket(Protocol.GAME.TO_CLIENT, clazz, protocolIdMapping);}
-     * @see PacketRegistration#registerPacket(Protocol, Direction, Class, Map)
-     * @param clazz the class of the packet
+     *
+     * @param clazz             the class of the packet
      * @param protocolIdMapping a map containing the protocol versions and their corresponding packet id.
+     * @see PacketRegistration#registerPacket(Protocol, Direction, Class, Map)
      */
     public void registerPlayClientPacket(final Class<? extends AbstractPacket> clazz, final Map<Integer, Integer> protocolIdMapping) {
         registerPacket(Protocol.GAME, Direction.TO_CLIENT, clazz, protocolIdMapping);
@@ -63,9 +68,10 @@ public final class PacketRegistration {
     /**
      * This method registers a {@link AbstractPacket} for the PLAY / GAME protocol in direction to the client. This method is equal to
      * {@code registerPacket(Protocol.GAME.TO_SERVER, clazz, protocolIdMapping);}
-     * @see PacketRegistration#registerPacket(Protocol, Direction, Class, Map)
-     * @param clazz the class of the packet
+     *
+     * @param clazz             the class of the packet
      * @param protocolIdMapping a map containing the protocol versions and their corresponding packet id.
+     * @see PacketRegistration#registerPacket(Protocol, Direction, Class, Map)
      */
     public void registerPlayServerPacket(final Class<? extends AbstractPacket> clazz, final Map<Integer, Integer> protocolIdMapping) {
         registerPacket(Protocol.GAME, Direction.TO_SERVER, clazz, protocolIdMapping);
@@ -73,9 +79,10 @@ public final class PacketRegistration {
 
     /**
      * This method registers a {@link AbstractPacket}.
-     * @param protocol the protocol.
-     * @param direction the protocol direction
-     * @param clazz the class of the packet
+     *
+     * @param protocol          the protocol.
+     * @param direction         the protocol direction
+     * @param clazz             the class of the packet
      * @param protocolIdMapping a map containing the protocol versions and their corresponding packet id.
      */
     public void registerPacket(final Protocol protocol, final Direction direction, final Class<? extends AbstractPacket> clazz, final Map<Integer, Integer> protocolIdMapping) {
@@ -85,27 +92,28 @@ public final class PacketRegistration {
         Preconditions.checkNotNull(protocolIdMapping, "The protocolIdMapping cannot be null!");
         try {
             final TIntObjectMap<Object> protocols = (TIntObjectMap<Object>) protocolsField.get(getDirectionData(protocol, direction));
-            for(final Integer protocolVersion : protocolIdMapping.keySet()) {
-                if(isWaterfall()) {
+            for (final Integer protocolVersion : protocolIdMapping.keySet()) {
+                if (isWaterfall()) {
                     registerPacketWaterfall(protocols, protocolVersion, protocolIdMapping.get(protocolVersion), clazz);
                 } else {
                     registerPacketBungeeCord(protocols, protocolVersion, protocolIdMapping.get(protocolVersion), clazz);
                 }
             }
-            PunisherPlugin.getInstance().getLogger().info("[Protocol] Injected custom packet: "+clazz.getName());
+            PunisherPlugin.getInstance().getLogger().info("[Protocol] Injected custom packet: " + clazz.getName());
         } catch (final Exception e) {
-            ProxyServer.getInstance().getLogger().log(Level.SEVERE, "Exception occurred while registering packet: "+clazz.getName(), e);
+            ERROR_HANDLER.log(new ProtocolException("Exception occurred while registering packet: " + clazz.getName(), e));
         }
     }
 
     /**
      * Returns a packet id for the given protocol and it's version.
-     * @see com.i54m.protocol.api.util.ProtocolVersions
-     * @param protocol the protocol.
-     * @param direction the protocol direction
+     *
+     * @param protocol        the protocol.
+     * @param direction       the protocol direction
      * @param protocolVersion the protocol version
-     * @param clazz the class of the packet
+     * @param clazz           the class of the packet
      * @return the packet id or -1 if the packet is not registered in that specific direction
+     * @see com.i54m.protocol.api.util.ProtocolVersions
      */
     public int getPacketID(final Protocol protocol, final Direction direction, final int protocolVersion, final Class<? extends DefinedPacket> clazz) {
         Preconditions.checkNotNull(clazz, "The clazz cannot be null!");
@@ -115,10 +123,10 @@ public final class PacketRegistration {
         try {
             return (int) getIdMethod.invoke(data, clazz, protocolVersion);
         } catch (final IllegalAccessException | InvocationTargetException e) {
-            if(e.getCause() != null && e.getCause() instanceof IllegalArgumentException) {
+            if (e.getCause() != null && e.getCause() instanceof IllegalArgumentException) {
                 try {
                     return (int) getIdMethod.invoke(data, clazz, protocolVersion);
-                } catch (final IllegalAccessException | InvocationTargetException e1) {
+                } catch (final IllegalAccessException | InvocationTargetException ignored) {
                 }
             }
         }
@@ -127,7 +135,7 @@ public final class PacketRegistration {
 
     private Object getDirectionData(final Protocol protocol, final Direction direction) {
         try {
-            if(direction == Direction.TO_SERVER)
+            if (direction == Direction.TO_SERVER)
                 return toServerField.get(protocol);
             else
                 return toClientField.get(protocol);
@@ -143,23 +151,23 @@ public final class PacketRegistration {
 
     private void registerPacketBungeeCord(final TIntObjectMap<Object> protocols, final int protocolVersion, final int packetId, final Class<?> clazz) throws IllegalAccessException, NoSuchMethodException {
         final Object protocolData = protocols.get(protocolVersion);
-        if(protocolData == null) {
-            PunisherPlugin.getInstance().getLogger().warning("[Protocol] Protocol version "+protocolVersion+" is not supported on this bungeecord version. Skipping registration for that specific version.");
+        if (protocolData == null) {
+            PunisherPlugin.getInstance().getLogger().warning("[Protocol] Protocol version " + protocolVersion + " is not supported on this bungeecord version. Skipping registration for that specific version.");
             return;
         }
-        TObjectIntMap<Class<?>> map = ((TObjectIntMap<Class<?>>)protocolDataPacketMapField.get(protocolData));
+        TObjectIntMap<Class<?>> map = ((TObjectIntMap<Class<?>>) protocolDataPacketMapField.get(protocolData));
         map.put(clazz, packetId);
-        ((Constructor[])protocolDataConstructorsField.get(protocolData))[packetId] = clazz.getDeclaredConstructor();
+        ((Constructor<?>[]) protocolDataConstructorsField.get(protocolData))[packetId] = clazz.getDeclaredConstructor();
     }
 
-    private void registerPacketWaterfall(final TIntObjectMap<Object> protocols, final int protocolVersion, final int packetId, final Class<?> clazz) throws IllegalAccessException, NoSuchMethodException {
+    private void registerPacketWaterfall(final TIntObjectMap<Object> protocols, final int protocolVersion, final int packetId, final Class<?> clazz) throws IllegalAccessException {
         final Object protocolData = protocols.get(protocolVersion);
-        if(protocolData == null) {
-            PunisherPlugin.getInstance().getLogger().warning("[Protocol] Protocol version "+protocolVersion+" is not supported on this waterfall version. Skipping registration for that specific version.");
+        if (protocolData == null) {
+            PunisherPlugin.getInstance().getLogger().warning("[Protocol] Protocol version " + protocolVersion + " is not supported on this waterfall version. Skipping registration for that specific version.");
             return;
         }
-        ((TObjectIntMap<Class<?>>)protocolDataPacketMapField.get(protocolData)).put(clazz, packetId);
-        ((Supplier[])protocolDataConstructorsField.get(protocolData))[packetId] = () -> {
+        ((TObjectIntMap<Class<?>>) protocolDataPacketMapField.get(protocolData)).put(clazz, packetId);
+        ((Supplier<?>[]) protocolDataConstructorsField.get(protocolData))[packetId] = () -> {
             try {
                 return clazz.getDeclaredConstructor().newInstance();
             } catch (ReflectiveOperationException e) {

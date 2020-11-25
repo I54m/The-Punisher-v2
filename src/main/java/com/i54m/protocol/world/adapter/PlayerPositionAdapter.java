@@ -6,6 +6,7 @@ import com.i54m.protocol.api.protocol.Stream;
 import com.i54m.protocol.world.Location;
 import com.i54m.protocol.world.WorldModule;
 import com.i54m.protocol.world.packet.PlayerPosition;
+import net.md_5.bungee.protocol.DefinedPacket;
 
 public class PlayerPositionAdapter extends PacketAdapter<PlayerPosition> {
 
@@ -14,12 +15,13 @@ public class PlayerPositionAdapter extends PacketAdapter<PlayerPosition> {
     }
 
     @Override
-    public void receive(final PacketReceiveEvent<PlayerPosition> event) {
-        if(event.getPlayer() == null)
+    public void receive(final PacketReceiveEvent<? extends DefinedPacket> event) {
+        if (!(event.getPacket() instanceof PlayerPosition)) return;
+        if (event.getPlayer() == null)
             return;
-        final PlayerPosition packet = event.getPacket();
+        final PlayerPosition packet = (PlayerPosition) event.getPacket();
         final Location location = WorldModule.getLocation(event.getPlayer().getUniqueId());
-        if(location == null) {
+        if (location == null) {
             WorldModule.setLocation(event.getPlayer().getUniqueId(), packet.getLocation());
             return;
         }
