@@ -23,12 +23,25 @@ public class ProtocolException extends Exception {
         this.protocolversion = null;
     }
 
+    public ProtocolException(String where) {
+        this.where = where;
+        this.cause = null;
+        this.stream = null;
+        this.connection = null;
+        this.protocolversion = null;
+    }
+
     @Override
     public String getMessage() {
         if (where.equals("Decoder"))
             return "An exception was caught in " + where + ". Stream : " + stream + ". Connection: " + connection + ". ProtocolVersion: " + protocolversion + ". This was caused by " + cause + ".";
-        else
+        else if (where.equals("Encoder"))
             return "An exception was caught in " + where + ". This was caused by " + cause + ".";
+        else {
+            if (cause == null) return where;
+            else return where + ". This was caused by " + cause + ".";
+        }
+
     }
 
     @Override
