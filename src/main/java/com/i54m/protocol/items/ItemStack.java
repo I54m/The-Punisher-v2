@@ -51,142 +51,15 @@ public final class ItemStack implements Cloneable {
         this.durability = durability;
     }
 
-    public Tag<?> getNBTTag() {
-        return nbtdata;
-    }
-
-    public void setDisplayName(final String displayName) {
-        this.displayName = displayName;
-    }
-
-    private void setDisplayNameTag(final String name) {
-        if (name == null)
-            return;
-        CompoundTag display = (CompoundTag) nbtdata.getValue().get("display");
-        if (display == null) {
-            display = new CompoundTag("display", new CompoundMap());
-        }
-        final StringTag tag = new StringTag("Name", name);
-        display.getValue().put(tag);
-        nbtdata.getValue().put(display);
-    }
-
-    private void setLoreTag(final List<String> lore, final int protocolVersion) {
-        if (lore == null)
-            return;
-        CompoundTag display = (CompoundTag) nbtdata.getValue().get("display");
-        if (display == null) {
-            display = new CompoundTag("display", new CompoundMap());
-        }
-        final ListTag<StringTag> tag;
-        if(protocolVersion < MINECRAFT_1_14) {
-            tag = new ListTag<>("Lore", StringTag.class, lore.stream().map(i -> new StringTag(String.valueOf(ThreadLocalRandom.current().nextLong()), i)).collect(Collectors.toList()));
-        } else {
-            tag = new ListTag<>("Lore", StringTag.class, lore.stream().map(i -> {
-                BaseComponent[] components = TextComponent.fromLegacyText(i);
-                for (BaseComponent component : components) {
-                    if (!component.isItalic()) {
-                        component.setItalic(false);
-                    }
-                }
-                return new StringTag(String.valueOf(ThreadLocalRandom.current().nextLong()), ComponentSerializer.toString(components));
-            }).collect(Collectors.toList()));
-        }
-        display.getValue().put(tag);
-        nbtdata.getValue().put(display);
-    }
-
-    public void setNBTTag(final CompoundTag nbtdata) {
-        this.nbtdata = nbtdata;
-    }
-
-    public void write(final ByteBuf buf, final int protocolVersion) {
-        Preconditions.checkNotNull(buf, "The buf cannot be null!");
-        try {
-            final int protocolID;
-            final ItemIDMapping applicableMapping;
-            if (type == null) {
-                protocolID = -1;
-                applicableMapping = null;
-            } else {
-                applicableMapping = type.getApplicableMapping(protocolVersion);
-                if(applicableMapping == null) {
-                    protocolID = -2;
-                } else {
-                    protocolID = Objects.requireNonNull(applicableMapping).getId();
-                }
-            }
-            if (protocolID == -2) {
-                buf.writeShort(-1);
-                ProxyServer.getInstance().getLogger().warning("[Protocol] " + type.name() + " cannot be used on protocol version " + protocolVersion);
-                return;
-            }
-            if(protocolVersion < MINECRAFT_1_13_2) {
-                buf.writeShort(protocolID);
-                if (protocolID == -1)
-                    return;
-            } else {
-                if(protocolID == -1) {
-                    buf.writeBoolean(false);
-                    return;
-                } else {
-                    buf.writeBoolean(true);
-                    DefinedPacket.writeVarInt(protocolID, buf);
-                }
-            }
-            if (durability == -1)
-                durability = (short) Objects.requireNonNull(applicableMapping).getData();
-            buf.writeByte(amount);
-            if (protocolVersion < MINECRAFT_1_13)
-                buf.writeShort(durability);
-            if (nbtdata == null) {
-                nbtdata = new CompoundTag("", new CompoundMap());
-            }
-            if (protocolVersion >= MINECRAFT_1_13) {
-                nbtdata.getValue().put(new IntTag("Damage", durability));
-                setDisplayNameTag(ComponentSerializer.toString(new TextComponent(displayName)));
-            } else {
-                setDisplayNameTag(displayName);
-            }
-            setLoreTag(lore, protocolVersion);
-            setHideFlags(hideFlags);
-            if (applicableMapping instanceof AbstractCustomItemIDMapping) {
-                ((AbstractCustomItemIDMapping) applicableMapping).apply(this, protocolVersion);
-            }
-            buf.markWriterIndex();
-            try {
-                writeNBTTag(nbtdata, buf);
-            } catch (final Exception e) {
-                PunisherPlugin.getInstance().getLogger().log(Level.WARNING, "[Protocol] Error when writing NBT data to ItemStack:", e);
-                buf.resetWriterIndex();
-                writeNBTTag(new CompoundTag("", new CompoundMap()), buf);
-            }
-        } catch (final Exception e) {
-            PunisherPlugin.getInstance().getLogger().log(Level.SEVERE, "[Protocol] Exception occurred when writing ItemStack to buffer. Protocol version = " + protocolVersion, e);
-        }
-    }
-
-    private void setHideFlags(final int hideFlags) {
-        nbtdata.getValue().put(new IntTag("HideFlags", hideFlags));
-    }
-
-    private void writeNBTTag(final Tag<?> nbtdata, final ByteBuf buf) throws IOException {
-        Preconditions.checkNotNull(nbtdata, "The nbtdata cannot be null!");
-        Preconditions.checkNotNull(buf, "The buf cannot be null!");
-        try (final NBTOutputStream outputStream = new NBTOutputStream(new ByteBufOutputStream(buf), false)) {
-            outputStream.writeTag(nbtdata);
-        }
-    }
-
     public static ItemStack read(final ByteBuf buf, final int protocolVersion) {
         Preconditions.checkNotNull(buf, "The buf cannot be null!");
         try {
             final int id;
-            if(protocolVersion < MINECRAFT_1_13_2) {
+            if (protocolVersion < MINECRAFT_1_13_2) {
                 id = buf.readShort();
             } else {
                 final boolean present = buf.readBoolean();
-                if(present)
+                if (present)
                     id = DefinedPacket.readVarInt(buf);
                 else
                     id = -1;
@@ -238,10 +111,10 @@ public final class ItemStack implements Cloneable {
     }
 
     private static int getHideFlags(final CompoundTag tag) {
-        if(tag == null)
+        if (tag == null)
             return 0;
-        if(tag.getValue().containsKey("HideFlags")) {
-            return ((IntTag)tag.getValue().get("HideFlags")).getValue();
+        if (tag.getValue().containsKey("HideFlags")) {
+            return ((IntTag) tag.getValue().get("HideFlags")).getValue();
         }
         return 0;
     }
@@ -257,58 +130,6 @@ public final class ItemStack implements Cloneable {
                 return inputStream.readTag();
             }
         }
-    }
-
-    public ItemType getType() {
-        return type;
-    }
-
-    public byte getAmount() {
-        return amount;
-    }
-
-    public short getDurability() {
-        return durability;
-    }
-
-    public boolean isHomebrew() {
-        return homebrew;
-    }
-
-    public void setAmount(final byte amount) {
-        this.amount = amount;
-    }
-
-    public void setDurability(final short durability) {
-        this.durability = durability;
-    }
-
-    public void setType(final ItemType type) {
-        this.type = type;
-    }
-
-    public String getDisplayName() {
-        return displayName;
-    }
-
-    public boolean isFlagSet(final ItemFlag flag) {
-        return (hideFlags & (1 << flag.getBitIndex())) == 1;
-    }
-
-    public void setFlag(final ItemFlag flag, final boolean active) {
-        if(active)
-            hideFlags |= (1 << flag.getBitIndex());
-        else
-            hideFlags &= ~(1 << flag.getBitIndex());
-    }
-
-    public Set<ItemFlag> getItemFlags() {
-        final Set<ItemFlag> flags = new HashSet<>();
-        for(final ItemFlag flag : ItemFlag.values()) {
-            if(isFlagSet(flag))
-                flags.add(flag);
-        }
-        return Collections.unmodifiableSet(flags);
     }
 
     private static String getDisplayNameTag(final CompoundTag nbtdata) {
@@ -336,11 +157,190 @@ public final class ItemStack implements Cloneable {
         if (lore == null) {
             return null;
         }
-        if(protocolVersion < MINECRAFT_1_14) {
+        if (protocolVersion < MINECRAFT_1_14) {
             return lore.getValue().stream().map(StringTag::getValue).collect(Collectors.toList());
         } else {
             return lore.getValue().stream().map(it -> new TextComponent(it.getValue()).toLegacyText()).collect(Collectors.toList());
         }
+    }
+
+    public Tag<?> getNBTTag() {
+        return nbtdata;
+    }
+
+    public void setNBTTag(final CompoundTag nbtdata) {
+        this.nbtdata = nbtdata;
+    }
+
+    private void setDisplayNameTag(final String name) {
+        if (name == null)
+            return;
+        CompoundTag display = (CompoundTag) nbtdata.getValue().get("display");
+        if (display == null) {
+            display = new CompoundTag("display", new CompoundMap());
+        }
+        final StringTag tag = new StringTag("Name", name);
+        display.getValue().put(tag);
+        nbtdata.getValue().put(display);
+    }
+
+    private void setLoreTag(final List<String> lore, final int protocolVersion) {
+        if (lore == null)
+            return;
+        CompoundTag display = (CompoundTag) nbtdata.getValue().get("display");
+        if (display == null) {
+            display = new CompoundTag("display", new CompoundMap());
+        }
+        final ListTag<StringTag> tag;
+        if (protocolVersion < MINECRAFT_1_14) {
+            tag = new ListTag<>("Lore", StringTag.class, lore.stream().map(i -> new StringTag(String.valueOf(ThreadLocalRandom.current().nextLong()), i)).collect(Collectors.toList()));
+        } else {
+            tag = new ListTag<>("Lore", StringTag.class, lore.stream().map(i -> {
+                BaseComponent[] components = TextComponent.fromLegacyText(i);
+                for (BaseComponent component : components) {
+                    if (!component.isItalic()) {
+                        component.setItalic(false);
+                    }
+                }
+                return new StringTag(String.valueOf(ThreadLocalRandom.current().nextLong()), ComponentSerializer.toString(components));
+            }).collect(Collectors.toList()));
+        }
+        display.getValue().put(tag);
+        nbtdata.getValue().put(display);
+    }
+
+    public void write(final ByteBuf buf, final int protocolVersion) {
+        Preconditions.checkNotNull(buf, "The buf cannot be null!");
+        try {
+            final int protocolID;
+            final ItemIDMapping applicableMapping;
+            if (type == null) {
+                protocolID = -1;
+                applicableMapping = null;
+            } else {
+                applicableMapping = type.getApplicableMapping(protocolVersion);
+                if (applicableMapping == null) {
+                    protocolID = -2;
+                } else {
+                    protocolID = Objects.requireNonNull(applicableMapping).getId();
+                }
+            }
+            if (protocolID == -2) {
+                buf.writeShort(-1);
+                ProxyServer.getInstance().getLogger().warning("[Protocol] " + type.name() + " cannot be used on protocol version " + protocolVersion);
+                return;
+            }
+            if (protocolVersion < MINECRAFT_1_13_2) {
+                buf.writeShort(protocolID);
+                if (protocolID == -1)
+                    return;
+            } else {
+                if (protocolID == -1) {
+                    buf.writeBoolean(false);
+                    return;
+                } else {
+                    buf.writeBoolean(true);
+                    DefinedPacket.writeVarInt(protocolID, buf);
+                }
+            }
+            if (durability == -1)
+                durability = (short) Objects.requireNonNull(applicableMapping).getData();
+            buf.writeByte(amount);
+            if (protocolVersion < MINECRAFT_1_13)
+                buf.writeShort(durability);
+            if (nbtdata == null) {
+                nbtdata = new CompoundTag("", new CompoundMap());
+            }
+            if (protocolVersion >= MINECRAFT_1_13) {
+                nbtdata.getValue().put(new IntTag("Damage", durability));
+                setDisplayNameTag(ComponentSerializer.toString(new TextComponent(displayName)));
+            } else {
+                setDisplayNameTag(displayName);
+            }
+            setLoreTag(lore, protocolVersion);
+            setHideFlags(hideFlags);
+            if (applicableMapping instanceof AbstractCustomItemIDMapping) {
+                ((AbstractCustomItemIDMapping) applicableMapping).apply(this, protocolVersion);
+            }
+            buf.markWriterIndex();
+            try {
+                writeNBTTag(nbtdata, buf);
+            } catch (final Exception e) {
+                PunisherPlugin.getInstance().getLogger().log(Level.WARNING, "[Protocol] Error when writing NBT data to ItemStack:", e);
+                buf.resetWriterIndex();
+                writeNBTTag(new CompoundTag("", new CompoundMap()), buf);
+            }
+        } catch (final Exception e) {
+            PunisherPlugin.getInstance().getLogger().log(Level.SEVERE, "[Protocol] Exception occurred when writing ItemStack to buffer. Protocol version = " + protocolVersion, e);
+        }
+    }
+
+    private void setHideFlags(final int hideFlags) {
+        nbtdata.getValue().put(new IntTag("HideFlags", hideFlags));
+    }
+
+    private void writeNBTTag(final Tag<?> nbtdata, final ByteBuf buf) throws IOException {
+        Preconditions.checkNotNull(nbtdata, "The nbtdata cannot be null!");
+        Preconditions.checkNotNull(buf, "The buf cannot be null!");
+        try (final NBTOutputStream outputStream = new NBTOutputStream(new ByteBufOutputStream(buf), false)) {
+            outputStream.writeTag(nbtdata);
+        }
+    }
+
+    public ItemType getType() {
+        return type;
+    }
+
+    public void setType(final ItemType type) {
+        this.type = type;
+    }
+
+    public byte getAmount() {
+        return amount;
+    }
+
+    public void setAmount(final byte amount) {
+        this.amount = amount;
+    }
+
+    public short getDurability() {
+        return durability;
+    }
+
+    public void setDurability(final short durability) {
+        this.durability = durability;
+    }
+
+    public boolean isHomebrew() {
+        return homebrew;
+    }
+
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public void setDisplayName(final String displayName) {
+        this.displayName = displayName;
+    }
+
+    public boolean isFlagSet(final ItemFlag flag) {
+        return (hideFlags & (1 << flag.getBitIndex())) == 1;
+    }
+
+    public void setFlag(final ItemFlag flag, final boolean active) {
+        if (active)
+            hideFlags |= (1 << flag.getBitIndex());
+        else
+            hideFlags &= ~(1 << flag.getBitIndex());
+    }
+
+    public Set<ItemFlag> getItemFlags() {
+        final Set<ItemFlag> flags = new HashSet<>();
+        for (final ItemFlag flag : ItemFlag.values()) {
+            if (isFlagSet(flag))
+                flags.add(flag);
+        }
+        return Collections.unmodifiableSet(flags);
     }
 
     public boolean isPlayerSkull() {
@@ -351,7 +351,7 @@ public final class ItemStack implements Cloneable {
         Preconditions.checkNotNull(textureHash, "The textureHash cannot be null!");
         Preconditions.checkArgument(!textureHash.isEmpty(), "The textureHash cannot be empty!");
         Preconditions.checkState(type == ItemType.PLAYER_HEAD, "The item type must be PLAYER_HEAD");
-        final CompoundTag skullOwner = (CompoundTag) ((CompoundTag)getNBTTag()).getValue().getOrDefault("SkullOwner", new CompoundTag("SkullOwner", new CompoundMap()));
+        final CompoundTag skullOwner = (CompoundTag) ((CompoundTag) getNBTTag()).getValue().getOrDefault("SkullOwner", new CompoundTag("SkullOwner", new CompoundMap()));
         skullOwner.getValue().put(new StringTag("Name", textureHash));
         final CompoundTag properties = (CompoundTag) skullOwner.getValue().getOrDefault("Properties", new CompoundTag("Properties", new CompoundMap()));
         final CompoundTag texture = new CompoundTag("value", new CompoundMap());
@@ -359,28 +359,28 @@ public final class ItemStack implements Cloneable {
         final ListTag<CompoundTag> textures = new ListTag<>("textures", CompoundTag.class, Lists.newArrayList(texture));
         properties.getValue().put(textures);
         skullOwner.getValue().put(properties);
-        ((CompoundTag)getNBTTag()).getValue().put(skullOwner);
-    }
-
-    public void setSkullOwner(final String skullOwner) {
-        Preconditions.checkState(type == ItemType.PLAYER_HEAD, "The item type must be PLAYER_HEAD");
-        ((CompoundTag)getNBTTag()).getValue().put(new StringTag("SkullOwner", skullOwner));
+        ((CompoundTag) getNBTTag()).getValue().put(skullOwner);
     }
 
     public String getSkullOwner() {
-        if(((CompoundTag)getNBTTag()).getValue().containsKey("SkullOwner")) {
-            final Tag t = ((CompoundTag)getNBTTag()).getValue().get("SkullOwner");
-            if(t instanceof StringTag) {
+        if (((CompoundTag) getNBTTag()).getValue().containsKey("SkullOwner")) {
+            final Tag t = ((CompoundTag) getNBTTag()).getValue().get("SkullOwner");
+            if (t instanceof StringTag) {
                 return ((StringTag) t).getValue();
-            } else if(t instanceof CompoundTag) {
+            } else if (t instanceof CompoundTag) {
                 final CompoundTag skullOwner = (CompoundTag) t;
                 final Tag t2 = skullOwner.getValue().get("Name");
-                if(t2 instanceof StringTag) {
+                if (t2 instanceof StringTag) {
                     return ((StringTag) t2).getValue();
                 }
             }
         }
         return null;
+    }
+
+    public void setSkullOwner(final String skullOwner) {
+        Preconditions.checkState(type == ItemType.PLAYER_HEAD, "The item type must be PLAYER_HEAD");
+        ((CompoundTag) getNBTTag()).getValue().put(new StringTag("SkullOwner", skullOwner));
     }
 
     public List<String> getLore() {

@@ -11,12 +11,14 @@ public final class ProtocolAPI {
     private static final EventManager EVENT_MANAGER = new EventManager();
 //    private static final TrafficManager TRAFFIC_MANAGER = new TrafficManager();
 
-    private ProtocolAPI() {}
+    private ProtocolAPI() {
+    }
 
     /**
      * The packet registration is used to register packets
-     * @see PacketRegistration
+     *
      * @return instance of {@link PacketRegistration}
+     * @see PacketRegistration
      */
     public static PacketRegistration getPacketRegistration() {
         return PACKET_REGISTRATION;
@@ -24,9 +26,10 @@ public final class ProtocolAPI {
 
     /**
      * The event manager is used to register {@link com.i54m.protocol.api.handler.PacketListener}s
+     *
+     * @return instance of {@link EventManager}
      * @see EventManager
      * @see com.i54m.protocol.api.handler.PacketListener
-     * @return instance of {@link EventManager}
      */
     public static EventManager getEventManager() {
         return EVENT_MANAGER;

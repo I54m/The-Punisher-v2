@@ -53,7 +53,7 @@ public final class InventoryModule {
         ProtocolAPI.getEventManager().registerListener(new WindowConfirmationAdapter());
     }
 
-    public static void closeInventory(final Inventory inventory, final ProxiedPlayer p){
+    public static void closeInventory(final Inventory inventory, final ProxiedPlayer p) {
         Preconditions.checkNotNull(p, "The player cannot be null!");
         Preconditions.checkNotNull(inventory, "The inventory cannot be null!");
 
@@ -96,7 +96,7 @@ public final class InventoryModule {
     public static Inventory getInventory(final UUID playerId, final int windowId) {
         if (windowId == 0) {
             final ProxiedPlayer player = ProxyServer.getInstance().getPlayer(playerId);
-            if(player.getServer() == null || player.getServer().getInfo() == null)
+            if (player.getServer() == null || player.getServer().getInfo() == null)
                 return null;
             final PlayerInventory inventory = InventoryManager.getCombinedSendInventory(playerId, player.getServer().getInfo().getName());
             final Inventory out = new Inventory(InventoryType.PLAYER);
@@ -188,7 +188,7 @@ public final class InventoryModule {
         windowId = event.getWindowId();
         inventory = event.getInventory();
 
-        if(!alreadyOpen)
+        if (!alreadyOpen)
             p.unsafe().sendPacket(new OpenWindow(windowId, inventory.getType(), inventory.getTitle()));
         int protocolVersion;
         try {
@@ -198,18 +198,18 @@ public final class InventoryModule {
         }
         final Map<Integer, ItemStack> items = inventory.getItemsIndexed(protocolVersion);
 
-        if(ItemsModule.isSpigotInventoryTracking()) {
+        if (ItemsModule.isSpigotInventoryTracking()) {
             final PlayerInventory playerInventory = InventoryManager.getInventory(p.getUniqueId());
             items.putAll(playerInventory.getItemsIndexedContainer());
         }
         p.unsafe().sendPacket(new WindowItems((short) windowId, items));
     }
 
-    public static void setSpigotInventoryTracking(final boolean spigotInventoryTracking) {
-        InventoryModule.spigotInventoryTracking = spigotInventoryTracking;
-    }
-
     public static boolean isSpigotInventoryTracking() {
         return spigotInventoryTracking;
+    }
+
+    public static void setSpigotInventoryTracking(final boolean spigotInventoryTracking) {
+        InventoryModule.spigotInventoryTracking = spigotInventoryTracking;
     }
 }

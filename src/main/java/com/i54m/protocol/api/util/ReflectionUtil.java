@@ -64,27 +64,28 @@ public final class ReflectionUtil {
         }
     }
 
-    private ReflectionUtil() {}
+    private ReflectionUtil() {
+    }
 
     public static Connection getConnection(final AbstractPacketHandler abstractPacketHandler, final boolean sentToServer) {
         final Connection connection;
         try {
-            if(abstractPacketHandler instanceof PendingConnection) {
+            if (abstractPacketHandler instanceof PendingConnection) {
                 return (Connection) abstractPacketHandler;
             }
-            if(serverConnectorClass.equals(abstractPacketHandler.getClass())) {
+            if (serverConnectorClass.equals(abstractPacketHandler.getClass())) {
                 final ProxiedPlayer player = (ProxiedPlayer) serverConnectorUserConnectionField.get(abstractPacketHandler);
                 final Object upstreamBridge = getUpstreamBridge(player);
-                if(upstreamBridge == null)
+                if (upstreamBridge == null)
                     return null;
                 return (Connection) upstreamConnectionField.get(upstreamBridge);
             }
-            if(sentToServer)
+            if (sentToServer)
                 connection = (Connection) downstreamConnectionField.get(abstractPacketHandler);
             else
                 connection = (Connection) upstreamConnectionField.get(abstractPacketHandler);
         } catch (final Exception e) {
-            ProxyServer.getInstance().getLogger().severe("[Protocol] Problem while getting connection from "+abstractPacketHandler+" ("+abstractPacketHandler.getClass().getName()+")");
+            ProxyServer.getInstance().getLogger().severe("[Protocol] Problem while getting connection from " + abstractPacketHandler + " (" + abstractPacketHandler.getClass().getName() + ")");
             throw new RuntimeException("Unable to obtain connection", e);
         }
         return connection;
@@ -96,7 +97,7 @@ public final class ReflectionUtil {
             final Object channelWrapper = userConnectionChannelWrapperField.get(player);
             final Channel channel = (Channel) channelWrapperChannelField.get(channelWrapper);
             final Object handlerBoss = channel.pipeline().get("inbound-boss");
-            if(handlerBoss == null)
+            if (handlerBoss == null)
                 return null;
             return (AbstractPacketHandler) handlerBossHandlerField.get(handlerBoss);
         } catch (final Exception e) {
@@ -119,23 +120,23 @@ public final class ReflectionUtil {
     }
 
     public static String getConnectionName(final Connection connection) {
-        if(connection instanceof ProxiedPlayer) {
+        if (connection instanceof ProxiedPlayer) {
             return ((ProxiedPlayer) connection).getName();
-        } else if(connection instanceof PendingConnection) {
+        } else if (connection instanceof PendingConnection) {
             return ((PendingConnection) connection).getName();
-        } else if(connection instanceof Server) {
+        } else if (connection instanceof Server) {
             return ((Server) connection).getInfo().getName();
         }
         return "UNSUPPORTED_CONNECTION_TYPE";
     }
 
     public static String getServerName(final Connection connection) {
-        if(connection instanceof ProxiedPlayer) {
+        if (connection instanceof ProxiedPlayer) {
             final Server server = ((ProxiedPlayer) connection).getServer();
             return server != null ? server.getInfo().getName() : "<NO SERVER>";
-        } else if(connection instanceof PendingConnection) {
+        } else if (connection instanceof PendingConnection) {
             return "<NO SERVER>";
-        } else if(connection instanceof Server) {
+        } else if (connection instanceof Server) {
             return ((Server) connection).getInfo().getName();
         }
         return "UNSUPPORTED_CONNECTION_TYPE";
@@ -143,11 +144,11 @@ public final class ReflectionUtil {
 
     public static Object getChannelWrapper(final Connection connection) throws IllegalAccessException {
         final Object channelWrapper;
-        if(connection instanceof ProxiedPlayer) {
+        if (connection instanceof ProxiedPlayer) {
             channelWrapper = userConnectionChannelWrapperField.get(connection);
-        } else if(connection instanceof Server) {
+        } else if (connection instanceof Server) {
             channelWrapper = serverConnectionChannelWrapperField.get(connection);
-        } else if(connection instanceof PendingConnection) {
+        } else if (connection instanceof PendingConnection) {
             channelWrapper = initialHandlerChannelWrapperField.get(connection);
         } else {
             channelWrapper = null;
@@ -160,7 +161,7 @@ public final class ReflectionUtil {
             final Object channelWrapper = getChannelWrapper(player);
             final Channel channel = (Channel) channelWrapperChannelField.get(channelWrapper);
             MinecraftDecoder minecraftDecoder = channel.pipeline().get(MinecraftDecoder.class);
-            if(minecraftDecoder == null)
+            if (minecraftDecoder == null)
                 return -1;
             return (int) protocolVersionField.get(minecraftDecoder);
         } catch (final IllegalAccessException e) {
@@ -171,7 +172,7 @@ public final class ReflectionUtil {
 
 
     public static ServerInfo getServerInfo(final AbstractPacketHandler packetHandler) {
-        if(packetHandler.getClass().equals(serverConnectorClass)) {
+        if (packetHandler.getClass().equals(serverConnectorClass)) {
             try {
                 return (ServerInfo) serverConnectorTargetField.get(packetHandler);
             } catch (final IllegalAccessException e) {

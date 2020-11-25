@@ -7,16 +7,15 @@ import com.i54m.protocol.items.ItemType;
 import io.netty.buffer.ByteBuf;
 import net.md_5.bungee.protocol.ProtocolConstants.Direction;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 import static com.i54m.protocol.api.util.ProtocolVersions.*;
 
 public class WindowItems extends AbstractPacket {
 
     public static final HashMap<Integer, Integer> MAPPING = Maps.newHashMap();
-
-    private short windowId;
-    private Map<Integer, ItemStack> items = new HashMap<>();
 
     static {
         MAPPING.put(MINECRAFT_1_8, 0x30);
@@ -48,6 +47,9 @@ public class WindowItems extends AbstractPacket {
         MAPPING.put(MINECRAFT_1_16_4, 0x13);
     }
 
+    private short windowId;
+    private Map<Integer, ItemStack> items = new HashMap<>();
+
     public WindowItems(final short windowId, final Map<Integer, ItemStack> items) {
         this.windowId = windowId;
         this.items = items;
@@ -60,8 +62,8 @@ public class WindowItems extends AbstractPacket {
     public void write(final ByteBuf buf, final Direction direction, final int protocolVersion) {
         buf.writeByte(windowId & 0xFF);
         buf.writeShort(items.size());
-        for(ItemStack item : items.values()) {
-            if(item == null)
+        for (ItemStack item : items.values()) {
+            if (item == null)
                 item = ItemStack.NO_DATA;
             item.write(buf, protocolVersion);
         }
@@ -81,17 +83,21 @@ public class WindowItems extends AbstractPacket {
         return items;
     }
 
+    public void setItems(final Map<Integer, ItemStack> items) {
+        this.items = items;
+    }
+
     public ItemStack getItemStackAtSlot(final int slot) {
         return items.get(slot);
     }
 
     public boolean setItemStackAtSlot(final int slot, final ItemStack stack) {
         final ItemStack curr = items.get(slot);
-        if((curr == null || curr.getType() == ItemType.NO_DATA) && (stack == null || stack.getType() == ItemType.NO_DATA))
+        if ((curr == null || curr.getType() == ItemType.NO_DATA) && (stack == null || stack.getType() == ItemType.NO_DATA))
             return false;
-        if(curr == null)
+        if (curr == null)
             return false;
-        if(curr.equals(stack))
+        if (curr.equals(stack))
             return false;
         items.put(slot, stack);
         return true;
@@ -99,10 +105,6 @@ public class WindowItems extends AbstractPacket {
 
     public short getWindowId() {
         return windowId;
-    }
-
-    public void setItems(final Map<Integer, ItemStack> items) {
-        this.items = items;
     }
 
     public void setWindowId(final short windowId) {

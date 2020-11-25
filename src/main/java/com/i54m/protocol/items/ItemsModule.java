@@ -19,28 +19,18 @@ public class ItemsModule {
         // TO_CLIENT
         ProtocolAPI.getPacketRegistration().registerPacket(Protocol.GAME, ProtocolConstants.Direction.TO_CLIENT, SetSlot.class, SetSlot.MAPPING);
         ProtocolAPI.getPacketRegistration().registerPacket(Protocol.GAME, ProtocolConstants.Direction.TO_CLIENT, WindowItems.class, WindowItems.MAPPING);
-//        ProtocolAPI.getPacketRegistration().registerPacket(Protocol.GAME, ProtocolConstants.Direction.TO_CLIENT, HeldItemChange.class, HeldItemChange.MAPPING_CLIENTBOUND);
-
-//        // TO_SERVER
-//        ProtocolAPI.getPacketRegistration().registerPacket(Protocol.GAME, ProtocolConstants.Direction.TO_SERVER, UseItem.class, UseItem.MAPPING);
-//        ProtocolAPI.getPacketRegistration().registerPacket(Protocol.GAME, ProtocolConstants.Direction.TO_SERVER, BlockPlacement.class, BlockPlacement.MAPPING);
-//        ProtocolAPI.getPacketRegistration().registerPacket(Protocol.GAME, ProtocolConstants.Direction.TO_SERVER, HeldItemChange.class, HeldItemChange.MAPPING_SERVERBOUND);
 
         // ADAPTERS
         ProtocolAPI.getEventManager().registerListener(new WindowItemsAdapter());
         ProtocolAPI.getEventManager().registerListener(new SetSlotItemsAdapter());
-//        ProtocolAPI.getEventManager().registerListener(new UseItemAdapter());
-//        ProtocolAPI.getEventManager().registerListener(new BlockPlacementAdapter());
-//        ProtocolAPI.getEventManager().registerListener(new HeldItemChangeAdapter(Stream.UPSTREAM));
-//        ProtocolAPI.getEventManager().registerListener(new HeldItemChangeAdapter(Stream.DOWNSTREAM));
-    }
-
-    public static void setSpigotInventoryTracking(final boolean spigotInventoryTracking) {
-        ItemsModule.spigotInventoryTracking = spigotInventoryTracking;
     }
 
     public static boolean isSpigotInventoryTracking() {
         return spigotInventoryTracking;
+    }
+
+    public static void setSpigotInventoryTracking(final boolean spigotInventoryTracking) {
+        ItemsModule.spigotInventoryTracking = spigotInventoryTracking;
     }
 
 }

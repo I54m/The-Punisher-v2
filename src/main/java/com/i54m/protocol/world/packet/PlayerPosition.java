@@ -70,16 +70,16 @@ public class PlayerPosition extends AbstractPacket {
         return onGround;
     }
 
-    public void setLocation(final Location location) {
-        this.location = location;
+    public void setOnGround(final boolean onGround) {
+        this.onGround = onGround;
     }
 
     public Location getLocation() {
         return location;
     }
 
-    public void setOnGround(final boolean onGround) {
-        this.onGround = onGround;
+    public void setLocation(final Location location) {
+        this.location = location;
     }
 
     @Override

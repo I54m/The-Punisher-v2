@@ -20,8 +20,8 @@ public enum SoundCategory {
     }
 
     public static SoundCategory getCategory(final String readString) {
-        for(final SoundCategory cat : values()) {
-            if(cat.categoryName.equals(readString))
+        for (final SoundCategory cat : values()) {
+            if (cat.categoryName.equals(readString))
                 return cat;
         }
         return null;

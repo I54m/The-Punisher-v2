@@ -71,7 +71,7 @@ public class InventoryClickEvent extends Event {
     public ItemStack getClickedItem() {
         final ItemStack item = inventory.getItem(slot);
         final int protocolVersion = ReflectionUtil.getProtocolVersion(player);
-        if(InventoryUtil.isLowerInventory(slot, inventory, protocolVersion) && (item == null || item.getType() == ItemType.NO_DATA)) {
+        if (InventoryUtil.isLowerInventory(slot, inventory, protocolVersion) && (item == null || item.getType() == ItemType.NO_DATA)) {
             final PlayerInventory playerInventory = InventoryManager.getInventory(player.getUniqueId());
             final int pSlot = inventory.getType().getTypicalSize(protocolVersion) + 9;
             return playerInventory.getItem(pSlot);

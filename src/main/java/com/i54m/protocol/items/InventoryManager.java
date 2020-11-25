@@ -7,9 +7,10 @@ import java.util.UUID;
 
 public final class InventoryManager {
 
-    private InventoryManager() {}
-
     private final static Map<UUID, Map<String, PlayerInventory>> INVENTORY_MAP = Maps.newHashMap();
+
+    private InventoryManager() {
+    }
 
     public static PlayerInventory getInventory(final UUID uuid) {
         return getInventory(uuid, "::MASTER::");
@@ -26,9 +27,9 @@ public final class InventoryManager {
         for (int i = 0; i < 45; i++) {
             final ItemStack masterItem = master.getItem(i);
             final ItemStack serverItem = serverInventory.getItem(i);
-            if(masterItem != null && masterItem.getType() != ItemType.NO_DATA) {
+            if (masterItem != null && masterItem.getType() != ItemType.NO_DATA) {
                 combined.setItem(i, masterItem);
-            } else if(serverItem != null && serverItem.getType() != ItemType.NO_DATA) {
+            } else if (serverItem != null && serverItem.getType() != ItemType.NO_DATA) {
                 combined.setItem(i, serverItem);
             }
         }
@@ -45,14 +46,14 @@ public final class InventoryManager {
         boolean dontDelete = false;
         for (int i = 0; i < 45; i++) {
             final ItemStack stack = inv.getItem(i);
-            if(stack == null || !stack.isHomebrew()) {
+            if (stack == null || !stack.isHomebrew()) {
                 inv.setItem(i, null);
             }
-            if(stack != null && stack.isHomebrew()) {
+            if (stack != null && stack.isHomebrew()) {
                 dontDelete = true;
             }
         }
-        if(!dontDelete) {
+        if (!dontDelete) {
             INVENTORY_MAP.get(uniqueId).remove(name);
         }
     }

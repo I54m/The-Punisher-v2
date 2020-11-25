@@ -37,70 +37,32 @@ public enum InventoryType {
         this.mappings = mappings;
     }
 
-    public InventoryIDMapping[] getMappings() {
-        return mappings;
-    }
-
     public static InventoryType getType(final String id, final int size, final int protocolVersion) {
-        for(final InventoryType type : values()) {
-            if(protocolVersion >= MINECRAFT_1_14) {
+        for (final InventoryType type : values()) {
+            if (protocolVersion >= MINECRAFT_1_14) {
                 throw new UnsupportedOperationException("Please use InventoryType#getType(id: int, protocolVersion: int): InventoryType for 1.14 protocol version.");
             }
             final String typeId = type.getLegacyTypeId(protocolVersion);
-            if(typeId != null && typeId.equals(id) && type.getTypicalSize(protocolVersion) == size)
+            if (typeId != null && typeId.equals(id) && type.getTypicalSize(protocolVersion) == size)
                 return type;
         }
         return null;
     }
 
     public static InventoryType getType(final int id, final int protocolVersion) {
-        for(final InventoryType type : values()) {
-            if(protocolVersion < MINECRAFT_1_14) {
+        for (final InventoryType type : values()) {
+            if (protocolVersion < MINECRAFT_1_14) {
                 throw new UnsupportedOperationException("Please use InventoryType#getType(id: String, protocolVersion: int): InventoryType for legacy protocol versions.");
             }
             final int typeId = type.getTypeId(protocolVersion);
-            if(typeId != -1 && typeId == id)
+            if (typeId != -1 && typeId == id)
                 return type;
         }
         return null;
     }
 
-    public String getLegacyTypeId(final int protocolVersion) {
-        for(final InventoryIDMapping mapping : mappings) {
-            if(mapping.getProtocolVersionRangeStart() <= protocolVersion && mapping.getProtocolVersionRangeEnd() >= protocolVersion) {
-                return mapping.getLegacyId();
-            }
-        }
-        return null;
-    }
-
-    public int getTypeId(final int protocolVersion) {
-        for(final InventoryIDMapping mapping : mappings) {
-            if(mapping.getProtocolVersionRangeStart() <= protocolVersion && mapping.getProtocolVersionRangeEnd() >= protocolVersion) {
-                return mapping.getProtocolId();
-            }
-        }
-        return -1;
-    }
-
-    public int getTypicalSize(final int protocolVersion) {
-        for(final InventoryIDMapping mapping : mappings) {
-            if(mapping.getProtocolVersionRangeStart() <= protocolVersion && mapping.getProtocolVersionRangeEnd() >= protocolVersion) {
-                return mapping.getTypicalSize();
-            }
-        }
-        PunisherPlugin.getInstance().getLogger().warning("[Protocol] Unable to find typical inventory size of "+name()+" in version "+protocolVersion);
-        return -1;
-    }
-
-    public boolean isChest() {
-        if(this == GENERIC_3X3)
-            return false;
-        return this.name().startsWith("GENERIC");
-    }
-
     public static InventoryType getChestInventoryWithSize(final int size) {
-        if(size % 9 != 0) {
+        if (size % 9 != 0) {
             throw new IllegalArgumentException("Size must be dividable by 9");
         }
         final int rows = size / 9;
@@ -108,7 +70,45 @@ public enum InventoryType {
     }
 
     public static InventoryType getChestInventoryWithRows(final int rows) {
-        return valueOf("GENERIC_9X"+rows);
+        return valueOf("GENERIC_9X" + rows);
+    }
+
+    public InventoryIDMapping[] getMappings() {
+        return mappings;
+    }
+
+    public String getLegacyTypeId(final int protocolVersion) {
+        for (final InventoryIDMapping mapping : mappings) {
+            if (mapping.getProtocolVersionRangeStart() <= protocolVersion && mapping.getProtocolVersionRangeEnd() >= protocolVersion) {
+                return mapping.getLegacyId();
+            }
+        }
+        return null;
+    }
+
+    public int getTypeId(final int protocolVersion) {
+        for (final InventoryIDMapping mapping : mappings) {
+            if (mapping.getProtocolVersionRangeStart() <= protocolVersion && mapping.getProtocolVersionRangeEnd() >= protocolVersion) {
+                return mapping.getProtocolId();
+            }
+        }
+        return -1;
+    }
+
+    public int getTypicalSize(final int protocolVersion) {
+        for (final InventoryIDMapping mapping : mappings) {
+            if (mapping.getProtocolVersionRangeStart() <= protocolVersion && mapping.getProtocolVersionRangeEnd() >= protocolVersion) {
+                return mapping.getTypicalSize();
+            }
+        }
+        PunisherPlugin.getInstance().getLogger().warning("[Protocol] Unable to find typical inventory size of " + name() + " in version " + protocolVersion);
+        return -1;
+    }
+
+    public boolean isChest() {
+        if (this == GENERIC_3X3)
+            return false;
+        return this.name().startsWith("GENERIC");
     }
 
 }

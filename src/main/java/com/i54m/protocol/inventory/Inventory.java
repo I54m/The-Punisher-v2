@@ -43,13 +43,21 @@ public class Inventory {
         return items;
     }
 
+    public void setItems(final Map<Integer, ItemStack> itemsIndexed) {
+        for (final Integer slot : itemsIndexed.keySet()) {
+            final ItemStack stack = itemsIndexed.get(slot);
+            if (stack != null && stack.getType() != ItemType.NO_DATA)
+                items.put(slot, stack);
+        }
+    }
+
     public Map<Integer, ItemStack> getItemsIndexed(final int protocolVersion) {
         return items;
     }
 
     public boolean setItem(final int slot, final ItemStack stack) {
-        if(getItem(slot) != null) {
-            if(getItem(slot).isHomebrew() && !stack.isHomebrew()) {
+        if (getItem(slot) != null) {
+            if (getItem(slot).isHomebrew() && !stack.isHomebrew()) {
                 return false;
             }
         }
@@ -76,9 +84,9 @@ public class Inventory {
 
     public void apply(final InventoryAction action) {
         Preconditions.checkNotNull(action, "The action cannot be null!");
-        for(final int slot : action.getChanges().keySet()) {
+        for (final int slot : action.getChanges().keySet()) {
             final ItemStack stack = action.getChanges().get(slot);
-            if(stack == null) {
+            if (stack == null) {
                 removeItem(slot);
             } else {
                 setItem(slot, stack);
@@ -91,7 +99,7 @@ public class Inventory {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         final Inventory inventory = (Inventory) o;
-        return  Objects.equals(items, inventory.items) &&
+        return Objects.equals(items, inventory.items) &&
                 type == inventory.type &&
                 Arrays.equals(title, inventory.title);
     }
@@ -110,13 +118,5 @@ public class Inventory {
                 ", type=" + type +
                 ", title=" + Arrays.toString(title) +
                 '}';
-    }
-
-    public void setItems(final Map<Integer, ItemStack> itemsIndexed) {
-        for(final Integer slot : itemsIndexed.keySet()) {
-            final ItemStack stack = itemsIndexed.get(slot);
-            if(stack != null && stack.getType() != ItemType.NO_DATA)
-                items.put(slot, stack);
-        }
     }
 }

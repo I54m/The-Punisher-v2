@@ -58,11 +58,12 @@ public class OpenWindow extends AbstractPacket {
         this.title = title;
     }
 
-    public OpenWindow() {}
+    public OpenWindow() {
+    }
 
     @Override
     public void read(final ByteBuf buf, final Direction direction, final int protocolVersion) {
-        if(protocolVersion < MINECRAFT_1_14) {
+        if (protocolVersion < MINECRAFT_1_14) {
             windowId = buf.readUnsignedByte();
             final String legacyId = readString(buf);
             title = ComponentSerializer.parse(readString(buf));
@@ -78,7 +79,7 @@ public class OpenWindow extends AbstractPacket {
 
     @Override
     public void write(final ByteBuf buf, final Direction direction, final int protocolVersion) {
-        if(protocolVersion < MINECRAFT_1_14) {
+        if (protocolVersion < MINECRAFT_1_14) {
             buf.writeByte(windowId & 0xFF);
             writeString(Objects.requireNonNull(inventoryType.getLegacyTypeId(protocolVersion)), buf);
             writeString(ComponentSerializer.toString(title), buf);

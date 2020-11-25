@@ -16,9 +16,9 @@ public class SpawnEggItemIDMapping extends AbstractCustomItemIDMapping {
     @Override
     public void apply(final ItemStack stack, final int protocolVersion) {
         final CompoundTag nbt = (CompoundTag) stack.getNBTTag();
-        if(nbt != null) {
+        if (nbt != null) {
             CompoundTag entityData = (CompoundTag) nbt.getValue().get("EntityTag");
-            if(entityData == null)
+            if (entityData == null)
                 entityData = new CompoundTag("EntityTag", new CompoundMap());
             entityData.getValue().put(new StringTag("id", entityType));
         }
@@ -26,15 +26,15 @@ public class SpawnEggItemIDMapping extends AbstractCustomItemIDMapping {
 
     @Override
     public boolean isApplicable(final ItemStack stack, final int version, final int id, final int durability) {
-        if(id != 383)
+        if (id != 383)
             return false;
         final CompoundTag nbt = (CompoundTag) stack.getNBTTag();
-        if(nbt != null) {
+        if (nbt != null) {
             final CompoundTag entityData = (CompoundTag) nbt.getValue().get("EntityTag");
-            if(entityData == null)
+            if (entityData == null)
                 return false;
             final StringTag tag = (StringTag) entityData.getValue().get("id");
-            if(tag == null)
+            if (tag == null)
                 return false;
             return tag.getValue().equals(entityType);
         }

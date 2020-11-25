@@ -11,8 +11,6 @@ import net.md_5.bungee.api.plugin.Event;
 import net.md_5.bungee.protocol.AbstractPacketHandler;
 import net.md_5.bungee.protocol.DefinedPacket;
 
-import java.lang.reflect.Constructor;
-
 public class PacketReceiveEvent<T extends DefinedPacket> extends Event {
 
     private final Connection connection;
@@ -20,17 +18,16 @@ public class PacketReceiveEvent<T extends DefinedPacket> extends Event {
     private T packet;
     private boolean cancelled, dirty;
     private ServerInfo serverInfo;
-    private Constructor constructor;
 
     public PacketReceiveEvent(final Connection connection, final AbstractPacketHandler packetHandler, final T packet) {
         this.connection = connection;
         this.packetHandler = packetHandler;
         this.packet = packet;
-        if(isSentByPlayer()) {
-            if(getPlayer() == null)
+        if (isSentByPlayer()) {
+            if (getPlayer() == null)
                 return;
             final Server server = getPlayer().getServer();
-            if(server == null)
+            if (server == null)
                 return;
             serverInfo = server.getInfo();
         } else {
@@ -54,22 +51,22 @@ public class PacketReceiveEvent<T extends DefinedPacket> extends Event {
         return packet;
     }
 
-    public void setCancelled(final boolean cancelled) {
-        this.cancelled = cancelled;
+    public void setPacket(final T packet) {
+        this.packet = packet;
     }
 
     public boolean isCancelled() {
         return cancelled;
     }
 
-    public void setPacket(final T packet) {
-        this.packet = packet;
+    public void setCancelled(final boolean cancelled) {
+        this.cancelled = cancelled;
     }
 
     public ProxiedPlayer getPlayer() {
-        if(isSentByPlayer())
-            return ProxyServer.getInstance().getPlayer(((PendingConnection)connection).getUniqueId());
-        if(isSentByServer())
+        if (isSentByPlayer())
+            return ProxyServer.getInstance().getPlayer(((PendingConnection) connection).getUniqueId());
+        if (isSentByServer())
             return (ProxiedPlayer) connection;
         return null;
     }

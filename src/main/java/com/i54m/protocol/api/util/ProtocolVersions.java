@@ -42,7 +42,8 @@ public final class ProtocolVersions {
 
     public final static int MINECRAFT_LATEST = MINECRAFT_1_16_4;
 
-    private ProtocolVersions() {}
+    private ProtocolVersions() {
+    }
 
     public static ArrayList<Integer> getSupportedVersions() {
         ArrayList<Integer> supportedVersions = new ArrayList<>();

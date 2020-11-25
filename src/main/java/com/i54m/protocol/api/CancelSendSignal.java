@@ -19,6 +19,7 @@ public final class CancelSendSignal {
         }
     }
 
-    private CancelSendSignal() {}
+    private CancelSendSignal() {
+    }
 
 }

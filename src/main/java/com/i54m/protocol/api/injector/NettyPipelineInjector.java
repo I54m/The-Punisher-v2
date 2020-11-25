@@ -18,7 +18,7 @@ public final class NettyPipelineInjector {
         Preconditions.checkNotNull(channelHandler, "The channelHandler cannot be null!");
         try {
             final Object channelWrapper = ReflectionUtil.getChannelWrapper(connection);
-            if(channelWrapper != null)
+            if (channelWrapper != null)
                 ((Channel) ReflectionUtil.channelWrapperChannelField.get(channelWrapper)).pipeline().addBefore(baseName, name, channelHandler);
         } catch (final Exception e) {
             ProxyServer.getInstance().getLogger().log(Level.SEVERE, "Exception occurred while injecting into netty pipeline", e);
@@ -32,8 +32,8 @@ public final class NettyPipelineInjector {
         Preconditions.checkNotNull(channelHandler, "The channelHandler cannot be null!");
         try {
             final Object channelWrapper = ReflectionUtil.getChannelWrapper(connection);
-            if(channelWrapper != null)
-                ((Channel)ReflectionUtil.channelWrapperChannelField.get(channelWrapper)).pipeline().addAfter(baseName, name, channelHandler);
+            if (channelWrapper != null)
+                ((Channel) ReflectionUtil.channelWrapperChannelField.get(channelWrapper)).pipeline().addAfter(baseName, name, channelHandler);
         } catch (final Exception e) {
             ProxyServer.getInstance().getLogger().log(Level.SEVERE, "Exception occurred while injecting into netty pipeline", e);
         }

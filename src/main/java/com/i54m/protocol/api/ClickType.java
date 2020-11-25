@@ -38,20 +38,20 @@ public enum ClickType {
         this.button = button;
     }
 
+    public static ClickType getType(final int mode, final int button) {
+        for (final ClickType clickType : values()) {
+            if (clickType.getButton() == button && clickType.getMode() == mode)
+                return clickType;
+        }
+        return null;
+    }
+
     public int getButton() {
         return button;
     }
 
     public int getMode() {
         return mode;
-    }
-
-    public static ClickType getType(final int mode, final int button) {
-        for(final ClickType clickType : values()) {
-            if(clickType.getButton() == button && clickType.getMode() == mode)
-                return clickType;
-        }
-        return null;
     }
 
 }

@@ -13,9 +13,9 @@ public final class PlayerInventory {
 
     private final Map<Integer, ItemStack> map = Maps.newHashMap();
     private final Set<Integer> draggingSlots = new HashSet<>();
+    private final UUID uuid;
     private ItemStack onCursor;
     private short heldItem;
-    private final UUID uuid;
     private boolean dragging;
 
     public PlayerInventory(final UUID uuid) {
@@ -23,8 +23,8 @@ public final class PlayerInventory {
     }
 
     public boolean setItem(final int slot, final ItemStack stack) {
-        if(getItem(slot) != null) {
-            if(getItem(slot).isHomebrew())
+        if (getItem(slot) != null) {
+            if (getItem(slot).isHomebrew())
                 return false;
         }
         map.put(slot, stack);
@@ -44,16 +44,16 @@ public final class PlayerInventory {
         final WindowItems items = new WindowItems((short) 0, new HashMap<>());
         for (int i = 0; i <= 44; i++) {
             ItemStack stack = getItem(i);
-            if(stack == null) {
+            if (stack == null) {
                 stack = ItemStack.NO_DATA;
             }
             items.getItems().put(i, stack);
         }
-        if(getPlayer() == null) return;
+        if (getPlayer() == null) return;
         getPlayer().unsafe().sendPacket(items);
         for (int i = 0; i <= 44; i++) {
             final ItemStack stack = getItem(i);
-            if(stack == null || stack.getType() == ItemType.NO_DATA) {
+            if (stack == null || stack.getType() == ItemType.NO_DATA) {
                 getPlayer().unsafe().sendPacket(new SetSlot((byte) 0, (short) i, stack));
                 continue;
             }
@@ -68,19 +68,19 @@ public final class PlayerInventory {
 
     public Map<Integer, ItemStack> getItemsIndexedContainer() {
         final Map<Integer, ItemStack> outMap = new HashMap<>();
-        for(final Integer id : map.keySet()) {
-            if(id < 9 || id == 45)
+        for (final Integer id : map.keySet()) {
+            if (id < 9 || id == 45)
                 continue;
-            outMap.put(id-9, map.get(id));
+            outMap.put(id - 9, map.get(id));
         }
         return outMap;
     }
 
     public void apply(final InventoryAction action) {
         Preconditions.checkNotNull(action, "The action cannot be null!");
-        for(final int slot : action.getChanges().keySet()) {
+        for (final int slot : action.getChanges().keySet()) {
             final ItemStack stack = action.getChanges().get(slot);
-            if(stack == null) {
+            if (stack == null) {
                 removeItem(slot);
             } else {
                 setItem(slot, stack);
@@ -100,10 +100,6 @@ public final class PlayerInventory {
         this.heldItem = heldItem;
     }
 
-    public void setOnCursor(final ItemStack onCursor) {
-        this.onCursor = onCursor;
-    }
-
     public Set<Integer> getDraggingSlots() {
         return draggingSlots;
     }
@@ -112,18 +108,22 @@ public final class PlayerInventory {
         return onCursor;
     }
 
+    public void setOnCursor(final ItemStack onCursor) {
+        this.onCursor = onCursor;
+    }
+
     public void clear() {
         map.clear();
     }
 
-    public void setDragging(final boolean dragging) {
-        if(!dragging)
-            draggingSlots.clear();
-        this.dragging = dragging;
-    }
-
     public boolean isDragging() {
         return dragging;
+    }
+
+    public void setDragging(final boolean dragging) {
+        if (!dragging)
+            draggingSlots.clear();
+        this.dragging = dragging;
     }
 
 }

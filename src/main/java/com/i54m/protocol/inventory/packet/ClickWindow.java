@@ -69,7 +69,7 @@ public class ClickWindow extends AbstractPacket {
         final byte button = buf.readByte();
         actionNumber = buf.readShort();
         final int mode;
-        if(protocolVersion == MINECRAFT_1_8)
+        if (protocolVersion == MINECRAFT_1_8)
             mode = buf.readByte();
         else
             mode = readVarInt(buf);
@@ -83,11 +83,11 @@ public class ClickWindow extends AbstractPacket {
         buf.writeShort(slot);
         buf.writeByte(clickType.getButton());
         buf.writeShort(actionNumber);
-        if(protocolVersion == MINECRAFT_1_8)
+        if (protocolVersion == MINECRAFT_1_8)
             buf.writeByte(clickType.getMode());
         else
             writeVarInt(clickType.getMode(), buf);
-        if(itemStack == null)
+        if (itemStack == null)
             ItemStack.NO_DATA.write(buf, protocolVersion);
         else
             itemStack.write(buf, protocolVersion);

@@ -58,17 +58,16 @@ public class NamedSoundEffect extends AbstractPacket {
         return sound;
     }
 
-    public Sound getSoundObject() {
-        return soundObject;
-    }
-
-
     public void setSound(final String sound) {
         this.sound = sound;
     }
 
     public void setSound(final Sound soundObject) {
         this.soundObject = soundObject;
+    }
+
+    public Sound getSoundObject() {
+        return soundObject;
     }
 
     public SoundCategory getCategory() {
@@ -123,13 +122,13 @@ public class NamedSoundEffect extends AbstractPacket {
     public void read(final ByteBuf buf, final ProtocolConstants.Direction direction, final int protocolVersion) {
         sound = readString(buf);
         soundObject = Sound.getSound(sound, protocolVersion);
-        if(protocolVersion > MINECRAFT_1_8)
+        if (protocolVersion > MINECRAFT_1_8)
             category = SoundCategory.values()[readVarInt(buf)];
         x = buf.readInt() / 8D;
         y = buf.readInt() / 8D;
         z = buf.readInt() / 8D;
         volume = buf.readFloat();
-        if(protocolVersion < MINECRAFT_1_10) {
+        if (protocolVersion < MINECRAFT_1_10) {
             pitch = buf.readUnsignedByte() / 63F;
         } else {
             pitch = buf.readFloat();
@@ -138,23 +137,23 @@ public class NamedSoundEffect extends AbstractPacket {
 
     @Override
     public void write(final ByteBuf buf, final ProtocolConstants.Direction direction, final int protocolVersion) {
-        if(soundObject != null) {
+        if (soundObject != null) {
             final String soundName = soundObject.getSoundName(protocolVersion);
-            if(soundName == null) {
-                PunisherPlugin.getInstance().getLogger().log(Level.WARNING, "[Protocol] Cannot play sound "+soundObject.name()+" on protocol "+protocolVersion);
+            if (soundName == null) {
+                PunisherPlugin.getInstance().getLogger().log(Level.WARNING, "[Protocol] Cannot play sound " + soundObject.name() + " on protocol " + protocolVersion);
                 return;
             }
             writeString(soundName, buf);
         } else {
             writeString(sound, buf);
         }
-        if(protocolVersion > MINECRAFT_1_8)
+        if (protocolVersion > MINECRAFT_1_8)
             writeVarInt(category.ordinal(), buf);
         buf.writeInt((int) (x * 8));
         buf.writeInt((int) (y * 8));
         buf.writeInt((int) (z * 8));
         buf.writeFloat(volume);
-        if(protocolVersion < MINECRAFT_1_10) {
+        if (protocolVersion < MINECRAFT_1_10) {
             buf.writeByte((byte) (pitch * 63) & 0xFF);
         } else {
             buf.writeFloat(pitch);

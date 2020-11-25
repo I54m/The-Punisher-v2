@@ -60,15 +60,15 @@ public class WindowProperty extends AbstractPacket {
         windowId = buf.readUnsignedByte();
         property = buf.readShort();
         value = buf.readShort();
-        if(buf.readableBytes() > 0) {
+        if (buf.readableBytes() > 0) {
             byte[] readable = new byte[buf.readableBytes()];
             buf.readBytes(readable);
             //everything below is debug
             StringBuilder packetBuffer = new StringBuilder();
-            for(byte b : readable) {
+            for (byte b : readable) {
                 packetBuffer.append(Integer.toHexString(b)).append(" ");
             }
-            System.out.println("[protocol - debug] Resulting buffer after read = "+packetBuffer);// TODO: 7/11/2020 remove debug once tested
+            System.out.println("[protocol - debug] Resulting buffer after read = " + packetBuffer);// TODO: 7/11/2020 remove debug once tested
         }
     }
 

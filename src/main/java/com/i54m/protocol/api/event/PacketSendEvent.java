@@ -23,11 +23,11 @@ public class PacketSendEvent<T extends DefinedPacket> extends Event {
         this.connection = connection;
         this.packetHandler = packetHandler;
         this.packet = packet;
-        if(isSentToPlayer()) {
-            if(getPlayer() == null)
+        if (isSentToPlayer()) {
+            if (getPlayer() == null)
                 return;
             final Server server = getPlayer().getServer();
-            if(server == null)
+            if (server == null)
                 return;
             serverInfo = server.getInfo();
         } else {
@@ -51,22 +51,22 @@ public class PacketSendEvent<T extends DefinedPacket> extends Event {
         return packet;
     }
 
-    public void setCancelled(final boolean cancelled) {
-        this.cancelled = cancelled;
+    public void setPacket(final T packet) {
+        this.packet = packet;
     }
 
     public boolean isCancelled() {
         return cancelled;
     }
 
-    public void setPacket(final T packet) {
-        this.packet = packet;
+    public void setCancelled(final boolean cancelled) {
+        this.cancelled = cancelled;
     }
 
     public ProxiedPlayer getPlayer() {
-        if(isSentToPlayer())
-            return ProxyServer.getInstance().getPlayer(((PendingConnection)connection).getUniqueId());
-        if(isSentToServer())
+        if (isSentToPlayer())
+            return ProxyServer.getInstance().getPlayer(((PendingConnection) connection).getUniqueId());
+        if (isSentToServer())
             return (ProxiedPlayer) connection;
         return null;
     }

@@ -58,13 +58,13 @@ public class InventoryAction {
         return endDragging;
     }
 
+    public int getDragSlot() {
+        return dragSlot;
+    }
+
     public void setDragSlot(final int slot) {
         dragAction = true;
         dragSlot = slot;
-    }
-
-    public int getDragSlot() {
-        return dragSlot;
     }
 
     public boolean isDragAction() {

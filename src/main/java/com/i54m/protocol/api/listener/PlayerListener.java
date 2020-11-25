@@ -27,7 +27,7 @@ public class PlayerListener implements Listener {
     public void onPreLogin(final PreLoginEvent e) {
         if (e.isCancelled())
             return;
-        if(!PunisherPlugin.isLoaded())
+        if (!PunisherPlugin.isLoaded())
             return;
         plugin.getNettyPipelineInjector().injectBefore(e.getConnection(), "inbound-boss", "protocol-decoder", new DecoderChannelHandler((AbstractPacketHandler) e.getConnection(), Stream.UPSTREAM));
         plugin.getNettyPipelineInjector().injectAfter(e.getConnection(), "protocol-decoder", "protocol-encoder", new EncoderChannelHandler((AbstractPacketHandler) e.getConnection()));
@@ -40,7 +40,7 @@ public class PlayerListener implements Listener {
 
     @EventHandler
     public void onServerSwitch(final ServerConnectedEvent e) {
-        if(!PunisherPlugin.isLoaded())
+        if (!PunisherPlugin.isLoaded())
             return;
         plugin.getNettyPipelineInjector().injectBefore(e.getServer(), "inbound-boss", "protocol-decoder", new DecoderChannelHandler(ReflectionUtil.getDownstreamBridge(e.getServer()), Stream.DOWNSTREAM));
         plugin.getNettyPipelineInjector().injectAfter(e.getServer(), "protocol-decoder", "protocol-encoder", new EncoderChannelHandler(ReflectionUtil.getDownstreamBridge(e.getServer())));

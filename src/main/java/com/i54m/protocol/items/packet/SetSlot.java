@@ -79,7 +79,7 @@ public class SetSlot extends AbstractPacket {
         Preconditions.checkNotNull(buf, "The buf cannot be null!");
         buf.writeByte(windowId);
         buf.writeShort(slot);
-        if(stack == null)
+        if (stack == null)
             buf.writeShort(-1);
         else
             stack.write(buf, protocolVersion);
@@ -89,8 +89,16 @@ public class SetSlot extends AbstractPacket {
         return stack;
     }
 
+    public void setItemStack(final ItemStack stack) {
+        this.stack = stack;
+    }
+
     public byte getWindowId() {
         return windowId;
+    }
+
+    public void setWindowId(final byte windowId) {
+        this.windowId = windowId;
     }
 
     public short getSlot() {
@@ -99,14 +107,6 @@ public class SetSlot extends AbstractPacket {
 
     public void setSlot(final short slot) {
         this.slot = slot;
-    }
-
-    public void setItemStack(final ItemStack stack) {
-        this.stack = stack;
-    }
-
-    public void setWindowId(final byte windowId) {
-        this.windowId = windowId;
     }
 
     @Override
