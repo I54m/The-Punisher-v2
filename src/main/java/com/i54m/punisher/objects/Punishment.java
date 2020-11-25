@@ -7,11 +7,14 @@ import com.i54m.punisher.managers.PunishmentManager;
 import com.i54m.punisher.managers.storage.StorageManager;
 import com.i54m.punisher.utils.NameFetcher;
 import com.i54m.punisher.utils.UUIDFetcher;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.ToString;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
+import net.md_5.bungee.api.chat.hover.content.Text;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -416,7 +419,7 @@ public class Punishment {
      * @see net.md_5.bungee.api.chat.BaseComponent
      * @see net.md_5.bungee.api.chat.TextComponent
      */
-    public HoverEvent getHoverEvent() {return new HoverEvent(HoverEvent.Action.SHOW_TEXT, getHoverText().create());}
+    public HoverEvent getHoverEvent() {return new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(getHoverText().create()));}
 
     /**
      * @return Information about the punishment formatted nicely that can be used in {@link #getHoverEvent()}.

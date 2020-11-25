@@ -9,6 +9,7 @@ import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.chat.hover.content.Text;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 
@@ -47,8 +48,8 @@ public class AdminChat extends Command {
     public static void sendChatMessage(BaseComponent[] message, ProxiedPlayer player){
         BaseComponent[] messagetosend;
         int staff = plugin.getStaff(player.getServer().getInfo()).size();
-        HoverEvent hover = new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(player.getServer().getInfo().getPlayers().size() + " players on this server!").color(ChatColor.RED)
-                .append("\n" + staff + " Staff on this server!").color(ChatColor.RED).create());
+        HoverEvent hover = new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(new ComponentBuilder(player.getServer().getInfo().getPlayers().size() + " players on this server!").color(ChatColor.RED)
+                .append("\n" + staff + " Staff on this server!").color(ChatColor.RED).create()));
         String userPrefix = Permissions.getPrefix(player.getUniqueId());
         messagetosend = new ComponentBuilder(ChatColor.translateAlternateColorCodes('&', prefix.replace("%server%", player.getServer().getInfo().getName()).replace("%player%", userPrefix + " " + player.getName()))).event(hover).append(message).color(color).create();
         for (ProxiedPlayer all : ProxyServer.getInstance().getPlayers()) {

@@ -11,6 +11,7 @@ import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.chat.hover.content.Text;
 import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
@@ -108,8 +109,8 @@ public class AdminCommands extends Command {
                         commandSender.sendMessage(new ComponentBuilder("#" + punishmentID.toString()).color(ChatColor.RED).
                                 event(new HoverEvent(
                                         HoverEvent.Action.SHOW_TEXT,
-                                        new ComponentBuilder(punishment.toString().replace(",", "\n"))
-                                                .color(ChatColor.RED).create())).create());
+                                        new Text(new ComponentBuilder(punishment.toString().replace(",", "\n"))
+                                                .color(ChatColor.RED).create()))).create());
                     } catch (Exception e) {
                         commandSender.sendMessage(new ComponentBuilder("An Error occurred on punishment: " + punishmentID.toString()).color(ChatColor.RED).create());
                     }
