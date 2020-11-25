@@ -34,17 +34,13 @@ public class ErrorHandler {
         } else
             previousException = e;
         logToFile(e);
-        if (isExceptionCausedByProtocol(e)) {
-            plugin.getLogger().severe(" ");
+        plugin.getLogger().warning(" ");
+        if (isExceptionCausedByProtocol(e))
             plugin.getLogger().severe(ChatColor.RED + "An error was encountered in the packet system! Debug info was logged to log file!");
-            plugin.getLogger().severe(ChatColor.RED + "Error Message: " + e.getMessage());
-            plugin.getLogger().severe(" ");
-        } else {
-            plugin.getLogger().warning(" ");
+        else
             plugin.getLogger().warning(ChatColor.RED + "An error was encountered and debug info was logged to log file!");
-            plugin.getLogger().warning(ChatColor.RED + "Error Message: " + e.getMessage());
-            plugin.getLogger().warning(" ");
-        }
+        plugin.getLogger().severe(ChatColor.RED + "Error Message: " + e.getMessage());
+        plugin.getLogger().severe(" ");
     }
 
     private void logToFile(Throwable e) {
