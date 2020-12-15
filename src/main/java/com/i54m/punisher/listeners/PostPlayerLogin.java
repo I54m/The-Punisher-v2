@@ -3,7 +3,6 @@ package com.i54m.punisher.listeners;
 import com.i54m.punisher.PunisherPlugin;
 import com.i54m.punisher.chats.AdminChat;
 import com.i54m.punisher.chats.StaffChat;
-import com.i54m.punisher.exceptions.PunishmentsStorageException;
 import com.i54m.punisher.handlers.ErrorHandler;
 import com.i54m.punisher.managers.PunishmentManager;
 import com.i54m.punisher.managers.WorkerManager;
