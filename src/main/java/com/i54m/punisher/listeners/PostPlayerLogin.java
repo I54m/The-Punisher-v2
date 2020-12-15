@@ -1,7 +1,9 @@
 package com.i54m.punisher.listeners;
 
 import com.i54m.punisher.PunisherPlugin;
+import com.i54m.punisher.chats.AdminChat;
 import com.i54m.punisher.chats.StaffChat;
+import com.i54m.punisher.exceptions.PunishmentsStorageException;
 import com.i54m.punisher.handlers.ErrorHandler;
 import com.i54m.punisher.managers.PunishmentManager;
 import com.i54m.punisher.managers.WorkerManager;
@@ -103,8 +105,45 @@ public class PostPlayerLogin implements Listener {
                             bannedalts.append(", ");
                         i++;
                     }
-                    if (bannedalts.length() > 0)
-                        StaffChat.sendMessage(targetName + " Might have banned alts: " + bannedalts.toString());
+                    if (bannedalts.length() >= 5 && !player.hasPermission("punisher.bypass")) {
+                        if (player.hasPermission("punisher.staff")) {
+                            AdminChat.sendMessage(targetName + " has a lot of banned linked accounts: " + bannedalts.toString() + ". Please talk to staff manager+ ASAP!!");
+                        } else {
+                            StaffChat.sendMessage(targetName + " has a lot of banned linked accounts: " + bannedalts.toString() + ". Checking banned alts to make sure they have the same ip, if more than 5 have the same all will be perm banned!!");
+                            workerManager.runWorker(new WorkerManager.Worker(() -> {
+                                ArrayList<UUID> confirmedAlts = new ArrayList<>();
+                                try {
+                                    String userIp = plugin.getStorageManager().getIpHist(uuid).firstEntry().getValue();
+                                    for (UUID alts : new ArrayList<>(altslist)) {
+                                        if (plugin.getStorageManager().getIpHist(alts).firstEntry().getValue().equalsIgnoreCase(userIp)) confirmedAlts.add(alts);
+                                    }
+                                    if (confirmedAlts.size() >= 5) {
+                                        StaffChat.sendMessage("Confirmed banned alts for: " + targetName + ". Banning all confirmed alts permanently for ban evasion!");
+                                        for (UUID confirmedAlt : confirmedAlts) {
+                                            Punishment punishment = new Punishment(
+                                                    Punishment.Type.BAN,
+                                                    "BAN_EVASION",
+                                                    (long) 3.154e+12 + System.currentTimeMillis(),
+                                                    confirmedAlt,
+                                                    NameFetcher.getName(confirmedAlt),
+                                                    UUIDFetcher.getBLANK_UUID(),
+                                                    "Ban Evasion Auto Detection (5 or more banned confirmed alts)",
+                                                    new Punishment.MetaData());
+                                            punishmngr.issue(punishment, null, false, true, false);
+                                        }
+                                    }
+                                } catch (Exception e) {
+                                    ErrorHandler.getINSTANCE().log(e);
+                                    ErrorHandler.getINSTANCE().adminChatAlert(e, event.getPlayer());
+                                    ErrorHandler.getINSTANCE().loginError(event);
+                                }
+                            }));
+                        }
+                    } else if (bannedalts.length() > 0)
+                        if (player.hasPermission("punisher.staff"))
+                            AdminChat.sendMessage(targetName + " Might have banned alts: " + bannedalts.toString());
+                        else
+                            StaffChat.sendMessage(targetName + " Might have banned alts: " + bannedalts.toString());
                 }
             } catch (Exception e) {
                 ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
