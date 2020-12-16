@@ -61,7 +61,7 @@ public class WarnCommand extends Command {
             errorHandler.alert(dfe, commandSender);
         }
         try {
-            Punishment warn = new Punishment(Punishment.Type.WARN, "CUSTOM", null, targetuuid, target.getName(), player.getUniqueId(), sb.toString(), null);
+            Punishment warn = new Punishment(Punishment.Type.WARN, "CUSTOM", null, targetuuid, target.getName(), player.getUniqueId(), null, sb.toString(), new Punishment.MetaData());
             punishMnger.issue(warn, player, true, true, true);
         } catch (Exception e) {
             PunishmentsStorageException pse = new PunishmentsStorageException("Issuing warn on a player", target.getName(), this.getName(), e, "/warn", strings);

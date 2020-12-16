@@ -57,8 +57,9 @@ public class KickCommand extends Command {
                         target.getUniqueId(),
                         target.getName(),
                         player.getUniqueId(),
+                        null,
                         kickMessage,
-                        null);
+                        new Punishment.MetaData());
                 try {
                     punishmentManager.issue(kick, player, true, true, true);
                 } catch (Exception e) {
@@ -76,7 +77,8 @@ public class KickCommand extends Command {
                         target.getUniqueId(),
                         target.getName(),
                         player.getUniqueId(),
-                        ChatColor.translateAlternateColorCodes('&', sb.toString()), null);
+                        null,
+                        ChatColor.translateAlternateColorCodes('&', sb.toString()), new Punishment.MetaData());
                 try {
                     punishmentManager.issue(kick, player, true, true, true);
                 } catch (Exception e) {

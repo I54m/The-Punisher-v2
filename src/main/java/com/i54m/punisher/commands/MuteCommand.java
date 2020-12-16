@@ -151,7 +151,7 @@ public class MuteCommand extends Command {
             errorHandler.alert(dfe, commandSender);
         }
         try {
-            Punishment mute = new Punishment(Punishment.Type.MUTE, "CUSTOM", length, targetuuid, targetname, player.getUniqueId(), reason.toString(), null);
+            Punishment mute = new Punishment(Punishment.Type.MUTE, "CUSTOM", length, targetuuid, targetname, player.getUniqueId(),null, reason.toString(), new Punishment.MetaData());
             punishMnger.issue(mute, player, true, true, true);
         } catch (Exception e) {
             PunishmentsStorageException pse = new PunishmentsStorageException("Issuing mute on a player", targetname, this.getName(), e, "/mute", strings);
