@@ -28,7 +28,7 @@ import java.util.TreeMap;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-public class SQLManager implements StorageManager {// TODO: 7/11/2020 implement metadata
+public class SQLManager implements StorageManager {
 
     @Getter(AccessLevel.PUBLIC)
     private static final SQLManager INSTANCE = new SQLManager();
@@ -162,6 +162,8 @@ public class SQLManager implements StorageManager {// TODO: 7/11/2020 implement 
                 "`Message` VARCHAR(512) NULL DEFAULT NULL , " +
                 "`Status` VARCHAR(10) NOT NULL , " +
                 "`Remover_UUID` VARCHAR(32) NULL DEFAULT NULL , " +
+                "`Authorizer_UUID` VARCHAR(32) NULL DEFAULT NULL , " +
+                "`MetaData` VARCHAR NULL DEFAULT NULL" +
                 "PRIMARY KEY (`ID`)) " +
                 "ENGINE = InnoDB CHARSET=utf8 COLLATE utf8_general_ci;";
         String alt_list = "CREATE TABLE IF NOT EXISTS`" + database + "`.`alt_list` ( " +
@@ -300,7 +302,7 @@ public class SQLManager implements StorageManager {// TODO: 7/11/2020 implement 
             String sql1 = "INSERT INTO `punishments` (`ID`, `Type`, `Reason`, `Issue_Date`, `Expiration`, `Target_UUID`, `Target_Name`, `Punisher_UUID`, `Message`, `Status`, `Remover_UUID`)" +
                     " VALUES ('" + punishment.getId() + "', '" + punishment.getType().toString() + "', '" + punishment.getReason() + "', '" + punishment.getIssueDate() + "', '"
                     + punishment.getExpiration() + "', '" + punishment.getTargetUUID().toString() + "', '" + punishment.getTargetName() + "', '" + punishment.getPunisherUUID().toString() + "', '" + message
-                    + "', '" + punishment.getStatus().toString() + "', '" + punishment.getRemoverUUID().toString() + "');";
+                    + "', '" + punishment.getStatus().toString() + "', '" + punishment.getRemoverUUID().toString() + "', '" + punishment.getAuthorizerUUID() + "', '" + punishment.getMetaData().serializeToJson() + "');";
             PreparedStatement stmt1 = connection.prepareStatement(sql1);
             stmt1.executeUpdate();
             stmt1.close();
@@ -335,7 +337,9 @@ public class SQLManager implements StorageManager {// TODO: 7/11/2020 implement 
                     "`Punisher_UUID`='" + punishment.getPunisherUUID().toString() + "', " +
                     "`Message`='" + message + "', " +
                     "`Status`='" + punishment.getStatus().toString() + "', " +
-                    "`Remover_UUID`='" + punishment.getRemoverUUID().toString() + "' " +
+                    "`Remover_UUID`='" + punishment.getRemoverUUID().toString() + "', " +
+                    "`Authorizer_UUID`='" + punishment.getAuthorizerUUID() + "', " +
+                    "`MetaData`='" + punishment.getMetaData().serializeToJson() + "' " +
                     "WHERE `ID`='" + punishment.getId() + "' ;";
             PreparedStatement stmt = connection.prepareStatement(sql);
             stmt.executeUpdate();
@@ -401,7 +405,9 @@ public class SQLManager implements StorageManager {// TODO: 7/11/2020 implement 
                     UUID.fromString(resultspunishment.getString("Punisher_UUID")),
                     resultspunishment.getString("Message"),
                     Punishment.Status.valueOf(resultspunishment.getString("Status")),
-                    UUID.fromString(resultspunishment.getString("Remover_UUID")), null);
+                    UUID.fromString(resultspunishment.getString("Remover_UUID")),
+                    UUID.fromString(resultspunishment.getString("Authorizer_UUID")),
+                    Punishment.MetaData.deserializeFromJson(resultspunishment.getString("MetaData")));
             String message = punishment.getMessage();
             if (message.contains("%sinquo%"))
                 message = message.replaceAll("%sinquo%", "'");
@@ -434,7 +440,9 @@ public class SQLManager implements StorageManager {// TODO: 7/11/2020 implement 
                     UUID.fromString(resultspunishment.getString("Punisher_UUID")),
                     resultspunishment.getString("Message"),
                     Punishment.Status.valueOf(resultspunishment.getString("Status")),
-                    UUID.fromString(resultspunishment.getString("Remover_UUID")), null);
+                    UUID.fromString(resultspunishment.getString("Remover_UUID")),
+                    UUID.fromString(resultspunishment.getString("Authorizer_UUID")),
+                    Punishment.MetaData.deserializeFromJson(resultspunishment.getString("MetaData")));
             String message = punishment.getMessage();
             if (message.contains("%sinquo%"))
                 message = message.replaceAll("%sinquo%", "'");
@@ -478,7 +486,9 @@ public class SQLManager implements StorageManager {// TODO: 7/11/2020 implement 
                         UUID.fromString(resultspunishment.getString("Punisher_UUID")),
                         resultspunishment.getString("Message"),
                         Punishment.Status.valueOf(resultspunishment.getString("Status")),
-                        UUID.fromString(resultspunishment.getString("Remover_UUID")), null);
+                        UUID.fromString(resultspunishment.getString("Remover_UUID")),
+                        UUID.fromString(resultspunishment.getString("Authorizer_UUID")),
+                        Punishment.MetaData.deserializeFromJson(resultspunishment.getString("MetaData")));
                 String message = punishment.getMessage();
                 if (message.contains("%sinquo%"))
                     message = message.replaceAll("%sinquo%", "'");
@@ -520,7 +530,9 @@ public class SQLManager implements StorageManager {// TODO: 7/11/2020 implement 
                         UUID.fromString(resultspunishment.getString("Punisher_UUID")),
                         resultspunishment.getString("Message"),
                         Punishment.Status.valueOf(resultspunishment.getString("Status")),
-                        UUID.fromString(resultspunishment.getString("Remover_UUID")), null);
+                        UUID.fromString(resultspunishment.getString("Remover_UUID")),
+                        UUID.fromString(resultspunishment.getString("Authorizer_UUID")),
+                        Punishment.MetaData.deserializeFromJson(resultspunishment.getString("MetaData")));
                 String message = punishment.getMessage();
                 if (message.contains("%sinquo%"))
                     message = message.replaceAll("%sinquo%", "'");
@@ -563,7 +575,9 @@ public class SQLManager implements StorageManager {// TODO: 7/11/2020 implement 
                         UUID.fromString(resultspunishment.getString("Punisher_UUID")),
                         resultspunishment.getString("Message"),
                         Punishment.Status.valueOf(resultspunishment.getString("Status")),
-                        UUID.fromString(resultspunishment.getString("Remover_UUID")), null);
+                        UUID.fromString(resultspunishment.getString("Remover_UUID")),
+                        UUID.fromString(resultspunishment.getString("Authorizer_UUID")),
+                        Punishment.MetaData.deserializeFromJson(resultspunishment.getString("MetaData")));
                 String message = punishment.getMessage();
                 if (message.contains("%sinquo%"))
                     message = message.replaceAll("%sinquo%", "'");
@@ -694,7 +708,8 @@ public class SQLManager implements StorageManager {// TODO: 7/11/2020 implement 
             PreparedStatement stmt = connection.prepareStatement(sql);
             ResultSet results = stmt.executeQuery();
             if (results.next())//if current ip we check if it's changed
-                if (results.getString("ip").equals(ip)) return;//if ip has not changed there is no need to update ip history
+                if (results.getString("ip").equals(ip))
+                    return;//if ip has not changed there is no need to update ip history
             //add new iphistory record
             String addip = "INSERT INTO `ip_history` (`UUID`, `Date`, `IP`) VALUES ('" + uuid + "', '" + System.currentTimeMillis() + "', '" + ip + "');";
             PreparedStatement addipstmt = connection.prepareStatement(addip);

@@ -23,7 +23,7 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 @SuppressWarnings("ResultOfMethodCallIgnored")
-public class FlatFileManager implements StorageManager { // TODO: 7/11/2020 implement metadata
+public class FlatFileManager implements StorageManager {
 
     @Getter
     private static final FlatFileManager INSTANCE = new FlatFileManager();
@@ -238,6 +238,8 @@ public class FlatFileManager implements StorageManager { // TODO: 7/11/2020 impl
             config.set("message", punishment.getMessage());
             config.set("status", punishment.getStatus().toString());
             config.set("removerUUID", punishment.getRemoverUUID() == null ? "N/A" : punishment.getRemoverUUID().toString());
+            config.set("authorizerUUID", punishment.getAuthorizerUUID().toString());
+            config.set("metaData", punishment.getMetaData().serializeToJson());
             yamlProvider.save(config, file);
         } catch (Exception e) {
             try {
@@ -386,7 +388,9 @@ public class FlatFileManager implements StorageManager { // TODO: 7/11/2020 impl
                     UUID.fromString(punishmentsConfig.getString("punisherUUID")),
                     punishmentsConfig.getString("message"),
                     Punishment.Status.valueOf(punishmentsConfig.getString("status")),
-                    punishmentsConfig.getString("removerUUID").equals("N/A") ? null : UUID.fromString(punishmentsConfig.getString("removerUUID")), null);
+                    punishmentsConfig.getString("removerUUID").equals("N/A") ? null : UUID.fromString(punishmentsConfig.getString("removerUUID")),
+                    punishmentsConfig.contains("authorizerUUID") ? UUID.fromString(punishmentsConfig.getString("removerUUID")) : null,
+                    Punishment.MetaData.deserializeFromJson(punishmentsConfig.getString("metadata")));
         } catch (Exception e) {
             throw new PunishmentsStorageException("Getting punishment from id: " + id, "CONSOLE", this.getClass().getName(), e);
         }
