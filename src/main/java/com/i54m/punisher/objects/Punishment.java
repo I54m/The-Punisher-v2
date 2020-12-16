@@ -1,5 +1,6 @@
 package com.i54m.punisher.objects;
 
+import com.google.gson.Gson;
 import com.i54m.punisher.PunisherPlugin;
 import com.i54m.punisher.exceptions.PunishmentIssueException;
 import com.i54m.punisher.handlers.ErrorHandler;
@@ -41,6 +42,11 @@ public class Punishment {
     @Getter
     private final String reason;
     /**
+     * The UUID of the person to be punished.
+     */
+    @Getter
+    private final UUID targetUUID;
+    /**
      * The date the punishment was originally issued by the punisher.
      */
     private String issueDate;
@@ -49,11 +55,6 @@ public class Punishment {
      */
     @Getter
     private long expiration;
-    /**
-     * The UUID of the person to be punished.
-     */
-    @Getter
-    private final UUID targetUUID;
     /**
      * The name (with capitalization) of the person to be punished.
      */
@@ -81,6 +82,13 @@ public class Punishment {
     @Getter
     private UUID removerUUID;
     /**
+     * The UUID of the person that authorized the punishment, if required and authorized,
+     * else this is just null. If the punishment is still pending and this is null it is likely that it requires authorization.
+     * if the punisher has permission to authorize punishments then this will default to their uuid.
+     */
+    @Getter
+    private UUID authorizerUUID;
+    /**
      * The MetaData of the punishment. This contains useful information
      * that cannot be reliably calculated from other variables.
      */
@@ -88,16 +96,18 @@ public class Punishment {
 
     /**
      * This is the constructor that all new punishments should use as it will generate a new id for it.
-     * @param type The type of punishment that this is.
-     * @param reason The reason for this punishment.
-     * @param expiration The date in milliseconds that this punishment expires (not required for warns or kicks).
-     * @param targetUUID The UUID of the person to be punished.
-     * @param targetName The name (with capitalization) of the person to be punished.
-     * @param punisherUUID The UUID of the person that issued the punishment.
-     * @param message The message that the target will see as the reason.
-     * @param metaData The MetaData of the punishment.
+     *
+     * @param type           The type of punishment that this is.
+     * @param reason         The reason for this punishment.
+     * @param expiration     The date in milliseconds that this punishment expires (not required for warns or kicks).
+     * @param targetUUID     The UUID of the person to be punished.
+     * @param targetName     The name (with capitalization) of the person to be punished.
+     * @param punisherUUID   The UUID of the person that issued the punishment.
+     * @param authorizerUUID The UUID of the person that issued the punishment.
+     * @param message        The message that the target will see as the reason.
+     * @param metaData       The MetaData of the punishment.
      */
-    public Punishment(@NotNull Type type, @NotNull String reason, @Nullable Long expiration, @NotNull UUID targetUUID, @NotNull String targetName, @NotNull UUID punisherUUID, @Nullable String message, @NotNull MetaData metaData) {
+    public Punishment(@NotNull Type type, @NotNull String reason, @Nullable Long expiration, @NotNull UUID targetUUID, @NotNull String targetName, @NotNull UUID punisherUUID, @Nullable UUID authorizerUUID, @Nullable String message, @NotNull MetaData metaData) {
         StorageManager storageManager = PunisherPlugin.getInstance().getStorageManager();
         this.id = storageManager.getNextID();
         this.type = type;
@@ -108,6 +118,7 @@ public class Punishment {
         this.punisherUUID = punisherUUID;
         this.message = message;
         this.removerUUID = null;
+        this.authorizerUUID = authorizerUUID;
         this.status = Status.Created;
         storageManager.NewPunishment(this);
         this.metaData = metaData;
@@ -115,20 +126,22 @@ public class Punishment {
 
     /**
      * This constructor is used to reconstruct punishments when we want to put them into the cache.
-     * @param id The Id of the punishment, this is unique to each punishment.
-     * @param type The type of punishment that this is.
-     * @param reason The reason for this punishment.
-     * @param issueDate The date and time the punishement was issued.
-     * @param expiration The date in milliseconds that this punishment expires (not required for warns or kicks).
-     * @param targetUUID The UUID of the person to be punished.
-     * @param targetName The name (with capitalization) of the person to be punished.
-     * @param punisherUUID The UUID of the person that issued the punishment.
-     * @param message The message that the target will see as the reason.
-     * @param status The current status of the punishment eg: removed, issued, pending, etc.
-     * @param removerUUID The UUID of the person that removed the punishment, If the punishment has not yet been removed then this is null.
-     * @param metaData The MetaData of the punishment.
+     *
+     * @param id             The Id of the punishment, this is unique to each punishment.
+     * @param type           The type of punishment that this is.
+     * @param reason         The reason for this punishment.
+     * @param issueDate      The date and time the punishement was issued.
+     * @param expiration     The date in milliseconds that this punishment expires (not required for warns or kicks).
+     * @param targetUUID     The UUID of the person to be punished.
+     * @param targetName     The name (with capitalization) of the person to be punished.
+     * @param punisherUUID   The UUID of the person that issued the punishment.
+     * @param message        The message that the target will see as the reason.
+     * @param status         The current status of the punishment eg: removed, issued, pending, etc.
+     * @param removerUUID    The UUID of the person that removed the punishment, If the punishment has not yet been removed then this is null.
+     * @param authorizerUUID The UUID of the person that issued the punishment.
+     * @param metaData       The MetaData of the punishment.
      */
-    public Punishment(@NotNull Integer id, @NotNull Type type, @NotNull String reason, @Nullable String issueDate, @Nullable Long expiration, @NotNull UUID targetUUID, @Nullable String targetName, @NotNull UUID punisherUUID, @Nullable String message, @NotNull Status status, @Nullable UUID removerUUID, @NotNull MetaData metaData) {
+    public Punishment(@NotNull Integer id, @NotNull Type type, @NotNull String reason, @Nullable String issueDate, @Nullable Long expiration, @NotNull UUID targetUUID, @Nullable String targetName, @NotNull UUID punisherUUID, @Nullable String message, @NotNull Status status, @Nullable UUID removerUUID, @Nullable UUID authorizerUUID, @NotNull MetaData metaData) {
         this.id = id;
         this.type = type;
         this.reason = reason;
@@ -141,25 +154,13 @@ public class Punishment {
         this.status = status;
         if (removerUUID != null)
             this.removerUUID = removerUUID;
+        this.authorizerUUID = authorizerUUID;
         this.metaData = metaData;
     }
 
     /**
-     * This dictates what the punishment will do eg: will it ban or mute the target.
-     */
-    public enum Type {
-        BAN, KICK, MUTE, WARN, ALL
-    }
-
-    /**
-     * This is used to help show what has happened to the punishment eg: has it been issued or is it still pending.
-     */
-    public enum Status {
-        Created, Pending, Active, Issued, Overridden, Expired, Removed
-    }
-
-    /**
      * A punishment is considered permanent if it is 10 or more years.
+     *
      * @return true if the punishment is 10 or more years long, false if it is less than 10 years.
      */
     public boolean isPermanent() {
@@ -221,6 +222,7 @@ public class Punishment {
 
     /**
      * If a punishment uses the type "ALL" its is considered a test
+     *
      * @return true if the punishment is considered a test else false.
      */
     public boolean isTest() {
@@ -230,6 +232,7 @@ public class Punishment {
     /**
      * If the punishment is pending it means it has been issued by the punisher
      * but has not yet been issued on the target.
+     *
      * @return true if the status of the punishment is "Pending" else false.
      */
     public boolean isPending() {
@@ -239,6 +242,7 @@ public class Punishment {
     /**
      * If the punishment is active it means it has been issued and is still
      * being enforced (this only applies to mutes and bans).
+     *
      * @return true if the status of the punishment is "Active" else false.
      */
     public boolean isActive() {
@@ -248,6 +252,7 @@ public class Punishment {
     /**
      * If the punishment is issued it means it has been issued to the target
      * and doesn't need anymore enforcement (this only applies to warns and kicks).
+     *
      * @return true if the status of the punishment is "Issued" else false.
      */
     public boolean isIssued() {
@@ -260,6 +265,7 @@ public class Punishment {
      * on the target resulting in the punishment issued by the punisher with the
      * lower permission level being disregarded in favor of the one done by
      * someone with higher permissions.
+     *
      * @return true if the status of the punishment is "Overridden" else false.
      */
     public boolean isOverridden() {
@@ -269,6 +275,7 @@ public class Punishment {
     /**
      * If the Punishment has expired it means that the expiration date has
      * been reached and the punishment is no longer being enforced (this only applies to mutes and bans).
+     *
      * @return true if the status of the punishment is "Expired" else false.
      */
     public boolean isExpired() {
@@ -278,6 +285,7 @@ public class Punishment {
     /**
      * If the punishment has been removed it means that it has been removed
      * by someone and is no longer being enforced (this only applies to mutes and bans).
+     *
      * @return true if the status of the punishment is "Removed" else false.
      */
     public boolean isRemoved() {
@@ -301,7 +309,9 @@ public class Punishment {
     /**
      * @return true if the punishment contains MetaData else false.
      */
-    public boolean hasMetaData(){return this.metaData != null;}
+    public boolean hasMetaData() {
+        return this.metaData != null;
+    }
 
     /**
      * This method verifies that the punishment has all the variables
@@ -336,6 +346,7 @@ public class Punishment {
      * When you set it twice this method will throw a {@link PunishmentIssueException} telling you that
      * you cannot set the issue date more than once. To make sure that things still run smoothly it will
      * return the current issue date and not interrupt anything.
+     *
      * @return The punishment itself with the updated issue date so that it can continue to be used.
      */
     public Punishment setIssueDate() {
@@ -400,18 +411,20 @@ public class Punishment {
     }
 
     /**
-     * @param metaData The MetaData to set on the punishment
+     * @param authorizerUUID The UUID of the player that removed the punishment
      * @return The punishment itself with the updated info so that it can continue to be used.
      */
-    public Punishment setMetaData(MetaData metaData) {
-        this.metaData = metaData;
+    public Punishment setAuthorizerUUID(UUID authorizerUUID) {
+        this.authorizerUUID = authorizerUUID;
         return this;
     }
 
     /**
      * @return The formatted date that the punishment was issued by the punisher returns "N/A" if not set.
      */
-    public String getIssueDate() {return issueDate == null ? "N/A" : issueDate;}
+    public String getIssueDate() {
+        return issueDate == null ? "N/A" : issueDate;
+    }
 
     /**
      * @return A hover event that can be used in a {@link ComponentBuilder} for the bungeecord chat api.
@@ -419,7 +432,9 @@ public class Punishment {
      * @see net.md_5.bungee.api.chat.BaseComponent
      * @see net.md_5.bungee.api.chat.TextComponent
      */
-    public HoverEvent getHoverEvent() {return new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(getHoverText().create()));}
+    public HoverEvent getHoverEvent() {
+        return new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(getHoverText().create()));
+    }
 
     /**
      * @return Information about the punishment formatted nicely that can be used in {@link #getHoverEvent()}.
@@ -471,8 +486,31 @@ public class Punishment {
         return metaData;
     }
 
+    /**
+     * @param metaData The MetaData to set on the punishment
+     * @return The punishment itself with the updated info so that it can continue to be used.
+     */
+    public Punishment setMetaData(MetaData metaData) {
+        this.metaData = metaData;
+        return this;
+    }
+
+    /**
+     * This dictates what the punishment will do eg: will it ban or mute the target.
+     */
+    public enum Type {
+        BAN, KICK, MUTE, WARN, ALL
+    }
+
+    /**
+     * This is used to help show what has happened to the punishment eg: has it been issued or is it still pending.
+     */
+    public enum Status {
+        Created, Pending, Active, Issued, Overridden, Expired, Removed
+    }
+
     @AllArgsConstructor
-    public static class MetaData {
+    public static class MetaData {// TODO: 16/12/2020 add more metadata to explain punishment authorization and automatic ban evasion bans
         Boolean reputationBan;
         Boolean automaticCalculation;
         Boolean locked;
@@ -484,6 +522,14 @@ public class Punishment {
             automaticCalculation = false;
             locked = false;
             appliesToHistory = true;
+        }
+
+        public static MetaData deserializeFromJson(String jsonString) {
+            return new Gson().fromJson(jsonString, MetaData.class);
+        }
+
+        public String serializeToJson() {
+            return new Gson().toJson(this);
         }
 
         public MetaData setLocked(Boolean locked) {
