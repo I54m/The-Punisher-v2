@@ -40,7 +40,7 @@ public class SQLManager implements StorageManager {
     private StorageType storageType;
     private Configuration mainDataConfig;
     private ScheduledTask cacheTask = null;
-    private int lastPunishmentId = 0;
+    private int lastPunishmentId = 0, bansAmount = 0, mutesAmount = 0, warnsAmount = 0, kicksAmount = 0;
     private boolean locked = true;
 
     private SQLManager() {
@@ -240,6 +240,48 @@ public class SQLManager implements StorageManager {
         } catch (Exception e) {
             throw new PunishmentsStorageException("Caching punishments", "CONSOLE", this.getClass().getName(), e);
         }
+        WORKER_MANAGER.runWorker(new WorkerManager.Worker(() -> {
+            try {
+                String sqlpunishment = "SELECT * FROM `punishments` WHERE `Type`='BAN';";
+                PreparedStatement stmtpunishment = connection.prepareStatement(sqlpunishment);
+                ResultSet resultspunishment = stmtpunishment.executeQuery();
+                if (resultspunishment.next()) {
+                    resultspunishment.last();
+                    bansAmount = resultspunishment.getRow();
+                }
+                resultspunishment.close();
+                stmtpunishment.close();
+                sqlpunishment = "SELECT * FROM `punishments` WHERE `Type`='MUTE';";
+                stmtpunishment = connection.prepareStatement(sqlpunishment);
+                resultspunishment = stmtpunishment.executeQuery();
+                if (resultspunishment.next()) {
+                    resultspunishment.last();
+                    mutesAmount = resultspunishment.getRow();
+                }
+                resultspunishment.close();
+                stmtpunishment.close();
+                sqlpunishment = "SELECT * FROM `punishments` WHERE `Type`='WARN';";
+                stmtpunishment = connection.prepareStatement(sqlpunishment);
+                resultspunishment = stmtpunishment.executeQuery();
+                if (resultspunishment.next()) {
+                    resultspunishment.last();
+                    warnsAmount = resultspunishment.getRow();
+                }
+                resultspunishment.close();
+                stmtpunishment.close();
+                sqlpunishment = "SELECT * FROM `punishments` WHERE `Type`='KICK';";
+                stmtpunishment = connection.prepareStatement(sqlpunishment);
+                resultspunishment = stmtpunishment.executeQuery();
+                if (resultspunishment.next()) {
+                    resultspunishment.last();
+                    kicksAmount = resultspunishment.getRow();
+                }
+                resultspunishment.close();
+                stmtpunishment.close();
+            } catch (Exception e) {
+                ERROR_HANDLER.log(new PunishmentsStorageException("Calculating punishment stats", "CONSOLE", this.getClass().getName(), e));
+            }
+        }));
     }
 
     @Override
@@ -474,7 +516,6 @@ public class SQLManager implements StorageManager {
             ResultSet resultspunishment = stmtpunishment.executeQuery();
             int offences = 0;
             while (resultspunishment.next()) {
-                offences++;
                 Punishment punishment = new Punishment(
                         resultspunishment.getInt("ID"),
                         Punishment.Type.valueOf(resultspunishment.getString("Type")),
@@ -498,6 +539,8 @@ public class SQLManager implements StorageManager {
                     message = message.replaceAll("%bcktck%", "`");
                 punishment.setMessage(message);
                 cachePunishment(punishment);
+                if (punishment.getMetaData().appliesToHistory())
+                    offences++;
             }
             resultspunishment.close();
             stmtpunishment.close();
@@ -744,5 +787,32 @@ public class SQLManager implements StorageManager {
             ioe.printStackTrace();
         }
     }
+
+
+    @Override
+    public int getPunishmentsAmount() {
+        return lastPunishmentId + 1;
+    }
+
+    @Override
+    public int getBansAmount() {
+        return bansAmount;
+    }
+
+    @Override
+    public int getMutesAmount() {
+        return mutesAmount;
+    }
+
+    @Override
+    public int getWarnsAmount() {
+        return warnsAmount;
+    }
+
+    @Override
+    public int getKicksAmount() {
+        return kicksAmount;
+    }
+
 
 }

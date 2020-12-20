@@ -37,7 +37,7 @@ public class FlatFileManager implements StorageManager {
     private File altsDir = null;
     private Configuration mainDataConfig;
     private ScheduledTask cacheTask = null;
-    private int lastPunishmentId = 0;
+    private int lastPunishmentId = 0, bansAmount = 0, mutesAmount = 0, warnsAmount = 0, kicksAmount = 0;
     private boolean locked = true;
 
     private FlatFileManager() {
@@ -152,6 +152,31 @@ public class FlatFileManager implements StorageManager {
         } catch (Exception e) {
             throw new PunishmentsStorageException("Caching punishments", "CONSOLE", this.getClass().getName(), e);
         }
+        WORKER_MANAGER.runWorker(new WorkerManager.Worker(() -> {
+            for (int i = 0; i <= lastPunishmentId; i++) {
+                try {
+                    Punishment punishment = getPunishmentFromId(i);
+                    if (punishment != null) {
+                        switch (punishment.getType()) {
+                            case BAN: {
+                                bansAmount++;
+                            }
+                            case MUTE: {
+                                mutesAmount++;
+                            }
+                            case WARN: {
+                                kicksAmount++;
+                            }
+                            case KICK: {
+                                kicksAmount++;
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    ERROR_HANDLER.log(new PunishmentsStorageException("Calculating punishment stats", "CONSOLE", this.getClass().getName(), e));
+                }
+            }
+        }));
     }
 
     @Override
@@ -186,6 +211,31 @@ public class FlatFileManager implements StorageManager {
         mainDataConfig.set("lastPunishmentId", lastPunishmentId);
         saveMainDataConfig();
         return lastPunishmentId;
+    }
+
+    @Override
+    public int getPunishmentsAmount() {
+        return lastPunishmentId + 1;
+    }
+
+    @Override
+    public int getBansAmount() {
+        return bansAmount;
+    }
+
+    @Override
+    public int getMutesAmount() {
+        return mutesAmount;
+    }
+
+    @Override
+    public int getWarnsAmount() {
+        return warnsAmount;
+    }
+
+    @Override
+    public int getKicksAmount() {
+        return kicksAmount;
     }
 
     @Override

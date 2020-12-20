@@ -119,4 +119,14 @@ public interface StorageManager extends Manager {// TODO: 9/11/2020 Add Javadocs
     TreeMap<Long, String> getIpHist(@NotNull UUID uuid) throws PunishmentsStorageException;
 
     int getNextID();
+
+    int getPunishmentsAmount();
+
+    int getBansAmount();
+
+    int getMutesAmount();
+
+    int getWarnsAmount();
+
+    int getKicksAmount();
 }
