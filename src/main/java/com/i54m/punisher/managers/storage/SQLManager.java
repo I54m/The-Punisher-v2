@@ -508,44 +508,53 @@ public class SQLManager implements StorageManager {
     }
 
     @Override
-    public TreeMap<Integer, Punishment> getHistory(@NotNull UUID targetUUID) throws PunishmentsStorageException { // TODO: 31/10/2020 need to find a way to use the cache to get some of this
+    public TreeMap<Integer, Punishment> getHistory(@NotNull UUID targetUUID) throws PunishmentsStorageException {
         if (locked) {
             ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
             return null;
         }
         try {
-            String sqlpunishment = "SELECT * FROM `punishments` WHERE `Target_UUID`='" + targetUUID + "';";
-            PreparedStatement stmtpunishment = connection.prepareStatement(sqlpunishment);
-            ResultSet resultspunishment = stmtpunishment.executeQuery();
+            ProxiedPlayer player = PLUGIN.getProxy().getPlayer(targetUUID);
             TreeMap<Integer, Punishment> history = new TreeMap<>();
-            while (resultspunishment.next()) {
-                Punishment punishment = new Punishment(
-                        resultspunishment.getInt("ID"),
-                        Punishment.Type.valueOf(resultspunishment.getString("Type")),
-                        resultspunishment.getString("Reason"),
-                        resultspunishment.getString("Issue_Date"),
-                        resultspunishment.getLong("Expiration"),
-                        UUID.fromString(resultspunishment.getString("Target_UUID")),
-                        resultspunishment.getString("Target_Name"),
-                        UUID.fromString(resultspunishment.getString("Punisher_UUID")),
-                        resultspunishment.getString("Message"),
-                        Punishment.Status.valueOf(resultspunishment.getString("Status")),
-                        UUID.fromString(resultspunishment.getString("Remover_UUID")),
-                        UUID.fromString(resultspunishment.getString("Authorizer_UUID")),
-                        Punishment.MetaData.deserializeFromJson(resultspunishment.getString("MetaData")));
-                String message = punishment.getMessage();
-                if (message.contains("%sinquo%"))
-                    message = message.replaceAll("%sinquo%", "'");
-                if (message.contains("%dubquo%"))
-                    message = message.replaceAll("%dubquo%", "\"");
-                if (message.contains("%bcktck%"))
-                    message = message.replaceAll("%bcktck%", "`");
-                punishment.setMessage(message);
-                cachePunishment(punishment);
-                history.put(punishment.getId(), punishment);
+            if (player != null && player.isConnected()) {
+                for (Punishment punishment : PUNISHMENT_CACHE.values()) {
+                    if (punishment.getTargetUUID().equals(targetUUID) && punishment.getMetaData().appliesToHistory())
+                        history.put(punishment.getId(), punishment);
+                }
+            } else {
+                String sqlpunishment = "SELECT * FROM `punishments` WHERE `Target_UUID`='" + targetUUID + "';";
+                PreparedStatement stmtpunishment = connection.prepareStatement(sqlpunishment);
+                ResultSet resultspunishment = stmtpunishment.executeQuery();
+                while (resultspunishment.next()) {
+                    Punishment punishment = new Punishment(
+                            resultspunishment.getInt("ID"),
+                            Punishment.Type.valueOf(resultspunishment.getString("Type")),
+                            resultspunishment.getString("Reason"),
+                            resultspunishment.getString("Issue_Date"),
+                            resultspunishment.getLong("Expiration"),
+                            UUID.fromString(resultspunishment.getString("Target_UUID")),
+                            resultspunishment.getString("Target_Name"),
+                            UUID.fromString(resultspunishment.getString("Punisher_UUID")),
+                            resultspunishment.getString("Message"),
+                            Punishment.Status.valueOf(resultspunishment.getString("Status")),
+                            UUID.fromString(resultspunishment.getString("Remover_UUID")),
+                            UUID.fromString(resultspunishment.getString("Authorizer_UUID")),
+                            Punishment.MetaData.deserializeFromJson(resultspunishment.getString("MetaData")));
+                    String message = punishment.getMessage();
+                    if (message.contains("%sinquo%"))
+                        message = message.replaceAll("%sinquo%", "'");
+                    if (message.contains("%dubquo%"))
+                        message = message.replaceAll("%dubquo%", "\"");
+                    if (message.contains("%bcktck%"))
+                        message = message.replaceAll("%bcktck%", "`");
+                    punishment.setMessage(message);
+                    cachePunishment(punishment);
+                    if (punishment.getMetaData().appliesToHistory())
+                        history.put(punishment.getId(), punishment);
+                }
+                resultspunishment.close();
+                stmtpunishment.close();
             }
-            resultspunishment.close();
-            stmtpunishment.close();
             return history;
         } catch (Exception e) {
             throw new PunishmentsStorageException("Getting history on user: " + targetUUID.toString(), "CONSOLE", this.getClass().getName(), e);
@@ -553,44 +562,52 @@ public class SQLManager implements StorageManager {
     }
 
     @Override
-    public TreeMap<Integer, Punishment> getStaffHistory(@NotNull UUID targetUUID) throws PunishmentsStorageException { // TODO: 31/10/2020 need to find a way to use the cache to get some of this
+    public TreeMap<Integer, Punishment> getStaffHistory(@NotNull UUID targetUUID) throws PunishmentsStorageException {
         if (locked) {
             ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
             return null;
         }
         try {
-            String sqlpunishment = "SELECT * FROM `punishments` WHERE `Punisher_UUID`='" + targetUUID + "';";
-            PreparedStatement stmtpunishment = connection.prepareStatement(sqlpunishment);
-            ResultSet resultspunishment = stmtpunishment.executeQuery();
+            ProxiedPlayer player = PLUGIN.getProxy().getPlayer(targetUUID);
             TreeMap<Integer, Punishment> history = new TreeMap<>();
-            while (resultspunishment.next()) {
-                Punishment punishment = new Punishment(
-                        resultspunishment.getInt("ID"),
-                        Punishment.Type.valueOf(resultspunishment.getString("Type")),
-                        resultspunishment.getString("Reason"),
-                        resultspunishment.getString("Issue_Date"),
-                        resultspunishment.getLong("Expiration"),
-                        UUID.fromString(resultspunishment.getString("Target_UUID")),
-                        resultspunishment.getString("Target_Name"),
-                        UUID.fromString(resultspunishment.getString("Punisher_UUID")),
-                        resultspunishment.getString("Message"),
-                        Punishment.Status.valueOf(resultspunishment.getString("Status")),
-                        UUID.fromString(resultspunishment.getString("Remover_UUID")),
-                        UUID.fromString(resultspunishment.getString("Authorizer_UUID")),
-                        Punishment.MetaData.deserializeFromJson(resultspunishment.getString("MetaData")));
-                String message = punishment.getMessage();
-                if (message.contains("%sinquo%"))
-                    message = message.replaceAll("%sinquo%", "'");
-                if (message.contains("%dubquo%"))
-                    message = message.replaceAll("%dubquo%", "\"");
-                if (message.contains("%bcktck%"))
-                    message = message.replaceAll("%bcktck%", "`");
-                punishment.setMessage(message);
-                cachePunishment(punishment);
-                history.put(punishment.getId(), punishment);
+            if (player != null && player.isConnected()) {
+                for (Punishment punishment : PUNISHMENT_CACHE.values()) {
+                    if (punishment.getTargetUUID().equals(targetUUID))
+                        history.put(punishment.getId(), punishment);
+                }
+            } else {
+                String sqlpunishment = "SELECT * FROM `punishments` WHERE `Punisher_UUID`='" + targetUUID + "';";
+                PreparedStatement stmtpunishment = connection.prepareStatement(sqlpunishment);
+                ResultSet resultspunishment = stmtpunishment.executeQuery();
+                while (resultspunishment.next()) {
+                    Punishment punishment = new Punishment(
+                            resultspunishment.getInt("ID"),
+                            Punishment.Type.valueOf(resultspunishment.getString("Type")),
+                            resultspunishment.getString("Reason"),
+                            resultspunishment.getString("Issue_Date"),
+                            resultspunishment.getLong("Expiration"),
+                            UUID.fromString(resultspunishment.getString("Target_UUID")),
+                            resultspunishment.getString("Target_Name"),
+                            UUID.fromString(resultspunishment.getString("Punisher_UUID")),
+                            resultspunishment.getString("Message"),
+                            Punishment.Status.valueOf(resultspunishment.getString("Status")),
+                            UUID.fromString(resultspunishment.getString("Remover_UUID")),
+                            UUID.fromString(resultspunishment.getString("Authorizer_UUID")),
+                            Punishment.MetaData.deserializeFromJson(resultspunishment.getString("MetaData")));
+                    String message = punishment.getMessage();
+                    if (message.contains("%sinquo%"))
+                        message = message.replaceAll("%sinquo%", "'");
+                    if (message.contains("%dubquo%"))
+                        message = message.replaceAll("%dubquo%", "\"");
+                    if (message.contains("%bcktck%"))
+                        message = message.replaceAll("%bcktck%", "`");
+                    punishment.setMessage(message);
+                    cachePunishment(punishment);
+                    history.put(punishment.getId(), punishment);
+                }
+                resultspunishment.close();
+                stmtpunishment.close();
             }
-            resultspunishment.close();
-            stmtpunishment.close();
             return history;
         } catch (Exception e) {
             throw new PunishmentsStorageException("Getting staff history on user: " + targetUUID.toString(), "CONSOLE", this.getClass().getName(), e);

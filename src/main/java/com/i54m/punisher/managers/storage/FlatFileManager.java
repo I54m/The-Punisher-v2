@@ -427,7 +427,9 @@ public class FlatFileManager implements StorageManager {
             Configuration config = yamlProvider.load(file);
             TreeMap<Integer, Punishment> punishments = new TreeMap<>();
             for (int id : config.getIntList("Punishments")) {
-                punishments.put(id, getPunishmentFromId(id));
+                Punishment punishment = getPunishmentFromId(id);
+                if (punishment.getMetaData().appliesToHistory())
+                    punishments.put(id, punishment);
             }
             return punishments;
         } catch (Exception e) {

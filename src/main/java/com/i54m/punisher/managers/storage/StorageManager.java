@@ -108,7 +108,7 @@ public interface StorageManager extends Manager {// TODO: 9/11/2020 Add Javadocs
 
     int getOffences(@NotNull UUID targetUUID, @NotNull String reason) throws PunishmentsStorageException;
 
-    TreeMap<Integer, Punishment> getHistory(@NotNull UUID uuid) throws PunishmentsStorageException;// TODO: 9/11/2020 implement metadata appliesToHistory
+    TreeMap<Integer, Punishment> getHistory(@NotNull UUID uuid) throws PunishmentsStorageException;
 
     TreeMap<Integer, Punishment> getStaffHistory(@NotNull UUID uuid) throws PunishmentsStorageException;
 
