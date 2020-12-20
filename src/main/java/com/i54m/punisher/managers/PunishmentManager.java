@@ -444,8 +444,9 @@ public class PunishmentManager implements Manager {// TODO: 7/11/2020 fully impl
 
         removeActive(punishment);
 
-        if (removeHistory && !punishment.getMetaData().appliesToHistory()) {// TODO: 19/11/2020 refund lost reputation
+        if (removeHistory && punishment.getMetaData().appliesToHistory()) {
             punishment.getMetaData().setAppliesToHistory(false);
+            REPUTATION_MANAGER.addRep(targetuuid, calculateRepLoss(punishment));
             if (player != null) {
                 PunisherPlugin.getLOGS().info(player.getName() + " removed punishment: " + reason + " on player: " + targetname + " through unpunish");
                 player.sendMessage(new ComponentBuilder(PLUGIN.getPrefix()).append("The punishment: " + reason + " on: " + targetname + " has been removed!").color(ChatColor.RED).event(punishment.getHoverEvent()).create());
@@ -551,7 +552,7 @@ public class PunishmentManager implements Manager {// TODO: 7/11/2020 fully impl
                     punisherUUID,
                     null,// TODO: 16/12/2020 need to figure out how we gonna do this before we can implement here
                     fetchMessage(reason),
-                    new Punishment.MetaData(false, true, false, true));
+                    new Punishment.MetaData(false, true, false, true, false));
         } catch (PunishmentsStorageException pse) {
             ERROR_HANDLER.log(new PunishmentCalculationException("Storage exception in either type or expiration calculation", "Punishment construction", pse));
             return null;
@@ -579,29 +580,6 @@ public class PunishmentManager implements Manager {// TODO: 7/11/2020 fully impl
         return PendingPunishments.containsKey(targetUUID);
     }
 
-    // TODO: 22/06/2020  need to redo the below totals as the punishment cache will no longer contain all punishments
-    public int totalBans() {
-        int bans = 0;
-        for (Punishment punishment : storageManager.getPunishmentCache().values()) {
-            if (punishment.isBan())
-                bans++;
-        }
-        return bans;
-    }
-
-    public int totalMutes() {
-        int mutes = 0;
-        for (Punishment punishment : storageManager.getPunishmentCache().values()) {
-            if (punishment.isMute())
-                mutes++;
-        }
-        return mutes;
-    }
-
-    public int totalPunishments() {
-        return storageManager.getPunishmentCache().size();
-    }
-
     // TODO: 19/11/2020 make the below check if the player is loaded
 
     public Punishment getBan(UUID targetUUID) {
@@ -612,15 +590,6 @@ public class PunishmentManager implements Manager {// TODO: 7/11/2020 fully impl
     public Punishment getMute(UUID targetUUID) {
         if (!isMuted(targetUUID)) return null;
         return getActivePunishments(targetUUID).getMute();
-    }
-
-    public Punishment getPunishment(int id) {
-        try {
-            return storageManager.getPunishmentFromId(id);
-        } catch (PunishmentsStorageException pse) {
-            ERROR_HANDLER.log(pse);
-            return null;
-        }
     }
 
     public ActivePunishments getActivePunishments(UUID targetUUID) {
@@ -634,15 +603,6 @@ public class PunishmentManager implements Manager {// TODO: 7/11/2020 fully impl
         if (hasPendingPunishment(targetUUID))
             return storageManager.getPunishmentCache().get(PendingPunishments.get(targetUUID));
         return null;
-    }
-
-    public TreeMap<Integer, Punishment> getPunishments(UUID targetUUID) {
-        TreeMap<Integer, Punishment> punishments = new TreeMap<>();
-        for (Punishment punishment : storageManager.getPunishmentCache().values()) {
-            if (punishment.getTargetUUID().equals(targetUUID))
-                punishments.put(punishment.getId(), punishment);
-        }
-        return punishments;
     }
 
     public Punishment punishmentLookup(@Nullable Integer id, @NotNull Punishment.Type type, @NotNull String reason, @NotNull String issueDate, @Nullable Long expiration, @NotNull UUID targetUUID) {
