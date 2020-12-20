@@ -24,7 +24,7 @@ public class ReputationManager implements Manager {
     private boolean locked = true;
     private double banAt = -10.0;
     private double startingRep = 5.0;
-    private final Punishment.MetaData repbanMetaData = new Punishment.MetaData(true, false, false, true);
+    private final Punishment.MetaData repbanMetaData = new Punishment.MetaData(true, false, false, true, false);
 
     @Override
     public void start() {
