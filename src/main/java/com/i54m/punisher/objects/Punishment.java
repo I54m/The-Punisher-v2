@@ -515,6 +515,7 @@ public class Punishment {
         Boolean automaticCalculation;
         Boolean locked;
         Boolean appliesToHistory;
+        Boolean requiresAuthorizer;
 
         public MetaData() {
             //creates a new set of metadata with the default settings
@@ -522,6 +523,7 @@ public class Punishment {
             automaticCalculation = false;
             locked = false;
             appliesToHistory = true;
+            requiresAuthorizer = false;
         }
 
         public static MetaData deserializeFromJson(String jsonString) {
