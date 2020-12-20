@@ -20,7 +20,7 @@ class PunishmentTest {
 
     @Test
     void isRepBan() {
-        Punishment ban = new Punishment(0, Punishment.Type.BAN, "Custom", "N/A", (long) 3.154e+12 + System.currentTimeMillis(), UUIDFetcher.getBLANK_UUID(), "N/A", UUIDFetcher.getBLANK_UUID(), "Overly Toxic (Rep dropped below -10)", Punishment.Status.Active, null, null, new Punishment.MetaData(true, false, false, true));
+        Punishment ban = new Punishment(0, Punishment.Type.BAN, "Custom", "N/A", (long) 3.154e+12 + System.currentTimeMillis(), UUIDFetcher.getBLANK_UUID(), "N/A", UUIDFetcher.getBLANK_UUID(), "Overly Toxic (Rep dropped below -10)", Punishment.Status.Active, null, null, new Punishment.MetaData(true, false, false, true, false));
         assertTrue(ban.isRepBan());
     }
 
