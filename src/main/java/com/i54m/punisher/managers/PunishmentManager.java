@@ -294,8 +294,8 @@ public class PunishmentManager implements Manager {// TODO: 7/11/2020 fully impl
                     storageManager.incrementStaffHistory(punishment);
                 }
                 if (hasActivePunishment(targetuuid) && isMuted(targetuuid)) {
-                    storageManager.updatePunishment(getMute(targetuuid).setStatus(Punishment.Status.Overridden));// TODO: 19/11/2020 maybe stack duration if they are the same reason else we override with PunishmentManager#override()
-                    removeActive(punishment);
+                    //todo pass to override method
+
                 }
                 storageManager.updatePunishment(punishment.setExpiration(expiration)
                         .setIssueDate()
@@ -340,8 +340,7 @@ public class PunishmentManager implements Manager {// TODO: 7/11/2020 fully impl
                     storageManager.incrementStaffHistory(punishment);
                 }
                 if (hasActivePunishment(targetuuid) && isBanned(targetuuid)) {
-                    storageManager.updatePunishment(getBan(targetuuid).setStatus(Punishment.Status.Overridden));
-                    removeActive(punishment);
+                    //todo pass to override method
                 }
                 storageManager.updatePunishment(punishment.setExpiration(expiration)
                         .setIssueDate()
@@ -480,10 +479,10 @@ public class PunishmentManager implements Manager {// TODO: 7/11/2020 fully impl
         return translateExpiration(PLUGIN.getPunishments().getString(reason + "." + punishmentno + ".length"));
     }
 
-    public long translateExpiration(String length) { // TODO: 15/11/2020 implement more widely
+    public long translateExpiration(String length) throws NumberFormatException {
         if (locked) {
             ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
-            return 0;
+            return -1;
         }
         if (length.toLowerCase().contains("perm"))
             return (long) 3.154e+12 + System.currentTimeMillis();
@@ -499,7 +498,7 @@ public class PunishmentManager implements Manager {// TODO: 7/11/2020 fully impl
             return 60000 * (long) Integer.parseInt(length.replace("m", "")) + System.currentTimeMillis();
         else if (length.toLowerCase().endsWith("s"))
             return 1000 * (long) Integer.parseInt(length.replace("s", "")) + System.currentTimeMillis();
-        else return 0;
+        else return -1;
     }
 
     public Punishment.Type calculateType(UUID targetuuid, String reason) throws PunishmentsStorageException {
@@ -550,7 +549,7 @@ public class PunishmentManager implements Manager {// TODO: 7/11/2020 fully impl
                     targetUUID,
                     NameFetcher.getName(targetUUID),
                     punisherUUID,
-                    null,// TODO: 16/12/2020 need to figure out how we gonna do this before we can implement here
+                    null,// TODO: 16/12/2020 need to figure out configurable thresholds + how we gonna do this before we can implement here
                     fetchMessage(reason),
                     new Punishment.MetaData(false, true, false, true, false));
         } catch (PunishmentsStorageException pse) {
@@ -559,7 +558,6 @@ public class PunishmentManager implements Manager {// TODO: 7/11/2020 fully impl
         }
     }
 
-    // TODO: 19/11/2020 make the below check if the player is loaded
     public boolean isBanned(UUID targetUUID) {
         if (hasActivePunishment(targetUUID))
             return storageManager.getActivePunishmentCache().get(targetUUID).banActive();
@@ -573,14 +571,22 @@ public class PunishmentManager implements Manager {// TODO: 7/11/2020 fully impl
     }
 
     public boolean hasActivePunishment(UUID targetUUID) {
+        try {
+            if (!isOnline(targetUUID))
+                storageManager.loadUser(targetUUID, true);
+        } catch (PunishmentsStorageException pse) {
+            ERROR_HANDLER.log(pse);
+        }
         return storageManager.getActivePunishmentCache().containsKey(targetUUID);
+    }
+
+    private boolean isOnline(UUID targetUUID) {
+        return PLUGIN.getProxy().getPlayer(targetUUID) != null && PLUGIN.getProxy().getPlayer(targetUUID).isConnected();
     }
 
     public boolean hasPendingPunishment(UUID targetUUID) {
         return PendingPunishments.containsKey(targetUUID);
     }
-
-    // TODO: 19/11/2020 make the below check if the player is loaded
 
     public Punishment getBan(UUID targetUUID) {
         if (!isBanned(targetUUID)) return null;
@@ -733,13 +739,28 @@ public class PunishmentManager implements Manager {// TODO: 7/11/2020 fully impl
         return lockedUsers.contains(targetUUID);
     }
 
-    @Nullable
-    public Punishment override(@NotNull Punishment punishment1, @NotNull Punishment punishment2) {// TODO: 19/11/2020 maybe we make duration stack if the punishment is for the same reason as previous
+    public Punishment override(@NotNull Punishment punishment1, @NotNull Punishment punishment2) {
         if (locked) {
             ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
             return null;
         }
-        if (punishment1.getType() != punishment2.getType()) return null;
+        if (punishment1.getType() != punishment2.getType()) {
+            ERROR_HANDLER.log(new PunishmentCalculationException("Cannot override punishments of two different types!!", "Punishment overriding"));
+            return null;
+        }
+
+        if (punishment1.getReason().equalsIgnoreCase(punishment2.getReason()) &&
+                (punishment1.getReason().equalsIgnoreCase("manual") || punishment2.getReason().equalsIgnoreCase("manual"))) {//stack duration if punishments are for the same reason, but we use the second punishment as it will have different punisher etc
+            long pun1Duration = punishment1.getExpiration() - System.currentTimeMillis();
+            try {
+                storageManager.updatePunishment(punishment1.setStatus(Punishment.Status.Overridden));
+                removeActive(punishment1);
+                storageManager.updatePunishment(punishment2.setExpiration(punishment2.getExpiration() + pun1Duration));
+            } catch (PunishmentsStorageException pse) {
+                ERROR_HANDLER.log(pse);
+            }
+            return punishment2;
+        }
         if (Permissions.higher(punishment1.getPunisherUUID(), punishment2.getPunisherUUID())) return punishment1;
         else return punishment2;
     }
