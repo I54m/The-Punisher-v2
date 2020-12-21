@@ -63,28 +63,8 @@ public class BanCommand extends Command {
         boolean duration = false;
         try {
             if (strings.length >= 2) {
-                if (strings[1].toLowerCase().endsWith("perm"))
-                    length = (long) 3.154e+12;
-                else if (strings[1].endsWith("M"))
-                    length = (long) 2.628e+9 * (long) Integer.parseInt(strings[1].replace("M", ""));
-                else if (strings[1].toLowerCase().endsWith("w"))
-                    length = (long) 6.048e+8 * (long) Integer.parseInt(strings[1].replace("w", ""));
-                else if (strings[1].toLowerCase().endsWith("d"))
-                    length = (long) 8.64e+7 * (long) Integer.parseInt(strings[1].replace("d", ""));
-                else if (strings[1].toLowerCase().endsWith("h"))
-                    length = (long) 3.6e+6 * (long) Integer.parseInt(strings[1].replace("h", ""));
-                else if (strings[1].endsWith("m"))
-                    length = 60000 * (long) Integer.parseInt(strings[1].replace("m", ""));
-                else if (strings[1].toLowerCase().endsWith("s"))
-                    length = 1000 * (long) Integer.parseInt(strings[1].replace("s", ""));
-
-                if (strings[1].toLowerCase().endsWith("perm") || strings[1].toLowerCase().endsWith("w") || strings[1].toLowerCase().endsWith("d") ||
-                        strings[1].toLowerCase().endsWith("h") || strings[1].toLowerCase().endsWith("m") || strings[1].toLowerCase().endsWith("s")) {
-                    length += System.currentTimeMillis();
-                    duration = true;
-                } else {
-                    duration = false;
-                }
+                length = punishMngr.translateExpiration(strings[1]);
+                duration = !(length <= 0);
             }
         } catch (NumberFormatException e) {
             player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append(strings[1] + " is not a valid duration!").color(ChatColor.RED).create());
@@ -147,7 +127,7 @@ public class BanCommand extends Command {
             errorHandler.alert(dfe, commandSender);
         }
         try {
-            Punishment ban = new Punishment(Punishment.Type.BAN, "CUSTOM", length, targetuuid, targetname, player.getUniqueId(), null, reason.toString(), new Punishment.MetaData());
+            Punishment ban = new Punishment(Punishment.Type.BAN, "MANUAL", length, targetuuid, targetname, player.getUniqueId(), null, reason.toString(), new Punishment.MetaData());
             punishMngr.issue(ban, player, true, true, false);
         } catch (Exception e) {
             ErrorHandler errorHandler = ErrorHandler.getINSTANCE();

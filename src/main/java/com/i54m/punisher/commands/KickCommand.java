@@ -72,7 +72,7 @@ public class KickCommand extends Command {
                     sb.append(strings[i]).append(" ");
                 Punishment kick = new Punishment(
                         Punishment.Type.KICK,
-                        "CUSTOM",
+                        "MANUAL",
                         null,
                         target.getUniqueId(),
                         target.getName(),
