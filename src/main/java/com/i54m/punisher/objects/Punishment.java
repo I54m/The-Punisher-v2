@@ -511,10 +511,26 @@ public class Punishment {
 
     @AllArgsConstructor
     public static class MetaData {// TODO: 16/12/2020 add more metadata to explain punishment authorization and automatic ban evasion bans
+        /**
+         * True if the punishment was issued due to reputation dropping below the minimum reputation threshold.
+         */
         Boolean reputationBan;
+        /**
+         * True if automatic calculation was used to determine properties of the punishment.
+         */
         Boolean automaticCalculation;
+        /**
+         * True if the punishment is locked and cannot be changed without first being unlocked by an admin+.
+         */
         Boolean locked;
+        /**
+         * True if the punishment applies to the player's history (ie was it removed and reversed through unpunish).
+         * We still keep punishments that were removed to make sure that ids don't get messed up and so that there is still a record of what happened.
+         */
         Boolean appliesToHistory;
+        /**
+         * True if the punishment requires (or required) an authorizer to authorize the punishment execution.
+         */
         Boolean requiresAuthorizer;
 
         public MetaData() {
@@ -568,6 +584,10 @@ public class Punishment {
 
         public Boolean isLocked() {
             return locked;
+        }
+
+        public Boolean requiresAuthorizer() {
+            return requiresAuthorizer;
         }
     }
 }
