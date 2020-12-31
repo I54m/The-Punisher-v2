@@ -13,7 +13,7 @@ public class ToggleChatCommand extends Command {
     private final PunisherPlugin plugin = PunisherPlugin.getInstance();
 
     public ToggleChatCommand() {
-        super("togglechat", "punisher.togglechat", "tc", "chattoggle");
+        super("togglechat", "punisher.togglechat", "chattoggle");
     }
 
     @Override
