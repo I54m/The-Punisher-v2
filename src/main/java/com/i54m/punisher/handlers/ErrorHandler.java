@@ -64,7 +64,7 @@ public class ErrorHandler {
         if (isExceptionCausedByProtocol(e)) {
             sender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("CRITICAL ERROR: ").color(ChatColor.DARK_RED).append(e.getMessage()).color(ChatColor.RED).create());
             sender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("This error will be logged! Please inform a dev ASAP this error may produce instabilities!").color(ChatColor.RED).create());
-
+            return;
         }
         sender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("ERROR: ").color(ChatColor.DARK_RED).append(e.getMessage()).color(ChatColor.RED).create());
         sender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("This error will be logged! Please inform a dev ASAP, this error may produce instabilities!").color(ChatColor.RED).create());
