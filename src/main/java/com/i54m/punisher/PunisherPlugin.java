@@ -3,6 +3,7 @@ package com.i54m.punisher;
 import com.i54m.punisher.chats.AdminChat;
 import com.i54m.punisher.chats.StaffChat;
 import com.i54m.punisher.commands.*;
+import com.i54m.punisher.discordbot.DiscordMain;
 import com.i54m.punisher.listeners.PlayerChat;
 import com.i54m.punisher.listeners.PostPlayerLogin;
 import com.i54m.punisher.listeners.PrePlayerLogin;
@@ -66,8 +67,6 @@ public class PunisherPlugin extends Plugin {
      */
     @Getter(AccessLevel.PUBLIC)
     private final StorageManager storageManager = FlatFileManager.getINSTANCE();
-//    @Getter
-//    private Configuration levelZeroGUI, levelOneGUI, levelTwoGUI, levelThreeGUI, confirmationGUI, historyGUI;
     /**
      * Staff monitoring system, this helps the plugin to track how many staff are on each server.
      * THIS DOES NOT GIVE THEM STAFF PERMS THIS IS JUST USED FOR STAFF COUNTS AND /STAFF LIST.
@@ -75,12 +74,11 @@ public class PunisherPlugin extends Plugin {
     private final Map<ServerInfo, ArrayList<ProxiedPlayer>> staff = new HashMap<>();
     /*
      * Config variables
-     *  TODO: 8/06/2020 implement new gui configs
      */
-//    private File levelZeroGUIFile, levelOneGUIFile, levelTwoGUIFile, levelThreeGUIFile, confirmationGUIFile, historyGUIFile;
     private File configFile;
     @Getter
     private Configuration config;
+    public File discordIntegrationFile = new File(getDataFolder() + "/data", "discordData.yml");
     /*
      * Logging system variables
      */
@@ -238,6 +236,11 @@ public class PunisherPlugin extends Plugin {
             //storage manager can only start caching data once we have started all the other managers up
             storageManager.startCaching();
             startStaffFlagging();
+
+            //check if discord integration is enabled
+            if (config.getBoolean("DiscordIntegration.Enabled"))
+                DiscordMain.startBot();
+
             //plugin loading/enabling is now complete so we announce it
             setLoaded(true);
             long duration = (System.nanoTime() - startTime) / 1000000;
@@ -265,6 +268,8 @@ public class PunisherPlugin extends Plugin {
             //unregister all commands and listeners in an attempt to limit operations that use the managers.
             getProxy().getPluginManager().unregisterListeners(this);
             getProxy().getPluginManager().unregisterCommands(this);
+            if (config.getBoolean("DiscordIntegration.Enabled"))
+                DiscordMain.shutdown();
             //punishment manager is stopped second so that we no longer accept any new punishment activity
             if (PUNISHMENT_MANAGER.isStarted())
                 PUNISHMENT_MANAGER.stop();
@@ -277,8 +282,6 @@ public class PunisherPlugin extends Plugin {
             //the worker manager is stopped last so that we can safely stop any workers that have not yet finished
             if (WORKER_MANAGER.isStarted())
                 WORKER_MANAGER.stop();
-
-//            DiscordMain.shutdown();
 
             //stop logging and tidy up logs files last as we need to allow errors from shutting managers down to be logged
             File latestLogs = new File(getDataFolder() + "/logs/latest.log");
