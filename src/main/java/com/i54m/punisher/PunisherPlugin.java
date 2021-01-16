@@ -8,6 +8,7 @@ import com.i54m.protocol.world.WorldModule;
 import com.i54m.punisher.chats.AdminChat;
 import com.i54m.punisher.chats.StaffChat;
 import com.i54m.punisher.commands.*;
+import com.i54m.punisher.discordbot.DiscordMain;
 import com.i54m.punisher.listeners.*;
 import com.i54m.punisher.managers.PlayerDataManager;
 import com.i54m.punisher.managers.PunishmentManager;
@@ -85,6 +86,7 @@ public class PunisherPlugin extends Plugin {
     private File configFile, punishmentsFile;
     @Getter
     private Configuration punishments, config;
+    public File discordIntegrationFile = new File(getDataFolder(), "discordData.yml");
 
     /*
      * Logging system variables
@@ -308,6 +310,10 @@ public class PunisherPlugin extends Plugin {
             storageManager.startCaching();
             startStaffFlagging();
 
+            //check if discord integration is enabled
+            if (config.getBoolean("DiscordIntegration.Enabled"))
+                DiscordMain.startBot();
+
             //plugin loading/enabling is now complete so we announce it
             setLoaded(true);
             long duration = (System.nanoTime() - startTime) / 1000000;
@@ -335,6 +341,8 @@ public class PunisherPlugin extends Plugin {
             //unregister all commands and listeners in an attempt to limit operations that use the managers.
             getProxy().getPluginManager().unregisterListeners(this);
             getProxy().getPluginManager().unregisterCommands(this);
+            if (config.getBoolean("DiscordIntegration.Enabled"))
+                DiscordMain.shutdown();
             //the worker manager is stopped first so that we can safely stop any workers that have not yet finished
             if (WORKER_MANAGER.isStarted())
                 WORKER_MANAGER.stop();
