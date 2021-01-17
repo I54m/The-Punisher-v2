@@ -331,7 +331,7 @@ public class PunisherPlugin extends Plugin {
     }
 
     /**
-     * This method is the shutdown method and is used when we reload the plugin in {@link AdminCommands} as well as when the server shuts down.
+     * This method is the shutdown method and is used when we reload the plugin in {@link PluginAdminCommand} as well as when the server shuts down.
      */
     @Override
     public void onDisable() {
@@ -358,8 +358,6 @@ public class PunisherPlugin extends Plugin {
             //the player data manager is stopped next as it is the last manager left
             if (PLAYER_DATA_MANAGER.isStarted())
                 PLAYER_DATA_MANAGER.stop();
-
-//            DiscordMain.shutdown();
 
             //stop logging and tidy up log files last as we need to allow errors from shutting managers down to be logged
             File latestLogs = new File(getDataFolder() + "/logs/latest.log");
@@ -404,7 +402,7 @@ public class PunisherPlugin extends Plugin {
      */
     private void registerCommands() {
         getLogger().info(ChatColor.GREEN + "Registering Commands...");
-        getProxy().getPluginManager().registerCommand(this, new AdminCommands());
+        getProxy().getPluginManager().registerCommand(this, new PluginAdminCommand());
         getProxy().getPluginManager().registerCommand(this, new AltsCommand());
         getProxy().getPluginManager().registerCommand(this, new BanCommand());
         getProxy().getPluginManager().registerCommand(this, new BroadcastCommand());
@@ -428,7 +426,7 @@ public class PunisherPlugin extends Plugin {
         getProxy().getPluginManager().registerCommand(this, new SuperBroadcast());
         getProxy().getPluginManager().registerCommand(this, new UnbanCommand());
         getProxy().getPluginManager().registerCommand(this, new UnmuteCommand());
-        getProxy().getPluginManager().registerCommand(this, new UnpunishCommand());
+        getProxy().getPluginManager().registerCommand(this, new PunishmentCommand());
         getProxy().getPluginManager().registerCommand(this, new viewRepCommand());
         getProxy().getPluginManager().registerCommand(this, new WarnCommand());
         //register chat commands
