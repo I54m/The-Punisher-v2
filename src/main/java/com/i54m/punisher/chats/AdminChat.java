@@ -51,7 +51,7 @@ public class AdminChat extends Command {
         HoverEvent hover = new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(new ComponentBuilder(player.getServer().getInfo().getPlayers().size() + " players on this server!").color(ChatColor.RED)
                 .append("\n" + staff + " Staff on this server!").color(ChatColor.RED).create()));
         String userPrefix = Permissions.getPrefix(player.getUniqueId());
-        messagetosend = new ComponentBuilder(ChatColor.translateAlternateColorCodes('&', prefix.replace("%server%", player.getServer().getInfo().getName()).replace("%player%", userPrefix + " " + player.getName()))).event(hover).append(message).color(color).create();
+        messagetosend = new ComponentBuilder(ChatColor.translateAlternateColorCodes('&', prefix.replace("%server%", player.getServer().getInfo().getName()).replace("%player%", userPrefix + " " + ChatColor.RESET + player.getName()))).event(hover).append(message).color(color).create();
         for (ProxiedPlayer all : ProxyServer.getInstance().getPlayers()) {
             if (all.hasPermission("punisher.adminchat")) {
                 all.sendMessage(messagetosend);
