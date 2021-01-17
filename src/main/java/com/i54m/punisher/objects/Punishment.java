@@ -7,6 +7,7 @@ import com.i54m.punisher.handlers.ErrorHandler;
 import com.i54m.punisher.managers.PunishmentManager;
 import com.i54m.punisher.managers.storage.StorageManager;
 import com.i54m.punisher.utils.NameFetcher;
+import com.i54m.punisher.utils.Permissions;
 import com.i54m.punisher.utils.UUIDFetcher;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -240,6 +241,28 @@ public class Punishment {
     }
 
     /**
+     * If the Punishment is awaiting athorization it means that someone has attempted to issue a punishment
+     *  that requires someone with the permission: punisher.authorizer to authorize it. It also means it has not yet been issued.
+     *
+     * @return true if the status of the punishment is "Awaiting_Authorization" else false.
+     */
+    public boolean isAwaiting_Authorization() {
+        return this.status == Status.Awaiting_Authorization;
+    }
+
+
+    /**
+     * If the Punishment has been authorized it means that the punishment required someone with the
+     * permission: punisher.authorizer to authorize and it has been authorized, the next step is for it
+     * to be issued it also means it has not yet been issued.
+     *
+     * @return true if the status of the punishment is "Expired" else false.
+     */
+    public boolean isAuthorized() {
+        return this.status == Status.Authorized;
+    }
+
+    /**
      * If the punishment is active it means it has been issued and is still
      * being enforced (this only applies to mutes and bans).
      *
@@ -338,6 +361,20 @@ public class Punishment {
         //message check
         if (!hasMessage())
             message = "No Reason Given";
+
+        //authorization check
+        if (isBan() || isMute())
+            if (!getMetaData().requiresAuthorizer())
+                if (PunisherPlugin.getInstance().getConfig().getStringList("Punishment Authorization." + getType() + ".reasons").contains(getReason()) ||
+                        getExpiration() > PunishmentManager.getINSTANCE().translateExpiration(PunisherPlugin.getInstance().getConfig().getString("Punishment Authorization." + getType() + ".duration >"))) {
+                    getMetaData().setRequiresAuthorizer(true);
+                    if (Permissions.isAuthorizer(punisherUUID)) {
+                        setAuthorizerUUID(punisherUUID);
+                        setStatus(Status.Authorized);
+                    }
+                }
+
+
     }
 
     /**
@@ -442,7 +479,7 @@ public class Punishment {
      * @see net.md_5.bungee.api.chat.BaseComponent
      * @see net.md_5.bungee.api.chat.TextComponent
      */
-    public ComponentBuilder getHoverText() {
+    public ComponentBuilder getHoverText() { // TODO: 3/01/2021 add more details to this so that we show every pretty much every variable if it has a value set
         PunishmentManager punishmentManager = PunishmentManager.getINSTANCE();
         BaseComponent[] type;
         if (isBan())
@@ -459,7 +496,8 @@ public class Punishment {
                 .append("\nPunished By: ").color(ChatColor.RED).append(NameFetcher.getName(punisherUUID)).color(ChatColor.WHITE)
                 .append("\nDate: ").color(ChatColor.RED).append(getIssueDate()).color(ChatColor.WHITE)
                 .append("\nReason: ").color(ChatColor.RED).append(reason).color(ChatColor.WHITE);
-
+        if (authorizerUUID != null)
+            text.append("\nAuthorized by: ").color(ChatColor.RED).append(NameFetcher.getName(authorizerUUID)).color(ChatColor.WHITE);
         if (isBan() || isMute()) {
             String timeLeftRaw = punishmentManager.getTimeLeftRaw(this);
             if (timeLeftRaw.equals(String.valueOf(0)))
@@ -471,9 +509,9 @@ public class Punishment {
         }
         if (hasMessage())
             text.append("\nMessage: ").color(ChatColor.RED).append(message).color(ChatColor.WHITE);
-        if (!isActive() && removerUUID != null) {
+        if (!isActive() && removerUUID != null)
             text.append("\nRemoved by: ").color(ChatColor.RED).append(NameFetcher.getName(removerUUID)).color(ChatColor.WHITE);
-        }
+
         return text;
     }
 
@@ -506,11 +544,11 @@ public class Punishment {
      * This is used to help show what has happened to the punishment eg: has it been issued or is it still pending.
      */
     public enum Status {
-        Created, Pending, Active, Issued, Overridden, Expired, Removed
+        Created, Pending, Awaiting_Authorization, Authorized, Active, Issued, Overridden, Expired, Removed, Reverted
     }
 
     @AllArgsConstructor
-    public static class MetaData {// TODO: 16/12/2020 add more metadata to explain punishment authorization and automatic ban evasion bans
+    public static class MetaData {
         /**
          * True if the punishment was issued due to reputation dropping below the minimum reputation threshold.
          */
@@ -533,7 +571,7 @@ public class Punishment {
          */
         Boolean requiresAuthorizer;
 
-        public MetaData() {
+        public MetaData() {// TODO: 5/01/2021 anymore metadata to add?
             //creates a new set of metadata with the default settings
             reputationBan = false;
             automaticCalculation = false;
@@ -567,6 +605,11 @@ public class Punishment {
 
         public MetaData setAppliesToHistory(Boolean appliesToHistory) {
             this.appliesToHistory = appliesToHistory;
+            return this;
+        }
+
+        public MetaData setRequiresAuthorizer(Boolean requiresAuthorizer) {
+            this.requiresAuthorizer = requiresAuthorizer;
             return this;
         }
 
