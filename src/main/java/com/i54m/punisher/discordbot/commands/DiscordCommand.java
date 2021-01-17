@@ -7,6 +7,8 @@ import com.i54m.punisher.handlers.ErrorHandler;
 import com.i54m.punisher.utils.NameFetcher;
 import com.i54m.punisher.utils.UUIDFetcher;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
@@ -34,26 +36,26 @@ public class DiscordCommand extends Command {
 
     @Override
     public void execute(CommandSender commandSender, String[] strings) {
-        if (commandSender instanceof ProxiedPlayer){
+        if (commandSender instanceof ProxiedPlayer) {
             ProxiedPlayer player = (ProxiedPlayer) commandSender;
-            if (strings.length > 0){
-                if (DiscordMain.jda == null){
+            if (strings.length > 0) {
+                if (DiscordMain.jda == null) {
                     if (player.hasPermission("punisher.discord.admin")) {
-                        if (strings.length > 1){
-                            if (!strings[0].equals("admin") && !strings[1].equals("enable")){
+                        if (strings.length > 1) {
+                            if (!strings[0].equals("admin") && !strings[1].equals("enable")) {
                                 player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Discord integration is currently disabled, Do /discord admin enable to re-enable it!").color(ChatColor.RED).create());
                                 return;
                             }
-                        }else {
+                        } else {
                             player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Discord integration is currently disabled, Do /discord admin enable to re-enable it!").color(ChatColor.RED).create());
                             return;
                         }
-                    }else if (!player.hasPermission("punisher.discord.admin")){
+                    } else if (!player.hasPermission("punisher.discord.admin")) {
                         player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Discord integration is currently disabled!").color(ChatColor.RED).create());
                         return;
                     }
                 }
-                switch (strings[0].toLowerCase()){
+                switch (strings[0].toLowerCase()) {
                     case "link":
                         if (!DiscordMain.verifiedUsers.containsKey(player.getUniqueId())) {
                             Random rand = new Random();
@@ -64,33 +66,44 @@ public class DiscordCommand extends Command {
                                 chars[i] = charctersToUse.charAt(rand.nextInt(charctersToUse.length()));
                             }
                             StringBuilder string = new StringBuilder();
-                            for (char charcter : chars) {
-                                string.append(charcter);
+                            for (char character : chars) {
+                                string.append(character);
                             }
                             player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Please private message " + DiscordMain.jda.getSelfUser().getName() + "#" + DiscordMain.jda.getSelfUser().getDiscriminator() + " Bot on discord with this code to complete the link.").color(ChatColor.GREEN)
                                     .append("\nCODE: ").bold(true).color(ChatColor.GREEN).append(string.toString()).color(ChatColor.GREEN).bold(false).create());
                             DiscordMain.userCodes.put(player.getUniqueId(), string.toString());
-                        }else{
+                        } else {
                             User user = DiscordMain.jda.getUserById(DiscordMain.verifiedUsers.get(player.getUniqueId()));
-                            player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("You are already linked to discord user: " + user.getName() + "#" + user.getDiscriminator()).color(ChatColor.RED).create());
-                            player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("To unlink this discord user do \"/discord unlink\"").color(ChatColor.GREEN).create());
+                            if (user != null) {
+                                player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("You are already linked to discord user: " + user.getName() + "#" + user.getDiscriminator()).color(ChatColor.RED).create());
+                                player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("To unlink this discord user do \"/discord unlink\"").color(ChatColor.GREEN).create());
+                            }
                         }
                         return;
                     case "unlink":
                         if (DiscordMain.verifiedUsers.containsKey(player.getUniqueId())) {
                             User user = DiscordMain.jda.getUserById(DiscordMain.verifiedUsers.get(player.getUniqueId()));
                             DiscordMain.verifiedUsers.remove(player.getUniqueId());
-                            player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Successfully unlinked from discord user: " + user.getName() + "#" + user.getDiscriminator()).color(ChatColor.RED).create());
-                            Guild guild = DiscordMain.jda.getGuildById(plugin.getConfig().getString("DiscordIntegration.GuildId"));
-                            for (String roleids : plugin.getConfig().getStringList("DiscordIntegration.RolesIdsToAddToLinkedUser")) {
-                                if (guild.getRoleById(roleids) != null)
-                                    guild.removeRoleFromMember(guild.getMember(user), guild.getRoleById(roleids)).queue();
+                            if (user != null) {
+                                player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Successfully unlinked from discord user: " + user.getName() + "#" + user.getDiscriminator()).color(ChatColor.RED).create());
+                                Guild guild = DiscordMain.jda.getGuildById(plugin.getConfig().getString("DiscordIntegration.GuildId"));
+                                if (guild != null) {
+                                    Member member = guild.getMember(user);
+                                    if (member != null) {
+                                        for (String roleids : plugin.getConfig().getStringList("DiscordIntegration.RolesIdsToAddToLinkedUser")) {
+                                            Role role = guild.getRoleById(roleids);
+                                            if (role != null)
+                                                guild.removeRoleFromMember(member, role).queue();
+                                        }
+                                        for (String roleids : plugin.getConfig().getStringList("DiscordIntegration.RolesToSync")) {
+                                            Role role = guild.getRoleById(roleids);
+                                            if (role != null)
+                                                guild.removeRoleFromMember(member, role).queue();
+                                        }
+                                    }
+                                }
                             }
-                            for (String roleids : plugin.getConfig().getStringList("DiscordIntegration.RolesToSync")) {
-                                if (guild.getRoleById(roleids) != null)
-                                    guild.removeRoleFromMember(guild.getMember(user), guild.getRoleById(roleids)).queue();
-                            }
-                        }else{
+                        } else {
                             player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("You are not Linked to a discord user!").color(ChatColor.RED).create());
                             player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("To link a discord user do \"/discord link\"").color(ChatColor.GREEN).create());
                         }
@@ -124,22 +137,24 @@ public class DiscordCommand extends Command {
                                 }
                                 executorService.shutdown();
                             }
-                            if (targetuuid == null){
+                            if (targetuuid == null) {
                                 player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("That is not a player's name!").color(ChatColor.RED).create());
-                            }else{
+                            } else {
                                 String targetName = NameFetcher.getName(targetuuid);
                                 if (DiscordMain.verifiedUsers.containsKey(targetuuid)) {
                                     User user = DiscordMain.jda.getUserById(DiscordMain.verifiedUsers.get(targetuuid));
-                                    player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append(targetName + "'s Minecraft account is currently linked to Discord user: " + user.getName() + "#" + user.getDiscriminator()).color(ChatColor.GREEN).create());
-                                }else{
+                                    if (user != null)
+                                        player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append(targetName + "'s Minecraft account is currently linked to Discord user: " + user.getName() + "#" + user.getDiscriminator()).color(ChatColor.GREEN).create());
+                                } else {
                                     player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append(targetName + "'s Minecraft account is not yet linked to a Discord user").color(ChatColor.GREEN).create());
                                 }
                             }
                         }
-                        if (DiscordMain.verifiedUsers.containsKey(player.getUniqueId())){
+                        if (DiscordMain.verifiedUsers.containsKey(player.getUniqueId())) {
                             User user = DiscordMain.jda.getUserById(DiscordMain.verifiedUsers.get(player.getUniqueId()));
-                            player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Your Minecraft account is currently linked to Discord user: " + user.getName() + "#" + user.getDiscriminator()).color(ChatColor.GREEN).create());
-                        }else{
+                            if (user != null)
+                                player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Your Minecraft account is currently linked to Discord user: " + user.getName() + "#" + user.getDiscriminator()).color(ChatColor.GREEN).create());
+                        } else {
                             player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("You are not Linked to a discord user!").color(ChatColor.RED).create());
                             player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("To link a discord user do \"/discord link\"").color(ChatColor.GREEN).create());
                         }
@@ -164,22 +179,22 @@ public class DiscordCommand extends Command {
                                             DiscordMain.shutdown();
                                             player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Shutting down complete!").color(ChatColor.GREEN).create());
                                             PunisherPlugin.getLOGS().warning(player.getName() + " Disabled/Shutdown Discord Bot! (through /discord admin disable)");
-                                        }else{
+                                        } else {
                                             player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Discord bot is already offline, boot it up with /discord enable").color(ChatColor.RED).create());
                                         }
                                         return;
                                     case "enable":
-                                        if (DiscordMain.jda == null){
+                                        if (DiscordMain.jda == null) {
                                             player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Booting Discord bot...").color(ChatColor.GREEN).create());
                                             DiscordMain.startBot();
                                             player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Successfully booted Discord bot!").color(ChatColor.GREEN).create());
                                             PunisherPlugin.getLOGS().warning(player.getName() + " Enabled/Booted the Discord Bot! (through /discord admin enable)");
-                                        }else{
+                                        } else {
                                             player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Discord bot is already online, shut it down with /discord disable").color(ChatColor.RED).create());
                                         }
                                         return;
                                     case "unlink":
-                                        if (!(strings.length > 2)){
+                                        if (!(strings.length > 2)) {
                                             player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Please provide a player's name!").color(ChatColor.RED).create());
                                             return;
                                         }
@@ -210,22 +225,31 @@ public class DiscordCommand extends Command {
                                             }
                                             executorService.shutdown();
                                         }
-                                        if (targetuuid == null){
+                                        if (targetuuid == null) {
                                             player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("That is not a player's name!").color(ChatColor.RED).create());
-                                        }else {
+                                        } else {
                                             String targetName = NameFetcher.getName(targetuuid);
-                                            if (DiscordMain.verifiedUsers.containsKey(targetuuid)) {
-                                                User user = DiscordMain.jda.getUserById(DiscordMain.verifiedUsers.get(targetuuid));
+                                            if (DiscordMain.verifiedUsers.containsKey(player.getUniqueId())) {
+                                                User user = DiscordMain.jda.getUserById(DiscordMain.verifiedUsers.get(player.getUniqueId()));
                                                 DiscordMain.verifiedUsers.remove(player.getUniqueId());
-                                                player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Successfully unlinked " + targetName + "  from discord user: " + user.getName() + "#" + user.getDiscriminator()).color(ChatColor.RED).create());
-                                                Guild guild = DiscordMain.jda.getGuildById(plugin.getConfig().getString("DiscordIntegration.GuildId"));
-                                                for (String roleids : plugin.getConfig().getStringList("DiscordIntegration.RolesIdsToAddToLinkedUser")) {
-                                                    if (guild.getRoleById(roleids) != null)
-                                                        guild.removeRoleFromMember(guild.getMember(user), guild.getRoleById(roleids)).queue();
-                                                }
-                                                for (String roleids : plugin.getConfig().getStringList("DiscordIntegration.RolesToSync")) {
-                                                    if (guild.getRoleById(roleids) != null)
-                                                        guild.removeRoleFromMember(guild.getMember(user), guild.getRoleById(roleids)).queue();
+                                                if (user != null) {
+                                                    player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Successfully unlinked: " + targetName + " from discord user: " + user.getName() + "#" + user.getDiscriminator()).color(ChatColor.RED).create());
+                                                    Guild guild = DiscordMain.jda.getGuildById(plugin.getConfig().getString("DiscordIntegration.GuildId"));
+                                                    if (guild != null) {
+                                                        Member member = guild.getMember(user);
+                                                        if (member != null) {
+                                                            for (String roleids : plugin.getConfig().getStringList("DiscordIntegration.RolesIdsToAddToLinkedUser")) {
+                                                                Role role = guild.getRoleById(roleids);
+                                                                if (role != null)
+                                                                    guild.removeRoleFromMember(member, role).queue();
+                                                            }
+                                                            for (String roleids : plugin.getConfig().getStringList("DiscordIntegration.RolesToSync")) {
+                                                                Role role = guild.getRoleById(roleids);
+                                                                if (role != null)
+                                                                    guild.removeRoleFromMember(member, role).queue();
+                                                            }
+                                                        }
+                                                    }
                                                 }
                                             } else {
                                                 player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append(targetName + " is not yet Linked to a discord user!").color(ChatColor.RED).create());
@@ -242,7 +266,7 @@ public class DiscordCommand extends Command {
                                 player.sendMessage(new ComponentBuilder("/discord admin help").color(ChatColor.AQUA).append(" - view this help menu").color(ChatColor.WHITE).create());
                                 return;
                             }
-                        }else{
+                        } else {
                             player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("You do not have permission to do that!").color(ChatColor.RED).create());
                             return;
                         }
@@ -254,12 +278,12 @@ public class DiscordCommand extends Command {
                 player.sendMessage(new ComponentBuilder("/discord unlink").color(ChatColor.AQUA).append(" - unlink your minecraft and discord accounts").color(ChatColor.WHITE).create());
                 player.sendMessage(new ComponentBuilder("/discord linked").color(ChatColor.AQUA).append(" - view the currently linked discord account").color(ChatColor.WHITE).create());
                 player.sendMessage(new ComponentBuilder("/discord help").color(ChatColor.AQUA).append(" - view this help menu").color(ChatColor.WHITE).create());
-            }else if (!player.hasPermission("punisher.admin")){
+            } else if (!player.hasPermission("punisher.admin")) {
                 player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Discord integration is currently disabled!").color(ChatColor.RED).create());
-            }else if (player.hasPermission("punisher.admin")){
+            } else if (player.hasPermission("punisher.admin")) {
                 player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Discord integration is currently disabled, Do /discord admin enable to re-enable it!").color(ChatColor.RED).create());
             }
-        }else{
+        } else {
             commandSender.sendMessage(new TextComponent("You must be a player to use this command!"));
         }
     }

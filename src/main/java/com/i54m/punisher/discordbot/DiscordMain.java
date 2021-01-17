@@ -12,9 +12,7 @@ import com.i54m.punisher.managers.WorkerManager;
 import net.dv8tion.jda.api.AccountType;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.TextChannel;
-import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.*;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
@@ -61,32 +59,43 @@ public class DiscordMain {
             }
             if (plugin.getConfig().getBoolean("DiscordIntegration.EnableRoleSync")) {
                 updateTasks.add(ProxyServer.getInstance().getScheduler().schedule(plugin, () -> WorkerManager.getINSTANCE().runWorker(new WorkerManager.Worker(() -> {
-                    new HashMap<>(verifiedUsers).forEach((uuid, id) -> {//clean up old users that have deleted their accounts or have left the guild
-                        User user = jda.getUserById(id);
-                        if (user == null)
-                            verifiedUsers.remove(uuid);
-                        else if (!guild.isMember(user))
-                            verifiedUsers.remove(uuid);
-                    });
-                    verifiedUsers.forEach((uuid, id) -> {//sync linked user roles over to the discord
-                        for (String roleids : plugin.getConfig().getStringList("DiscordIntegration.RolesIdsToAddToLinkedUser")) {
-                            guild.addRoleToMember(guild.getMember(jda.getUserById(id)), guild.getRoleById(roleids)).queue();
-                        }
-                    });
-                    for (ProxiedPlayer player : ProxyServer.getInstance().getPlayers()) {//sync user's synced roles over to the discord
-                        if (verifiedUsers.containsKey(player.getUniqueId())) {
-                            User user = jda.getUserById(verifiedUsers.get(player.getUniqueId()));
-                            for (String roleids : plugin.getConfig().getStringList("DiscordIntegration.RolesToSync")) {
-                                guild.getMember(user).getRoles().forEach((role -> {
-                                    if (roleids.equals(role.getId()) && !player.hasPermission("punisher.discord.role." + roleids))
-                                        guild.removeRoleFromMember(guild.getMember(user), role).queue();
-                                }));
-                                if (player.hasPermission("punisher.discord.role." + roleids) && guild.getRoleById(roleids) != null)
-                                    guild.addRoleToMember(guild.getMember(user), guild.getRoleById(roleids)).queue();
+                            new HashMap<>(verifiedUsers).forEach((uuid, id) -> {//clean up old users that have deleted their accounts or have left the guild
+                                User user = jda.getUserById(id);
+                                if (user == null)
+                                    verifiedUsers.remove(uuid);
+                                else if (!guild.isMember(user))
+                                    verifiedUsers.remove(uuid);
+                            });
+                            verifiedUsers.forEach((uuid, id) -> {//sync linked user roles over to the discord
+                                for (String roleids : plugin.getConfig().getStringList("DiscordIntegration.RolesIdsToAddToLinkedUser")) {
+                                    User user = jda.getUserById(id);
+                                    if (user != null) {
+                                        Member member = guild.getMember(user);
+                                        Role role = guild.getRoleById(roleids);
+                                        if (member != null && role != null)
+                                            guild.addRoleToMember(member, role).queue();
+                                    }
+                                }
+                            });
+                            for (ProxiedPlayer player : ProxyServer.getInstance().getPlayers()) {//sync user's synced roles over to the discord
+                                if (verifiedUsers.containsKey(player.getUniqueId())) {
+                                    User user = jda.getUserById(verifiedUsers.get(player.getUniqueId()));
+                                    if (user != null)
+                                        for (String roleids : plugin.getConfig().getStringList("DiscordIntegration.RolesToSync")) {
+                                            Member member = guild.getMember(user);
+                                            if (member != null) {
+                                                member.getRoles().forEach((role -> {
+                                                    if (roleids.equals(role.getId()) && !player.hasPermission("punisher.discord.role." + roleids))
+                                                        guild.removeRoleFromMember(member, role).queue();
+                                                }));
+                                                Role role = guild.getRoleById(roleids);
+                                                if (player.hasPermission("punisher.discord.role." + roleids) && role != null)
+                                                    guild.addRoleToMember(member, role).queue();
+                                            }
+                                        }
+                                }
                             }
-                        }
-                    }
-                }))
+                        }))
                         , 10, 30, TimeUnit.SECONDS));
             }
             if (plugin.getConfig().getBoolean("DiscordIntegration.EnableRoleSync") || plugin.getConfig().getBoolean("DiscordIntegration.EnableJoinLogging")) {
