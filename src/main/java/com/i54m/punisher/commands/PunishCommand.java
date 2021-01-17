@@ -3,6 +3,7 @@ package com.i54m.punisher.commands;
 import com.i54m.punisher.PunisherPlugin;
 import com.i54m.punisher.exceptions.DataFetchException;
 import com.i54m.punisher.handlers.ErrorHandler;
+import com.i54m.punisher.managers.PunishmentManager;
 import com.i54m.punisher.managers.ReputationManager;
 import com.i54m.punisher.managers.WorkerManager;
 import com.i54m.punisher.objects.GUIS;
@@ -97,6 +98,9 @@ public class PunishCommand extends Command {
                     player.sendMessage(new ComponentBuilder(PLUGIN.getPrefix()).append("You cannot punish that player!").color(ChatColor.RED).create());
                     return;
                 }
+                // TODO: 17/01/2021 add this to other punishment classes
+                if (PunishmentManager.getINSTANCE().isLocked(targetUUID))
+                    player.sendMessage(new ComponentBuilder(PLUGIN.getPrefix()).append("Punishing " + targetName + " is currently locked! Please try again later! (perhaps they already have a pending punishment?)").color(ChatColor.RED).create());
                 switch (Permissions.getPermissionLvl(player)) {
                     default: {
                         break;
