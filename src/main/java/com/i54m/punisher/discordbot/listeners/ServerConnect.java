@@ -5,6 +5,7 @@ import com.i54m.punisher.discordbot.DiscordMain;
 import com.i54m.punisher.handlers.ErrorHandler;
 import com.i54m.punisher.managers.WorkerManager;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
@@ -25,21 +26,24 @@ public class ServerConnect implements Listener {
             workerManager.runWorker(new WorkerManager.Worker(() -> {
                 User user = DiscordMain.jda.getUserById(DiscordMain.verifiedUsers.get(player.getUniqueId()));
                 Guild guild = DiscordMain.jda.getGuildById(plugin.getConfig().getString("DiscordIntegration.GuildId"));
-                if (guild != null && user != null)
+                if (guild != null && user != null) {
+                    Member member = guild.getMember(user);
+                    if (member != null)
                     for (String roleids : plugin.getConfig().getStringList("DiscordIntegration.RolesToSync")) {
                         try {
-                            guild.getMember(user).getRoles().forEach((role -> {
+                            member.getRoles().forEach((role -> {
                                 if (roleids.equals(role.getId()) && !player.hasPermission("punisher.discord.role." + roleids))
-                                    guild.removeRoleFromMember(guild.getMember(user), role).queue();
+                                    guild.removeRoleFromMember(member, role).queue();
 
                             }));
                             if (player.hasPermission("punisher.discord.role." + roleids) && guild.getRoleById(roleids) != null)
-                                guild.addRoleToMember(guild.getMember(user), guild.getRoleById(roleids)).queue();
+                                guild.addRoleToMember(member, guild.getRoleById(roleids)).queue();
                         } catch (NullPointerException npe) {
                             ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
                             errorHandler.log(npe);
                         }
                     }
+                }
             }));
         }
         if (plugin.getConfig().getBoolean("DiscordIntegration.EnableJoinLogging")) {
