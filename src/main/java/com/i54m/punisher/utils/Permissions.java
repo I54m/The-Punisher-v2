@@ -152,4 +152,18 @@ public class Permissions {
         }
         return user;
     }
+
+    public static boolean hasBypass(UUID punisherUUID) {
+        if (punisherUUID.equals(UUIDFetcher.getBLANK_UUID())) return true;
+        User user = Permissions.getUser(punisherUUID);
+        ContextManager cm = LUCKPERMS_API.getContextManager();
+        return user.getCachedData().getPermissionData(cm.getQueryOptions(user).orElse(cm.getStaticQueryOptions())).checkPermission("punisher.bypass").asBoolean();
+    }
+
+    public static boolean isAuthorizer(UUID punisherUUID) {
+        if (punisherUUID.equals(UUIDFetcher.getBLANK_UUID())) return true;
+        User user = Permissions.getUser(punisherUUID);
+        ContextManager cm = LUCKPERMS_API.getContextManager();
+        return user.getCachedData().getPermissionData(cm.getQueryOptions(user).orElse(cm.getStaticQueryOptions())).checkPermission("punisher.authorizer").asBoolean();
+    }
 }
