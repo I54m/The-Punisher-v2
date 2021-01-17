@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.i54m.punisher</groupId>
@@ -9,15 +9,14 @@
     <version>2.0-SNAPSHOT</version>
     <properties>
         <timestamp>${maven.build.timestamp}</timestamp>
-        <maven.build.timestamp.format> dd-MM-yy HH:mm:ss</maven.build.timestamp.format>
+        <maven.build.timestamp.format>dd-MM-yy HH:mm:ss</maven.build.timestamp.format>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
     <repositories>
 
         <repository>
-            <id>BungeeCord-repo</id>
-            <name>sonatype</name>
+            <id>bungeecord-repo</id>
             <url>https://oss.sonatype.org/content/repositories/snapshots</url>
         </repository>
 
@@ -53,7 +52,8 @@
         <dependency>
             <groupId>net.md-5</groupId>
             <artifactId>bungeecord-api</artifactId>
-            <version>1.16-R0.2-SNAPSHOT</version>
+            <version>1.16-R0.3</version>
+            <type>jar</type>
             <scope>provided</scope>
         </dependency>
 
@@ -192,7 +192,8 @@
                                     <type>${project.packaging}</type>
                                     <overWrite>true</overWrite>
                                     <outputDirectory>F:\Test server\BUNGEE\plugins\</outputDirectory>
-                                    <destFileName>The-Punisher-${project.version}-${maven.build.timestamp}.jar</destFileName>
+                                    <destFileName>The-Punisher-${project.version}-${maven.build.timestamp}.jar
+                                    </destFileName>
                                 </artifactItem>
                                 <!--                                <artifactItem>-->
                                 <!--                                    <groupId>${project.groupId}</groupId>-->
