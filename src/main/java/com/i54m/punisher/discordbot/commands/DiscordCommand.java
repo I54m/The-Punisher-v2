@@ -66,8 +66,8 @@ public class DiscordCommand extends Command {
                                 chars[i] = charctersToUse.charAt(rand.nextInt(charctersToUse.length()));
                             }
                             StringBuilder string = new StringBuilder();
-                            for (char charcter : chars) {
-                                string.append(charcter);
+                            for (char character : chars) {
+                                string.append(character);
                             }
                             player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Please private message " + DiscordMain.jda.getSelfUser().getName() + "#" + DiscordMain.jda.getSelfUser().getDiscriminator() + " Bot on discord with this code to complete the link.").color(ChatColor.GREEN)
                                     .append("\nCODE: ").bold(true).color(ChatColor.GREEN).append(string.toString()).color(ChatColor.GREEN).bold(false).create());
