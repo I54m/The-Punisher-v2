@@ -28,7 +28,7 @@
 # 3. Caps lock is not essential as the plugin will make everything caps that needs to be
 # 4. Underscores are not essential as spaces will be replaced by _ when loaded
 # 5. more reasons and offences per reason = longer plugin load times
-#todo punishment authorisation - if over a certain threshold it will require an authorizer to authorize the punishment, recommend that they review proof before confirming (using confirm gui)
+#
 MINOR_CHAT_OFFENCE:
   message: "Minor chat offence"
   1:
