@@ -19,15 +19,15 @@ import net.md_5.bungee.api.plugin.Command;
 import java.util.HashMap;
 import java.util.Map;
 
-public class AdminCommands extends Command {
+public class PluginAdminCommand extends Command {
     private final PunisherPlugin plugin = PunisherPlugin.getInstance();
     private final PunishmentManager punisher = PunishmentManager.getINSTANCE();
     private final WorkerManager workerManager = WorkerManager.getINSTANCE();
 
     private final Map<CommandSender, Long> confirmation = new HashMap<>();
 
-    public AdminCommands() {
-        super("punisher", "punisher.admin");
+    public PluginAdminCommand() {
+        super("punisher", "punisher.pluginadmin");
     }//todo redo the command arguments to be like /punisher reset <mutes|bans|history|shist|all>
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
@@ -102,7 +102,7 @@ public class AdminCommands extends Command {
             } else if (strings[0].equalsIgnoreCase("version")) {
                 commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Current Version: " + plugin.getDescription().getVersion()).color(ChatColor.GREEN).create());
                 commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("This is the latest version!").color(ChatColor.GREEN).create());
-            } else if (strings[0].equalsIgnoreCase("view-cache")){
+            } else if (strings[0].equalsIgnoreCase("view-cache")) {
                 for (Integer punishmentID : plugin.getStorageManager().getPunishmentCache().descendingKeySet()) {
                     try {
                         Punishment punishment = plugin.getStorageManager().getPunishmentFromId(punishmentID);
@@ -117,7 +117,7 @@ public class AdminCommands extends Command {
                 }
                 commandSender.sendMessage(new ComponentBuilder("This command is only intended for developers so that they can verify that punishments are caching correctly!!")
                         .bold(true).color(ChatColor.RED).create());
-            } else if (strings[0].equalsIgnoreCase("list-staff")){
+            } else if (strings[0].equalsIgnoreCase("list-staff")) {
                 for (ServerInfo server : plugin.getStaffServers()) {
                     commandSender.sendMessage(new ComponentBuilder(server.getName()).color(ChatColor.RED).create());
                     for (ProxiedPlayer players : plugin.getStaff(server)) {
@@ -163,13 +163,8 @@ public class AdminCommands extends Command {
                 Punishment ban = punisher.getBan(players.getUniqueId());
                 String timeLeft = punisher.getTimeLeft(ban);
                 String reason = ban.getMessage();
-                if (ban.isPermanent()) {
-                    String banMessage = plugin.getConfig().getString("PermBan Message").replace("%timeleft%", timeLeft).replace("%reason%", reason);
-                    players.disconnect(new TextComponent(ChatColor.translateAlternateColorCodes('&', banMessage)));
-                } else {
-                    String banMessage = plugin.getConfig().getString("TempBan Message").replace("%timeleft%", timeLeft).replace("%reason%", reason);
-                    players.disconnect(new TextComponent(ChatColor.translateAlternateColorCodes('&', banMessage)));
-                }
+                String banMessage = plugin.getConfig().getString("Ban Message").replace("%timeleft%", timeLeft).replace("%reason%", reason);
+                players.disconnect(new TextComponent(ChatColor.translateAlternateColorCodes('&', banMessage)));
             }
         }
     }
