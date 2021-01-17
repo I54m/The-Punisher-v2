@@ -6,6 +6,7 @@ import com.i54m.punisher.managers.PunishmentManager;
 import com.i54m.punisher.managers.WorkerManager;
 import com.i54m.punisher.objects.ActivePunishments;
 import com.i54m.punisher.objects.Punishment;
+import com.i54m.punisher.objects.ResetType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -120,6 +121,8 @@ public interface StorageManager extends Manager {// TODO: 9/11/2020 Add Javadocs
 
     int getNextID();
 
+    int getLastID();
+
     int getPunishmentsAmount();
 
     int getBansAmount();
@@ -129,4 +132,6 @@ public interface StorageManager extends Manager {// TODO: 9/11/2020 Add Javadocs
     int getWarnsAmount();
 
     int getKicksAmount();
+
+    boolean reset(@NotNull ResetType... resetType);
 }
