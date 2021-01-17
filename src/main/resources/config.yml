@@ -73,18 +73,6 @@ Warn Title:
   Stay: 100
   Fade Out: 10
 
-  Warn Sound:
-    Enabled: true
-    Sound: "UI_TOAST_CHALLENGE_COMPLETE"
-    Volume: 100
-    Pitch: 0.5
-
-Warn Message:
-  "\n&cYou have been Warned, Reason: %reason%!
-  \n&cYou have done something against our server rules!
-  \n&cNext time there may be harsher punishments!
-  \n&cDo /rules for the rules and server info!\n"
-
 Mute Title:
   Enabled: true
   #only %reason% works in the titles
@@ -94,41 +82,35 @@ Mute Title:
   Stay: 100
   Fade Out: 10
 
-  Mute Sound:
-    Enabled: true
-    Sound: "UI_TOAST_CHALLENGE_COMPLETE"
-    Volume: 100
-    Pitch: 0.5
+Warn Sound:
+  Enabled: true
+  Sound: "UI_TOAST_CHALLENGE_COMPLETE"
+  Volume: 100
+  Pitch: 0.5
 
-TempMute Message:
+Mute Sound:
+  Enabled: true
+  Sound: "UI_TOAST_CHALLENGE_COMPLETE"
+  Volume: 100
+  Pitch: 0.5
+
+Warn Message:
+  "\n&cYou have been Warned, Reason: %reason%!
+  \n&cYou have done something against our server rules!
+  \n&cNext time there may be harsher punishments!
+  \n&cDo /rules for the rules and server info!\n"
+
+Mute Message:
   "\n&cYou have been Muted, reason: &f%reason%!
   \n&cThis mute %timeleft%!
   \n&cYou have done something against our server rules!
   \n&cSome of our punishments result in a mute with no warning!\n"
 
-PermMute Message:
-  "\n&cYou have been Muted, reason: &f%reason%!
-  \n&cThis mute is permanent and does not expire!
-  \n&cYou have done something against our server rules!
-  \n&cSome of our punishments result in a mute with no warning!\n"
-
-TempMute Deny Message:
+Mute Deny Message:
   "\n&cYou cannot speak! You are Muted! Reason: &f%reason%!
   \n&cThis mute %timeleft%!
   \n&cYou have done something against our server rules!
   \n&cSome of our punishments result in a mute with no warning!\n"
-
-PermMute Deny Message:
-  "\n&cYou cannot speak! You are Muted! Reason: &f%reason%!
-  \n&cThis mute is permanent and does not expire!
-  \n&cYou have done something against our server rules!
-  \n&cSome of our punishments result in a mute with no warning!\n"
-
-#send the player's message to staff chat when a player is denied from speaking because of a mute
-SendPlayersMessageToStaffChatOnMuteDeny: false
-#tell staff that the player tried to speak but don't send their message to staff chat the above option takes priority over this one
-StaffChatOnMuteDeny: true
-
 
 Kick Message:
   "&cYou have been Kicked from the server!
@@ -136,19 +118,17 @@ Kick Message:
   \n&cYou have done something against our server rules!
   \n&cSome of our punishments result in a kick with no warning!"
 
-TempBan Message:
+Ban Message:
   "&cYou have been Banned from the server!
   \n&cYou were Banned for the reason: &f%reason%!
   \n&cThis ban %timeleft%!
   \n&cYou have done something against our server rules!
   \n&cSome of our punishments result in a ban with no warning!"
 
-PermBan Message:
-  "&cYou have been Banned from the server!
-  \n&cYou were Banned for the reason: &f%reason%!
-  \n&cThis ban does not expire!
-  \n&cYou have done something against our server rules!
-  \n&cSome of our punishments result in a ban with no warning!"
+#send the player's message to staff chat when a player is denied from speaking because of a mute
+SendPlayersMessageToStaffChatOnMuteDeny: false
+#tell staff that the player tried to speak but don't send their message to staff chat the above option takes priority over this one
+StaffChatOnMuteDeny: true
 
 Reputation:
   #max rep is always 10
@@ -169,6 +149,24 @@ Reputation:
 Voting:
   addRepOnVote: true
   amountOfRepToAdd: 0.1
+
+#define what punishments will require authorization from someone with the punisher.authorizer permission
+Punishment Authorization:
+  BAN:
+    #durations LONGER (non inclusive) than this will require authorization
+    duration >: "30d"
+    #reasons listed here will require authorization
+    reasons:
+      - "EXPLOITING"
+      - "GREIFING"
+  MUTE:
+    #durations LONGER (non inclusive) than this will require authorization
+    duration >: "1w"
+    #reasons listed here will require authorization
+    reasons:
+      - "SCAMMING"
+      - "IMPERSONATION"
+      - "INAPPROPRIATE_LINK"
 
 # not yet implemented todo reimplement discord bot from old v1 src code
 DiscordIntegration:
