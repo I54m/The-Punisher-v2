@@ -1,14 +1,13 @@
 package com.i54m.punisher.chats;
 
 import com.i54m.punisher.PunisherPlugin;
+import com.i54m.punisher.objects.Punishment;
+import com.i54m.punisher.utils.NameFetcher;
 import com.i54m.punisher.utils.Permissions;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
-import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.ComponentBuilder;
-import net.md_5.bungee.api.chat.HoverEvent;
-import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.chat.*;
 import net.md_5.bungee.api.chat.hover.content.Text;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
@@ -23,7 +22,6 @@ public class StaffChat extends Command {
     public static String prefixRaw;
     public static ChatColor color;
     private static final PunisherPlugin plugin = PunisherPlugin.getInstance();
-
     @Override
     public void execute(CommandSender commandSender, String[] strings) {
         if (commandSender instanceof ProxiedPlayer) {
@@ -51,7 +49,7 @@ public class StaffChat extends Command {
         HoverEvent hover = new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(new ComponentBuilder(player.getServer().getInfo().getPlayers().size() + " players on this server!").color(ChatColor.RED)
                 .append("\n" + staff + " Staff on this server!").color(ChatColor.RED).create()));
         String userPrefix = Permissions.getPrefix(player.getUniqueId());
-        messagetosend = new ComponentBuilder(ChatColor.translateAlternateColorCodes('&', prefix.replace("%server%", player.getServer().getInfo().getName()).replace("%player%", userPrefix + " " + player.getName()))).event(hover).append(message).color(color).create();
+        messagetosend = new ComponentBuilder(ChatColor.translateAlternateColorCodes('&', prefix.replace("%server%", player.getServer().getInfo().getName()).replace("%player%", userPrefix + " " + ChatColor.RESET + player.getName()))).event(hover).append(message).color(color).create();
         for (ProxiedPlayer all : ProxyServer.getInstance().getPlayers()) {
             if (all.hasPermission("punisher.staffchat")) {
                 all.sendMessage(messagetosend);
@@ -68,9 +66,25 @@ public class StaffChat extends Command {
         }
     }
 
-    public static void sendMessages(BaseComponent... messages){
-        for (BaseComponent message : messages) {
+    public static void sendMessages(BaseComponent[]... messages){
+        for (BaseComponent[] message : messages) {
             sendMessage(message);
         }
+    }
+
+    public static void requiresAuthorization(Punishment punishment, ProxiedPlayer player) {
+        if (player != null)
+            sendMessage(new ComponentBuilder(ChatColor.translateAlternateColorCodes('&', prefixRaw))
+                    .append(player.getName() + " requires authorization on a punishment on " + punishment.getTargetName() + " (hover for more info, click to authorize)").color(ChatColor.YELLOW).bold(true)
+                    .event(punishment.getHoverEvent())
+                    .event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/authorizepunishment " + punishment.getId()))
+                    .create());
+        else
+            sendMessage(new ComponentBuilder(ChatColor.translateAlternateColorCodes('&', prefixRaw))
+                    .append(NameFetcher.getName(punishment.getPunisherUUID()) + " requires authorization on a punishment on " + punishment.getTargetName() + " (hover for more info, click to authorize)").color(ChatColor.YELLOW).bold(true)
+                    .event(punishment.getHoverEvent())
+                    .event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/authorizepunishment " + punishment.getId()))
+                    .create());
+
     }
 }
