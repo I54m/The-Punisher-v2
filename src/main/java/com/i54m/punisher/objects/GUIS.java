@@ -7,6 +7,7 @@ import com.i54m.protocol.items.ItemType;
 import com.i54m.punisher.PunisherPlugin;
 import com.i54m.punisher.handlers.ErrorHandler;
 import com.i54m.punisher.managers.PunishmentManager;
+import com.i54m.punisher.utils.NameFetcher;
 import lombok.AccessLevel;
 import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
@@ -213,6 +214,43 @@ public class GUIS {
         List<String> lore = guiConfig.getStringList(gui.name() + "." + slot + ".lore");
         //check item matches type, name and lore defined in config for the slot
         return itemType.equals(item.getType().toString()) && lore.equals(item.getLore()) && name.equals(item.getDisplayName());
+    }
+
+    public static void openAuthorizationGUI(Punishment punishment, ProxiedPlayer player) {
+        String targetName = punishment.getTargetName();
+        String reason = punishment.getReason();
+        String punisherName = NameFetcher.getName(punishment.getPunisherUUID());
+        CONFIRMATION.setTitle(new ComponentBuilder("Confirm Punishment Authorization for: " + punisherName).color(ChatColor.RED).create());
+        CONFIRMATION.setClick((clicker, menu1, slot, item) -> {
+            if (clicker == player) {
+                if (item == null || item.getDisplayName().isEmpty()) return false;
+                if (item.getDisplayName().contains(guiConfig.getString("CONFIRMATION.items.confirm.name", "&a&lConfirm")) && CONFIRMSLOTS.contains(slot)) {
+                    PunisherPlugin.getInstance().getLogger().info(player.getName() + " just confirmed punishment authorization for " + punisherName + ". Punishment id: " + punishment.getId());
+                    try {
+                        PUNISHMENT_MANAGER.authorizePunishment(punishment, player, punisherName);
+                    } catch (Exception e) {
+                        ERROR_HANDLER.log(e);
+                        ERROR_HANDLER.alert(e, player);
+                    }
+                    return true;
+                } else if (item.getDisplayName().contains(guiConfig.getString("CONFIRMATION.items.deny.name", "&a&lDeny")) && DENYSLOTS.contains(slot)) {
+                    clicker.sendMessage(new ComponentBuilder("Punishment Authorization Cancelled!").color(ChatColor.RED).create());
+                    return true;
+                }
+            }
+            return false;
+        });
+        List<String> lore = guiConfig.getStringList("CONFIRMATION.items.info.lore");
+        new ArrayList<>(lore).forEach((i) -> {
+            String line = i.replace("%targetname%", targetName).replace("%reason%", reason);
+            lore.set(lore.indexOf(i), line);
+        });
+        CONFIRMATION.addButton(
+                13,
+                new ItemStack(ItemType.PAPER),
+                guiConfig.getString("CONFIRMATION.items.info.name", "&c&lWARNING!!"),
+                lore);
+        CONFIRMATION.open(player);
     }
 
     public enum GUI {
