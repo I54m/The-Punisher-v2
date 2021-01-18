@@ -2,7 +2,7 @@ package com.i54m.punisher.discordbot.commands;
 
 import com.i54m.punisher.PunisherPlugin;
 import com.i54m.punisher.discordbot.DiscordMain;
-import com.i54m.punisher.exceptions.DataFecthException;
+import com.i54m.punisher.exceptions.DataFetchException;
 import com.i54m.punisher.handlers.ErrorHandler;
 import com.i54m.punisher.utils.NameFetcher;
 import com.i54m.punisher.utils.UUIDFetcher;
@@ -32,7 +32,6 @@ public class DiscordCommand extends Command {
     }
 
     private final PunisherPlugin plugin = PunisherPlugin.getInstance();
-    private UUID targetuuid;
 
     @Override
     public void execute(CommandSender commandSender, String[] strings) {
@@ -113,6 +112,7 @@ public class DiscordCommand extends Command {
                             ProxiedPlayer findTarget = ProxyServer.getInstance().getPlayer(strings[0]);
                             Future<UUID> future = null;
                             ExecutorService executorService = null;
+                            UUID targetuuid = null;
                             if (findTarget != null) {
                                 targetuuid = findTarget.getUniqueId();
                             } else {
@@ -126,8 +126,8 @@ public class DiscordCommand extends Command {
                                     targetuuid = future.get(1, TimeUnit.SECONDS);
                                 } catch (Exception e) {
                                     try {
-                                        throw new DataFecthException("UUID Required for next step", strings[0], "UUID", this.getName(), e);
-                                    } catch (DataFecthException dfe) {
+                                        throw new DataFetchException(this.getName(), "UUID", strings[0], e, "UUID Required for next step");
+                                    } catch (DataFetchException dfe) {
                                         ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
                                         errorHandler.log(dfe);
                                         errorHandler.alert(dfe, commandSender);
@@ -201,6 +201,7 @@ public class DiscordCommand extends Command {
                                         ProxiedPlayer findTarget = ProxyServer.getInstance().getPlayer(strings[0]);
                                         Future<UUID> future = null;
                                         ExecutorService executorService = null;
+                                        UUID targetuuid = null;
                                         if (findTarget != null) {
                                             targetuuid = findTarget.getUniqueId();
                                         } else {
@@ -214,8 +215,8 @@ public class DiscordCommand extends Command {
                                                 targetuuid = future.get(1, TimeUnit.SECONDS);
                                             } catch (Exception e) {
                                                 try {
-                                                    throw new DataFecthException("UUID Required for next step", strings[0], "UUID", this.getName(), e);
-                                                } catch (DataFecthException dfe) {
+                                                    throw new DataFetchException(this.getName(), "UUID", strings[0], e, "UUID Required for next step");
+                                                } catch (DataFetchException dfe) {
                                                     ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
                                                     errorHandler.log(dfe);
                                                     errorHandler.alert(dfe, commandSender);
