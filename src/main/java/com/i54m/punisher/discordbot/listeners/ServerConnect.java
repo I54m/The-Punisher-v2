@@ -3,10 +3,10 @@ package com.i54m.punisher.discordbot.listeners;
 import com.i54m.punisher.PunisherPlugin;
 import com.i54m.punisher.discordbot.DiscordMain;
 import com.i54m.punisher.handlers.ErrorHandler;
+import com.i54m.punisher.managers.PlayerDataManager;
 import com.i54m.punisher.managers.WorkerManager;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.ServerConnectEvent;
@@ -29,41 +29,41 @@ public class ServerConnect implements Listener {
                 if (guild != null && user != null) {
                     Member member = guild.getMember(user);
                     if (member != null)
-                    for (String roleids : plugin.getConfig().getStringList("DiscordIntegration.RolesToSync")) {
-                        try {
-                            member.getRoles().forEach((role -> {
-                                if (roleids.equals(role.getId()) && !player.hasPermission("punisher.discord.role." + roleids))
-                                    guild.removeRoleFromMember(member, role).queue();
+                        for (String roleids : plugin.getConfig().getStringList("DiscordIntegration.RolesToSync")) {
+                            try {
+                                member.getRoles().forEach((role -> {
+                                    if (roleids.equals(role.getId()) && !player.hasPermission("punisher.discord.role." + roleids))
+                                        guild.removeRoleFromMember(member, role).queue();
 
-                            }));
-                            if (player.hasPermission("punisher.discord.role." + roleids) && guild.getRoleById(roleids) != null)
-                                guild.addRoleToMember(member, guild.getRoleById(roleids)).queue();
-                        } catch (NullPointerException npe) {
-                            ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
-                            errorHandler.log(npe);
+                                }));
+                                if (player.hasPermission("punisher.discord.role." + roleids) && guild.getRoleById(roleids) != null)
+                                    guild.addRoleToMember(member, guild.getRoleById(roleids)).queue();
+                            } catch (NullPointerException npe) {
+                                ErrorHandler.getINSTANCE().log(npe);
+                            }
                         }
-                    }
                 }
             }));
         }
         if (plugin.getConfig().getBoolean("DiscordIntegration.EnableJoinLogging")) {
-            TextChannel loggingChannel = DiscordMain.jda.getTextChannelById(plugin.getConfig().getString("DiscordIntegration.JoinLoggingChannelId"));
-            if (loggingChannel != null)
+            if (DiscordMain.loggingChannel == null)
+                ErrorHandler.getINSTANCE().log(new NullPointerException("loggingchannel is null!"));
+            if (!PlayerDataManager.getINSTANCE().getPlayerData(event.getPlayer(), true).getBoolean("staffHide"))
                 switch (event.getReason()) {
                     case JOIN_PROXY:
-                        loggingChannel.sendMessage(":heavy_plus_sign: " + player.getName() + " **Joined the server!**").queue();
+                        DiscordMain.loggingChannel.sendMessage(":heavy_plus_sign: " + player.getName() + " **Joined the server!**").queue();
                         return;
                     case SERVER_DOWN_REDIRECT:
-                        loggingChannel.sendMessage(":x: " + player.getName() + " **Was previously on a server but it went down!**").queue();
+                        DiscordMain.loggingChannel.sendMessage(":x: " + player.getName() + " **Was previously on a server but it went down!**").queue();
                         return;
                     case KICK_REDIRECT:
-                        loggingChannel.sendMessage(":boot: " + player.getName() + " **Was previously on a server but was kicked!**").queue();
+                        DiscordMain.loggingChannel.sendMessage(":boot: " + player.getName() + " **Was previously on a server but was kicked!**").queue();
                         return;
                     case LOBBY_FALLBACK:
-                        loggingChannel.sendMessage(":electric_plug: " + player.getName() + " **Was unable to join the default server and was redirected to a fallback server!**").queue();
+                        DiscordMain.loggingChannel.sendMessage(":electric_plug: " + player.getName() + " **Was unable to join the default server and was redirected to a fallback server!**").queue();
                         return;
                     case PLUGIN:
-                        loggingChannel.sendMessage(":gear: **A plugin caused " + player.getName() + " to be redirected!**").queue();
+                        DiscordMain.loggingChannel.sendMessage(":gear: **A plugin caused** " + player.getName() + " **to be redirected!**").queue();
                 }
         }
     }
