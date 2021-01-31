@@ -10,6 +10,7 @@ import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 import net.md_5.bungee.config.Configuration;
@@ -74,12 +75,22 @@ public class SeenCommand extends Command {
             else if (hoursago >= 1) lastlogoutString = hoursago + "h " + minutesago + "m " + secondsago + "s " + " ago";
             else if (minutesago >= 1) lastlogoutString = minutesago + "m " + secondsago + "s " + " ago";
             else lastlogoutString = secondsago + "s " + " ago";
-            commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Last seen Information for " + targetname + "(#" + playerData.getInt("joinId") + ")").color(ChatColor.RED).create());
+            boolean online = plugin.getProxy().getPlayer(targetname) != null;
+            TextComponent onlineText;
+            if (online) {
+                onlineText = new TextComponent("Online");
+                onlineText.setColor(ChatColor.GREEN);
+            } else {
+                onlineText = new TextComponent("Offline");
+                onlineText.setColor(ChatColor.RED);
+            }
+
+            commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Last seen Information for " + targetname).color(ChatColor.RED).append(" [").color(ChatColor.GRAY).append(onlineText).append("] ").color(ChatColor.GRAY).append("(#" + playerData.getInt("joinId") + ")").color(ChatColor.RED).create());
             commandSender.sendMessage(new ComponentBuilder("First Joined Date: ").color(ChatColor.RED).append(playerData.getString("firstJoin")).color(ChatColor.GREEN).create());
             commandSender.sendMessage(new ComponentBuilder("Last Login: ").color(ChatColor.RED).append(lastloginString).color(ChatColor.GREEN).create());
             if (playerData.contains("lastserver") || playerData.getString("lastserver") == null)
                 commandSender.sendMessage(new ComponentBuilder("Last Server Played: ").color(ChatColor.RED).append(playerData.getString("lastServer")).color(ChatColor.GREEN).create());
-            if (playerData.contains("lastLogout"))
+            if (playerData.contains("lastLogout") && !online)
                 commandSender.sendMessage(new ComponentBuilder("Last Logout: ").color(ChatColor.RED).append(lastlogoutString).color(ChatColor.GREEN).create());
             return;
         }
@@ -146,12 +157,21 @@ public class SeenCommand extends Command {
         else if (hoursago >= 1) lastlogoutString = hoursago + "h " + minutesago + "m " + secondsago + "s " + " ago";
         else if (minutesago >= 1) lastlogoutString = minutesago + "m " + secondsago + "s " + " ago";
         else lastlogoutString = secondsago + "s " + " ago";
-        commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Last seen Information for " + targetname + "(#" + playerData.getInt("joinId") + ")").color(ChatColor.RED).create());
+        boolean online = plugin.getProxy().getPlayer(targetuuid) != null;
+        TextComponent onlineText;
+        if (online) {
+            onlineText = new TextComponent("Online");
+            onlineText.setColor(ChatColor.GREEN);
+        } else {
+            onlineText = new TextComponent("Offline");
+            onlineText.setColor(ChatColor.RED);
+        }
+        commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Last seen Information for " + targetname).color(ChatColor.RED).append(" [").color(ChatColor.GRAY).append(onlineText).append("] ").color(ChatColor.GRAY).append("(#" + playerData.getInt("joinId") + ")").color(ChatColor.RED).create());
         commandSender.sendMessage(new ComponentBuilder("First Joined Date: ").color(ChatColor.RED).append(playerData.getString("firstJoin")).color(ChatColor.GREEN).create());
         commandSender.sendMessage(new ComponentBuilder("Last Login: ").color(ChatColor.RED).append(lastloginString).color(ChatColor.GREEN).create());
         if (playerData.contains("lastserver") || playerData.getString("lastserver") == null)
             commandSender.sendMessage(new ComponentBuilder("Last Server Played: ").color(ChatColor.RED).append(playerData.getString("lastServer")).color(ChatColor.GREEN).create());
-        if (playerData.contains("lastLogout"))
+        if (playerData.contains("lastLogout") && !online)
             commandSender.sendMessage(new ComponentBuilder("Last Logout: ").color(ChatColor.RED).append(lastlogoutString).color(ChatColor.GREEN).create());
     }
 }
