@@ -78,7 +78,7 @@ public class UnbanCommand extends Command {
                 }
                 try {
                     if (punishMnger.isBanned(targetuuid)) {
-                        punishMnger.remove(punishMnger.getBan(targetuuid), player, true, false, true);
+                        punishMnger.remove(punishMnger.getBan(targetuuid), player, true, false);
                         player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Successfully unbanned " + targetname).color(ChatColor.GREEN).create());
                     } else {
                         player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append(targetname + " is not currently banned!").color(ChatColor.RED).create());
@@ -137,7 +137,7 @@ public class UnbanCommand extends Command {
                 }
                 try {
                     if (punishMnger.isBanned(targetuuid)) {
-                        punishMnger.remove(punishMnger.getBan(targetuuid), null, true, false, true);
+                        punishMnger.remove(punishMnger.getBan(targetuuid), null, true, false);
                         commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Successfully unbanned " + targetname).color(ChatColor.GREEN).create());
                     } else {
                         commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append(targetname + " is not currently banned!").color(ChatColor.RED).create());

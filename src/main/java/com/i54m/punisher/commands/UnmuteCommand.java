@@ -78,7 +78,7 @@ public class UnmuteCommand extends Command {
                 }
                 try {
                     if (punishMnger.isMuted(targetuuid)) {
-                        punishMnger.remove(punishMnger.getMute(targetuuid), player, true, false, true);
+                        punishMnger.remove(punishMnger.getMute(targetuuid), player, true, false);
                         player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Successfully unmuted " + targetname).color(ChatColor.GREEN).create());
                     } else {
                         player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append(targetname + " is not currently muted!").color(ChatColor.RED).create());
@@ -128,7 +128,7 @@ public class UnmuteCommand extends Command {
                 }
                 try {
                     if (punishMnger.isMuted(targetuuid)) {
-                        punishMnger.remove(punishMnger.getMute(targetuuid), null, true, false, true);
+                        punishMnger.remove(punishMnger.getMute(targetuuid), null, true, false);
                         commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Successfully unmuted " + targetname).color(ChatColor.GREEN).create());
                     } else {
                         commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append(targetname + " is not currently muted!").color(ChatColor.RED).create());
