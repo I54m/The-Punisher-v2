@@ -13,6 +13,9 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.requests.GatewayIntent;
+import net.dv8tion.jda.api.utils.MemberCachePolicy;
+import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.scheduler.ScheduledTask;
@@ -40,6 +43,9 @@ public class DiscordMain {
         try {
             jda = JDABuilder.createDefault(plugin.getConfig().getString("DiscordIntegration.BotToken"))
                     .addEventListeners(new BotReady(), new PrivateMessageReceived())
+                    .disableCache(CacheFlag.ACTIVITY)
+                    .setMemberCachePolicy(MemberCachePolicy.ONLINE.or(MemberCachePolicy.VOICE).or(MemberCachePolicy.OWNER))
+                    .disableIntents(GatewayIntent.GUILD_PRESENCES, GatewayIntent.GUILD_MESSAGE_TYPING)
                     .build();
             if (firstenable) {
                 ProxyServer.getInstance().getPluginManager().registerCommand(plugin, new DiscordCommand());
