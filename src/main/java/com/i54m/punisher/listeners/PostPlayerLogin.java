@@ -53,7 +53,7 @@ public class PostPlayerLogin implements Listener {
         try {
             if (punishmngr.isBanned(uuid)) {
                 if (player.hasPermission("punisher.bypass")) {
-                    punishmngr.remove(punishmngr.getBan(uuid), null, true, true, false);
+                    punishmngr.remove(punishmngr.getBan(uuid), null, true, true);
                     PunisherPlugin.getLOGS().info(player.getName() + " Bypassed their ban and were unbanned");
                     plugin.getProxy().getScheduler().schedule(plugin, () ->
                                     StaffChat.sendMessage(new ComponentBuilder(targetName + " Bypassed their ban, Unbanning...").color(ChatColor.RED).event(punishmngr.getBan(uuid).getHoverEvent()).create())
@@ -61,20 +61,14 @@ public class PostPlayerLogin implements Listener {
                 } else {
                     Punishment ban = punishmngr.getBan(uuid);
                     if (System.currentTimeMillis() > ban.getExpiration()) {
-                        punishmngr.remove(punishmngr.getBan(uuid), null, false, false, false);
+                        punishmngr.remove(punishmngr.getBan(uuid), null, false, false);
                         PunisherPlugin.getLOGS().info(player.getName() + "'s ban expired so they were unbanned");
                     } else {
                         String timeleft = punishmngr.getTimeLeft(ban);
                         String reason = ban.getMessage();
-                        if (ban.isPermanent()) {
-                            String banMessage = plugin.getConfig().getString("PermBan Message").replace("%timeleft%", timeleft).replace("%reason%", reason);
+                            String banMessage = plugin.getConfig().getString("Ban Message").replace("%timeleft%", timeleft).replace("%reason%", reason);
                             player.disconnect(new TextComponent(ChatColor.translateAlternateColorCodes('&', banMessage)));
                             return;
-                        } else {
-                            String banMessage = plugin.getConfig().getString("TempBan Message").replace("%timeleft%", timeleft).replace("%reason%", reason);
-                            player.disconnect(new TextComponent(ChatColor.translateAlternateColorCodes('&', banMessage)));
-                            return;
-                        }
                     }
                 }
             }

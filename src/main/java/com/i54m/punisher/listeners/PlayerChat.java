@@ -52,12 +52,12 @@ public class PlayerChat implements Listener {
             if (punishmentManager.isMuted(uuid)) {
                 Punishment mute = punishmentManager.getMute(uuid);
                 if (player.hasPermission("punisher.bypass")) {
-                    punishmentManager.remove(mute, null, true, true, false);
+                    punishmentManager.remove(mute, null, true, true);
                     StaffChat.sendMessage(new ComponentBuilder(player.getName() + " Bypassed their mute, Unmuting...").color(ChatColor.RED).event(mute.getHoverEvent()).create());
                     return;
                 }
                 if (System.currentTimeMillis() > mute.getExpiration()) {
-                    punishmentManager.remove(mute, null, false, false, false);
+                    punishmentManager.remove(mute, null, false, false);
                     player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Your Mute has expired!").color(ChatColor.GREEN).create());
                     PunisherPlugin.getLOGS().info(player.getName() + "'s mute expired so they were unmuted");
                 } else {
@@ -68,21 +68,13 @@ public class PlayerChat implements Listener {
                         mutedcommands = plugin.getConfig().getStringList("Muted Commands");
                         if (!mutedcommands.contains(args[0])) {
                             event.setCancelled(true);
-                            String muteMessage;
-                            if (mute.isPermanent())
-                                muteMessage = plugin.getConfig().getString("PermMute Deny Message").replace("%reason%", mute.getMessage()).replace("%timeleft%", timeLeft);
-                            else
-                                muteMessage = plugin.getConfig().getString("TempMute Deny Message").replace("%reason%", mute.getMessage()).replace("%timeleft%", timeLeft);
+                            String muteMessage = plugin.getConfig().getString("Mute Deny Message").replace("%reason%", mute.getMessage()).replace("%timeleft%", timeLeft);
 
                             player.sendMessage(new ComponentBuilder(ChatColor.translateAlternateColorCodes('&', muteMessage)).create());
                         }
                     } else {
                         event.setCancelled(true);
-                        String muteMessage;
-                        if (mute.isPermanent())
-                            muteMessage = plugin.getConfig().getString("PermMute Deny Message").replace("%reason%", mute.getMessage()).replace("%timeleft%", timeLeft);
-                        else
-                            muteMessage = plugin.getConfig().getString("TempMute Deny Message").replace("%reason%", mute.getMessage()).replace("%timeleft%", timeLeft);
+                        String muteMessage = plugin.getConfig().getString("Mute Deny Message").replace("%reason%", mute.getMessage()).replace("%timeleft%", timeLeft);
                         player.sendMessage(new ComponentBuilder(ChatColor.translateAlternateColorCodes('&', muteMessage)).create());
                         if (plugin.getConfig().getBoolean("SendPlayersMessageToStaffChatOnMuteDeny"))
                             StaffChat.sendMessage(player.getName() + " Tried to speak but is muted: " + event.getMessage());
