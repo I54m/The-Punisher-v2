@@ -23,10 +23,10 @@ public class NamedSoundEffect extends AbstractPacket {
         MAPPING.put(MINECRAFT_1_9, 0x19);
         MAPPING.put(MINECRAFT_1_9_1, 0x19);
         MAPPING.put(MINECRAFT_1_9_2, 0x19);
-        MAPPING.put(MINECRAFT_1_9_4, 0x19);
+        MAPPING.put(MINECRAFT_1_9_3, 0x19);
         MAPPING.put(MINECRAFT_1_10, 0x19);
         MAPPING.put(MINECRAFT_1_11, 0x19);
-        MAPPING.put(MINECRAFT_1_11_2, 0x19);
+        MAPPING.put(MINECRAFT_1_11_1, 0x19);
         MAPPING.put(MINECRAFT_1_12, 0x19);
         MAPPING.put(MINECRAFT_1_12_1, 0x19);
         MAPPING.put(MINECRAFT_1_12_2, 0x19);

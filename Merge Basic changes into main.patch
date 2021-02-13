@@ -1,0 +1,558 @@
+Index: src/main/java/com/i54m/punisher/discordbot/DiscordMain.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/com/i54m/punisher/discordbot/DiscordMain.java b/src/main/java/com/i54m/punisher/discordbot/DiscordMain.java
+--- a/src/main/java/com/i54m/punisher/discordbot/DiscordMain.java	(revision 847c2aa76f545d25114ac23012d7a983045b9ed8)
++++ b/src/main/java/com/i54m/punisher/discordbot/DiscordMain.java	(revision 499af9483ed2cbeec8f29b274ef86564fab2997a)
+@@ -8,23 +8,20 @@
+ import com.i54m.punisher.discordbot.listeners.ServerConnected;
+ import com.i54m.punisher.discordbot.listeners.discord.BotReady;
+ import com.i54m.punisher.discordbot.listeners.discord.PrivateMessageReceived;
+-import com.i54m.punisher.managers.WorkerManager;
+-import net.dv8tion.jda.api.AccountType;
++import com.i54m.punisher.handlers.ErrorHandler;
+ import net.dv8tion.jda.api.JDA;
+ import net.dv8tion.jda.api.JDABuilder;
+-import net.dv8tion.jda.api.entities.*;
++import net.dv8tion.jda.api.entities.Guild;
++import net.dv8tion.jda.api.entities.TextChannel;
+ import net.md_5.bungee.api.ChatColor;
+ import net.md_5.bungee.api.ProxyServer;
+-import net.md_5.bungee.api.connection.ProxiedPlayer;
+ import net.md_5.bungee.api.scheduler.ScheduledTask;
+ import org.yaml.snakeyaml.Yaml;
+ 
+ import javax.security.auth.login.LoginException;
+-import java.io.FileInputStream;
+ import java.io.FileWriter;
+ import java.io.IOException;
+ import java.util.*;
+-import java.util.concurrent.TimeUnit;
+ 
+ public class DiscordMain {
+ 
+@@ -32,92 +29,33 @@
+     public static JDA jda;
+     public static Map<UUID, String> userCodes = new HashMap<>();
+     public static Map<UUID, String> verifiedUsers = new HashMap<>();
+-    private static final Yaml YAML_LOADER = new Yaml();
++    public static final Yaml YAML_LOADER = new Yaml();
+     public static List<ScheduledTask> updateTasks = new ArrayList<>();
+     private static boolean firstenable = true;
+-    public static Guild guild;
++    public static Guild guild = null;
++    public static TextChannel loggingChannel = null;
+ 
+     public static void startBot() {
+-        plugin.getLogger().info(plugin.getPrefix() + ChatColor.GREEN + "Starting Discord bot...");
++        plugin.getLogger().info(ChatColor.GREEN + "Starting Discord bot...");
+         try {
+-            jda = new JDABuilder(AccountType.BOT).setToken(plugin.getConfig().getString("DiscordIntegration.BotToken")).build();
+-            jda.addEventListener(new BotReady());
+-            jda.addEventListener(new PrivateMessageReceived());
++            jda = JDABuilder.createDefault(plugin.getConfig().getString("DiscordIntegration.BotToken"))
++                    .addEventListeners(new BotReady(), new PrivateMessageReceived())
++                    .build();
+             if (firstenable) {
+                 ProxyServer.getInstance().getPluginManager().registerCommand(plugin, new DiscordCommand());
+                 firstenable = false;
+             }
+-            guild = jda.getGuildById(plugin.getConfig().getString("DiscordIntegration.GuildId"));
+-            if (plugin.getConfig().getBoolean("DiscordIntegration.EnableJoinLogging")) {
+-                ProxyServer.getInstance().getPluginManager().registerListener(plugin, new ServerConnected());
+-                ProxyServer.getInstance().getPluginManager().registerListener(plugin, new PlayerDisconnect());
+-                updateTasks.add(ProxyServer.getInstance().getScheduler().schedule(plugin, () -> {
+-                    TextChannel loggingChannel = DiscordMain.jda.getTextChannelById(plugin.getConfig().getString("DiscordIntegration.JoinLoggingChannelId"));
+-                    if (loggingChannel == null)
+-                        throw new NullPointerException("Could not find logging channel!");
+-                }, 10, 5, TimeUnit.SECONDS));
+-            }
+-            if (plugin.getConfig().getBoolean("DiscordIntegration.EnableRoleSync")) {
+-                updateTasks.add(ProxyServer.getInstance().getScheduler().schedule(plugin, () -> WorkerManager.getINSTANCE().runWorker(new WorkerManager.Worker(() -> {
+-                            new HashMap<>(verifiedUsers).forEach((uuid, id) -> {//clean up old users that have deleted their accounts or have left the guild
+-                                User user = jda.getUserById(id);
+-                                if (user == null)
+-                                    verifiedUsers.remove(uuid);
+-                                else if (!guild.isMember(user))
+-                                    verifiedUsers.remove(uuid);
+-                            });
+-                            verifiedUsers.forEach((uuid, id) -> {//sync linked user roles over to the discord
+-                                for (String roleids : plugin.getConfig().getStringList("DiscordIntegration.RolesIdsToAddToLinkedUser")) {
+-                                    User user = jda.getUserById(id);
+-                                    if (user != null) {
+-                                        Member member = guild.getMember(user);
+-                                        Role role = guild.getRoleById(roleids);
+-                                        if (member != null && role != null)
+-                                            guild.addRoleToMember(member, role).queue();
+-                                    }
+-                                }
+-                            });
+-                            for (ProxiedPlayer player : ProxyServer.getInstance().getPlayers()) {//sync user's synced roles over to the discord
+-                                if (verifiedUsers.containsKey(player.getUniqueId())) {
+-                                    User user = jda.getUserById(verifiedUsers.get(player.getUniqueId()));
+-                                    if (user != null)
+-                                        for (String roleids : plugin.getConfig().getStringList("DiscordIntegration.RolesToSync")) {
+-                                            Member member = guild.getMember(user);
+-                                            if (member != null) {
+-                                                member.getRoles().forEach((role -> {
+-                                                    if (roleids.equals(role.getId()) && !player.hasPermission("punisher.discord.role." + roleids))
+-                                                        guild.removeRoleFromMember(member, role).queue();
+-                                                }));
+-                                                Role role = guild.getRoleById(roleids);
+-                                                if (player.hasPermission("punisher.discord.role." + roleids) && role != null)
+-                                                    guild.addRoleToMember(member, role).queue();
+-                                            }
+-                                        }
+-                                }
+-                            }
+-                        }))
+-                        , 10, 30, TimeUnit.SECONDS));
+-            }
+-            if (plugin.getConfig().getBoolean("DiscordIntegration.EnableRoleSync") || plugin.getConfig().getBoolean("DiscordIntegration.EnableJoinLogging")) {
+-                ProxyServer.getInstance().getPluginManager().registerListener(plugin, new ServerConnect());
+-            }
+-            try {
+-                Object obj = YAML_LOADER.load(new FileInputStream(plugin.discordIntegrationFile));
+-                if (obj instanceof HashMap)
+-                    verifiedUsers = (HashMap<UUID, String>) obj;
+-            } catch (IOException ioe) {
+-                ioe.printStackTrace();
+-            }
+-            plugin.getLogger().info(plugin.getPrefix() + ChatColor.GREEN + "Discord bot Started!");
++
++            plugin.getLogger().info(ChatColor.GREEN + "Discord bot Started!");
+         } catch (LoginException e) {
+-            plugin.getLogger().severe(plugin.getPrefix() + ChatColor.RED + "Could not start Discord bot!");
+-            e.printStackTrace();
++            plugin.getLogger().severe(ChatColor.RED + "Could not start Discord bot!");
++            ErrorHandler.getINSTANCE().log(e);
+         }
+     }
+ 
+     public static void shutdown() {
+         if (jda != null) {
+-            plugin.getLogger().info(plugin.getPrefix() + ChatColor.GREEN + "Shutting down Discord bot...");
++            plugin.getLogger().info(ChatColor.GREEN + "Shutting down Discord bot...");
+             try {
+                 YAML_LOADER.dump(verifiedUsers, new FileWriter(plugin.discordIntegrationFile));
+             } catch (IOException ioe) {
+@@ -130,7 +68,7 @@
+             ProxyServer.getInstance().getPluginManager().unregisterListener(new ServerConnect());
+             for (ScheduledTask task : updateTasks)
+                 task.cancel();
+-            plugin.getLogger().info(plugin.getPrefix() + ChatColor.GREEN + "Discord bot Shut down!");
++            plugin.getLogger().info( ChatColor.GREEN + "Discord bot Shut down!");
+         }
+     }
+ }
+Index: src/main/java/com/i54m/punisher/discordbot/listeners/PlayerDisconnect.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/com/i54m/punisher/discordbot/listeners/PlayerDisconnect.java b/src/main/java/com/i54m/punisher/discordbot/listeners/PlayerDisconnect.java
+--- a/src/main/java/com/i54m/punisher/discordbot/listeners/PlayerDisconnect.java	(revision 847c2aa76f545d25114ac23012d7a983045b9ed8)
++++ b/src/main/java/com/i54m/punisher/discordbot/listeners/PlayerDisconnect.java	(revision 499af9483ed2cbeec8f29b274ef86564fab2997a)
+@@ -1,27 +1,17 @@
+ package com.i54m.punisher.discordbot.listeners;
+ 
+-import com.i54m.punisher.PunisherPlugin;
+ import com.i54m.punisher.discordbot.DiscordMain;
+-import com.i54m.punisher.handlers.ErrorHandler;
+-import net.dv8tion.jda.api.entities.TextChannel;
+-import net.md_5.bungee.api.connection.ProxiedPlayer;
++import com.i54m.punisher.managers.PlayerDataManager;
+ import net.md_5.bungee.api.event.PlayerDisconnectEvent;
+ import net.md_5.bungee.api.plugin.Listener;
+ import net.md_5.bungee.event.EventHandler;
+ 
+ public class PlayerDisconnect implements Listener {
+-    private final PunisherPlugin plugin = PunisherPlugin.getInstance();
+ 
+     @EventHandler
+     public void onPlayerDisconnect(PlayerDisconnectEvent event) {
+         if (DiscordMain.jda == null) return;
+-        ProxiedPlayer player = event.getPlayer();
+-        if (plugin.getConfig().getBoolean("DiscordIntegration.EnableJoinLogging")) {
+-            TextChannel loggingChannel = DiscordMain.jda.getTextChannelById(plugin.getConfig().getString("DiscordIntegration.JoinLoggingChannelId"));
+-            if (loggingChannel != null)
+-                loggingChannel.sendMessage(":heavy_minus_sign: " + player.getName() + " Left the server!").queue();
+-            else
+-                ErrorHandler.getINSTANCE().log(new NullPointerException("Could not find join logging channel!"));
+-        }
++        if (!PlayerDataManager.getINSTANCE().getPlayerData(event.getPlayer(), true).getBoolean("staffHide"))
++            DiscordMain.loggingChannel.sendMessage(":heavy_minus_sign: " + event.getPlayer().getName() + " Left the server!").queue();
+     }
+ }
+Index: src/main/java/com/i54m/punisher/discordbot/listeners/ServerConnect.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/com/i54m/punisher/discordbot/listeners/ServerConnect.java b/src/main/java/com/i54m/punisher/discordbot/listeners/ServerConnect.java
+--- a/src/main/java/com/i54m/punisher/discordbot/listeners/ServerConnect.java	(revision 847c2aa76f545d25114ac23012d7a983045b9ed8)
++++ b/src/main/java/com/i54m/punisher/discordbot/listeners/ServerConnect.java	(revision 499af9483ed2cbeec8f29b274ef86564fab2997a)
+@@ -3,10 +3,10 @@
+ import com.i54m.punisher.PunisherPlugin;
+ import com.i54m.punisher.discordbot.DiscordMain;
+ import com.i54m.punisher.handlers.ErrorHandler;
++import com.i54m.punisher.managers.PlayerDataManager;
+ import com.i54m.punisher.managers.WorkerManager;
+ import net.dv8tion.jda.api.entities.Guild;
+ import net.dv8tion.jda.api.entities.Member;
+-import net.dv8tion.jda.api.entities.TextChannel;
+ import net.dv8tion.jda.api.entities.User;
+ import net.md_5.bungee.api.connection.ProxiedPlayer;
+ import net.md_5.bungee.api.event.ServerConnectEvent;
+@@ -29,41 +29,41 @@
+                 if (guild != null && user != null) {
+                     Member member = guild.getMember(user);
+                     if (member != null)
+-                    for (String roleids : plugin.getConfig().getStringList("DiscordIntegration.RolesToSync")) {
+-                        try {
+-                            member.getRoles().forEach((role -> {
+-                                if (roleids.equals(role.getId()) && !player.hasPermission("punisher.discord.role." + roleids))
+-                                    guild.removeRoleFromMember(member, role).queue();
++                        for (String roleids : plugin.getConfig().getStringList("DiscordIntegration.RolesToSync")) {
++                            try {
++                                member.getRoles().forEach((role -> {
++                                    if (roleids.equals(role.getId()) && !player.hasPermission("punisher.discord.role." + roleids))
++                                        guild.removeRoleFromMember(member, role).queue();
+ 
+-                            }));
+-                            if (player.hasPermission("punisher.discord.role." + roleids) && guild.getRoleById(roleids) != null)
+-                                guild.addRoleToMember(member, guild.getRoleById(roleids)).queue();
+-                        } catch (NullPointerException npe) {
+-                            ErrorHandler errorHandler = ErrorHandler.getINSTANCE();
+-                            errorHandler.log(npe);
+-                        }
+-                    }
++                                }));
++                                if (player.hasPermission("punisher.discord.role." + roleids) && guild.getRoleById(roleids) != null)
++                                    guild.addRoleToMember(member, guild.getRoleById(roleids)).queue();
++                            } catch (NullPointerException npe) {
++                                ErrorHandler.getINSTANCE().log(npe);
++                            }
++                        }
+                 }
+             }));
+         }
+         if (plugin.getConfig().getBoolean("DiscordIntegration.EnableJoinLogging")) {
+-            TextChannel loggingChannel = DiscordMain.jda.getTextChannelById(plugin.getConfig().getString("DiscordIntegration.JoinLoggingChannelId"));
+-            if (loggingChannel != null)
++            if (DiscordMain.loggingChannel == null)
++                ErrorHandler.getINSTANCE().log(new NullPointerException("loggingchannel is null!"));
++            if (!PlayerDataManager.getINSTANCE().getPlayerData(event.getPlayer(), true).getBoolean("staffHide"))
+                 switch (event.getReason()) {
+                     case JOIN_PROXY:
+-                        loggingChannel.sendMessage(":heavy_plus_sign: " + player.getName() + " **Joined the server!**").queue();
++                        DiscordMain.loggingChannel.sendMessage(":heavy_plus_sign: " + player.getName() + " **Joined the server!**").queue();
+                         return;
+                     case SERVER_DOWN_REDIRECT:
+-                        loggingChannel.sendMessage(":x: " + player.getName() + " **Was previously on a server but it went down!**").queue();
++                        DiscordMain.loggingChannel.sendMessage(":x: " + player.getName() + " **Was previously on a server but it went down!**").queue();
+                         return;
+                     case KICK_REDIRECT:
+-                        loggingChannel.sendMessage(":boot: " + player.getName() + " **Was previously on a server but was kicked!**").queue();
++                        DiscordMain.loggingChannel.sendMessage(":boot: " + player.getName() + " **Was previously on a server but was kicked!**").queue();
+                         return;
+                     case LOBBY_FALLBACK:
+-                        loggingChannel.sendMessage(":electric_plug: " + player.getName() + " **Was unable to join the default server and was redirected to a fallback server!**").queue();
++                        DiscordMain.loggingChannel.sendMessage(":electric_plug: " + player.getName() + " **Was unable to join the default server and was redirected to a fallback server!**").queue();
+                         return;
+                     case PLUGIN:
+-                        loggingChannel.sendMessage(":gear: **A plugin caused " + player.getName() + " to be redirected!**").queue();
++                        DiscordMain.loggingChannel.sendMessage(":gear: **A plugin caused** " + player.getName() + " **to be redirected!**").queue();
+                 }
+         }
+     }
+Index: src/main/java/com/i54m/punisher/discordbot/listeners/ServerConnected.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/com/i54m/punisher/discordbot/listeners/ServerConnected.java b/src/main/java/com/i54m/punisher/discordbot/listeners/ServerConnected.java
+--- a/src/main/java/com/i54m/punisher/discordbot/listeners/ServerConnected.java	(revision 847c2aa76f545d25114ac23012d7a983045b9ed8)
++++ b/src/main/java/com/i54m/punisher/discordbot/listeners/ServerConnected.java	(revision 499af9483ed2cbeec8f29b274ef86564fab2997a)
+@@ -1,27 +1,17 @@
+ package com.i54m.punisher.discordbot.listeners;
+ 
+-import com.i54m.punisher.PunisherPlugin;
+ import com.i54m.punisher.discordbot.DiscordMain;
+-import com.i54m.punisher.handlers.ErrorHandler;
+-import net.dv8tion.jda.api.entities.TextChannel;
+-import net.md_5.bungee.api.config.ServerInfo;
+-import net.md_5.bungee.api.connection.ProxiedPlayer;
++import com.i54m.punisher.managers.PlayerDataManager;
+ import net.md_5.bungee.api.event.ServerConnectedEvent;
+ import net.md_5.bungee.api.plugin.Listener;
+ import net.md_5.bungee.event.EventHandler;
+ 
+ public class ServerConnected implements Listener {
+-    private final PunisherPlugin plugin = PunisherPlugin.getInstance();
+ 
+     @EventHandler
+     public void onServerConnected(ServerConnectedEvent event) {
+         if (DiscordMain.jda == null) return;
+-        ProxiedPlayer player = event.getPlayer();
+-        ServerInfo server = event.getServer().getInfo();
+-        TextChannel loggingChannel = DiscordMain.jda.getTextChannelById(plugin.getConfig().getString("DiscordIntegration.JoinLoggingChannelId"));
+-        if (loggingChannel != null)
+-            loggingChannel.sendMessage(":arrow_right: " + player.getName() + " **Connected to: " + server.getName() + "!**").queue();
+-        else
+-            ErrorHandler.getINSTANCE().log(new NullPointerException("Could not find join logging channel!"));
++        if (!PlayerDataManager.getINSTANCE().getPlayerData(event.getPlayer(), true).getBoolean("staffHide"))
++            DiscordMain.loggingChannel.sendMessage(":arrow_right: " + event.getPlayer().getName() + " **Connected to: " + event.getServer().getInfo().getName() + "!**").queue();
+     }
+ }
+Index: src/main/java/com/i54m/punisher/discordbot/listeners/discord/BotReady.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/com/i54m/punisher/discordbot/listeners/discord/BotReady.java b/src/main/java/com/i54m/punisher/discordbot/listeners/discord/BotReady.java
+--- a/src/main/java/com/i54m/punisher/discordbot/listeners/discord/BotReady.java	(revision 847c2aa76f545d25114ac23012d7a983045b9ed8)
++++ b/src/main/java/com/i54m/punisher/discordbot/listeners/discord/BotReady.java	(revision 499af9483ed2cbeec8f29b274ef86564fab2997a)
+@@ -2,12 +2,24 @@
+ 
+ import com.i54m.punisher.PunisherPlugin;
+ import com.i54m.punisher.discordbot.DiscordMain;
++import com.i54m.punisher.discordbot.listeners.PlayerDisconnect;
++import com.i54m.punisher.discordbot.listeners.ServerConnect;
++import com.i54m.punisher.discordbot.listeners.ServerConnected;
++import com.i54m.punisher.managers.WorkerManager;
+ import net.dv8tion.jda.api.entities.Activity;
++import net.dv8tion.jda.api.entities.Member;
++import net.dv8tion.jda.api.entities.Role;
++import net.dv8tion.jda.api.entities.User;
+ import net.dv8tion.jda.api.events.ReadyEvent;
+ import net.dv8tion.jda.api.hooks.ListenerAdapter;
+ import net.md_5.bungee.api.ProxyServer;
++import net.md_5.bungee.api.connection.ProxiedPlayer;
+ import org.jetbrains.annotations.NotNull;
+ 
++import java.io.FileInputStream;
++import java.io.IOException;
++import java.util.HashMap;
++import java.util.UUID;
+ import java.util.concurrent.TimeUnit;
+ 
+ public class BotReady extends ListenerAdapter {
+@@ -17,6 +29,72 @@
+ 
+     @Override
+     public void onReady(@NotNull ReadyEvent event) {
++        DiscordMain.guild = DiscordMain.jda.getGuildById("418941534797561857");
++        if (DiscordMain.guild == null)
++            throw new NullPointerException("Could not find Guild: " + plugin.getConfig().getString("DiscordIntegration.GuildId") + "!");
++        if (plugin.getConfig().getBoolean("DiscordIntegration.EnableJoinLogging")) {
++            ProxyServer.getInstance().getPluginManager().registerListener(plugin, new ServerConnected());
++            ProxyServer.getInstance().getPluginManager().registerListener(plugin, new PlayerDisconnect());
++            DiscordMain.loggingChannel = DiscordMain.guild.getTextChannelById(plugin.getConfig().getString("DiscordIntegration.JoinLoggingChannelId"));
++            if (DiscordMain.loggingChannel == null)
++                throw new NullPointerException("Could not find logging channel!");
++            DiscordMain.updateTasks.add(ProxyServer.getInstance().getScheduler().schedule(plugin, () -> {
++                DiscordMain.loggingChannel = DiscordMain.guild.getTextChannelById(plugin.getConfig().getString("DiscordIntegration.JoinLoggingChannelId"));
++                if (DiscordMain.loggingChannel == null)
++                    throw new NullPointerException("Could not find logging channel!");
++            }, 15, 15, TimeUnit.MINUTES));
++        }
++        if (plugin.getConfig().getBoolean("DiscordIntegration.EnableRoleSync")) {
++            DiscordMain.updateTasks.add(ProxyServer.getInstance().getScheduler().schedule(plugin, () -> WorkerManager.getINSTANCE().runWorker(new WorkerManager.Worker(() -> {
++                        new HashMap<>(DiscordMain.verifiedUsers).forEach((uuid, id) -> {//clean up old users that have deleted their accounts or have left the guild
++                            User user = DiscordMain.jda.getUserById(id);
++                            if (user == null)
++                                DiscordMain.verifiedUsers.remove(uuid);
++                            else if (!DiscordMain.guild.isMember(user))
++                                DiscordMain.verifiedUsers.remove(uuid);
++                        });
++                        DiscordMain.verifiedUsers.forEach((uuid, id) -> {//sync linked user roles over to the discord
++                            for (String roleids : plugin.getConfig().getStringList("DiscordIntegration.RolesIdsToAddToLinkedUser")) {
++                                User user = DiscordMain.jda.getUserById(id);
++                                if (user != null) {
++                                    Member member = DiscordMain.guild.getMember(user);
++                                    Role role = DiscordMain.guild.getRoleById(roleids);
++                                    if (member != null && role != null)
++                                        DiscordMain.guild.addRoleToMember(member, role).queue();
++                                }
++                            }
++                        });
++                        for (ProxiedPlayer player : ProxyServer.getInstance().getPlayers()) {//sync user's synced roles over to the discord
++                            if (DiscordMain.verifiedUsers.containsKey(player.getUniqueId())) {
++                                User user = DiscordMain.jda.getUserById(DiscordMain.verifiedUsers.get(player.getUniqueId()));
++                                if (user != null)
++                                    for (String roleids : plugin.getConfig().getStringList("DiscordIntegration.RolesToSync")) {
++                                        Member member = DiscordMain.guild.getMember(user);
++                                        if (member != null) {
++                                            member.getRoles().forEach((role -> {
++                                                if (roleids.equals(role.getId()) && !player.hasPermission("punisher.discord.role." + roleids))
++                                                    DiscordMain.guild.removeRoleFromMember(member, role).queue();
++                                            }));
++                                            Role role = DiscordMain.guild.getRoleById(roleids);
++                                            if (player.hasPermission("punisher.discord.role." + roleids) && role != null)
++                                                DiscordMain.guild.addRoleToMember(member, role).queue();
++                                        }
++                                    }
++                            }
++                        }
++                    }))
++                    , 10, 30, TimeUnit.SECONDS));
++        }
++        if (plugin.getConfig().getBoolean("DiscordIntegration.EnableRoleSync") || plugin.getConfig().getBoolean("DiscordIntegration.EnableJoinLogging")) {
++            ProxyServer.getInstance().getPluginManager().registerListener(plugin, new ServerConnect());
++        }
++        try {
++            Object obj = DiscordMain.YAML_LOADER.load(new FileInputStream(plugin.discordIntegrationFile));
++            if (obj instanceof HashMap)
++                DiscordMain.verifiedUsers = (HashMap<UUID, String>) obj;
++        } catch (IOException ioe) {
++            ioe.printStackTrace();
++        }
+         DiscordMain.updateTasks.add(ProxyServer.getInstance().getScheduler().schedule(plugin, () -> {
+             switch (status) {
+                 case 1:
+Index: src/main/java/com/i54m/punisher/commands/SeenCommand.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/com/i54m/punisher/commands/SeenCommand.java b/src/main/java/com/i54m/punisher/commands/SeenCommand.java
+--- a/src/main/java/com/i54m/punisher/commands/SeenCommand.java	(revision 499af9483ed2cbeec8f29b274ef86564fab2997a)
++++ b/src/main/java/com/i54m/punisher/commands/SeenCommand.java	(revision 87397483d73bc267af086a3637fd7809a3fee672)
+@@ -10,6 +10,7 @@
+ import net.md_5.bungee.api.CommandSender;
+ import net.md_5.bungee.api.ProxyServer;
+ import net.md_5.bungee.api.chat.ComponentBuilder;
++import net.md_5.bungee.api.chat.TextComponent;
+ import net.md_5.bungee.api.connection.ProxiedPlayer;
+ import net.md_5.bungee.api.plugin.Command;
+ import net.md_5.bungee.config.Configuration;
+@@ -73,11 +74,21 @@
+             else if (hoursago >= 1) lastlogoutString = hoursago + "h " + minutesago + "m " + secondsago + "s " + " ago";
+             else if (minutesago >= 1) lastlogoutString = minutesago + "m " + secondsago + "s " + " ago";
+             else lastlogoutString = secondsago + "s " + " ago";
+-            commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Last seen Information for " + targetname + "(#" + playerData.getInt("joinId") + ")").color(ChatColor.RED).create());
++            boolean online = plugin.getProxy().getPlayer(targetname) != null;
++            TextComponent onlineText;
++            if (online) {
++                onlineText = new TextComponent("Online");
++                onlineText.setColor(ChatColor.GREEN);
++            } else {
++                onlineText = new TextComponent("Offline");
++                onlineText.setColor(ChatColor.RED);
++            }
++
++            commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Last seen Information for " + targetname).color(ChatColor.RED).append(" [").color(ChatColor.GRAY).append(onlineText).append("] ").color(ChatColor.GRAY).append("(#" + playerData.getInt("joinId") + ")").color(ChatColor.RED).create());
+             commandSender.sendMessage(new ComponentBuilder("First Joined Date: ").color(ChatColor.RED).append(playerData.getString("firstJoin")).color(ChatColor.GREEN).create());
+             commandSender.sendMessage(new ComponentBuilder("Last Login: ").color(ChatColor.RED).append(lastloginString).color(ChatColor.GREEN).create());
+             commandSender.sendMessage(new ComponentBuilder("Last Server Played: ").color(ChatColor.RED).append(playerData.getString("lastServer")).color(ChatColor.GREEN).create());
+-            if (playerData.contains("lastLogout"))
++            if (playerData.contains("lastLogout") && !online)
+                 commandSender.sendMessage(new ComponentBuilder("Last Logout: ").color(ChatColor.RED).append(lastlogoutString).color(ChatColor.GREEN).create());
+             return;
+         }
+@@ -145,11 +156,20 @@
+         else if (hoursago >= 1) lastlogoutString = hoursago + "h " + minutesago + "m " + secondsago + "s " + " ago";
+         else if (minutesago >= 1) lastlogoutString = minutesago + "m " + secondsago + "s " + " ago";
+         else lastlogoutString = secondsago + "s " + " ago";
+-        commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Last seen Information for " + targetname + "(#" + playerData.getInt("joinId") + ")").color(ChatColor.RED).create());
++        boolean online = plugin.getProxy().getPlayer(targetuuid) != null;
++        TextComponent onlineText;
++        if (online) {
++            onlineText = new TextComponent("Online");
++            onlineText.setColor(ChatColor.GREEN);
++        } else {
++            onlineText = new TextComponent("Offline");
++            onlineText.setColor(ChatColor.RED);
++        }
++        commandSender.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Last seen Information for " + targetname).color(ChatColor.RED).append(" [").color(ChatColor.GRAY).append(onlineText).append("] ").color(ChatColor.GRAY).append("(#" + playerData.getInt("joinId") + ")").color(ChatColor.RED).create());
+         commandSender.sendMessage(new ComponentBuilder("First Joined Date: ").color(ChatColor.RED).append(playerData.getString("firstJoin")).color(ChatColor.GREEN).create());
+         commandSender.sendMessage(new ComponentBuilder("Last Login: ").color(ChatColor.RED).append(lastloginString).color(ChatColor.GREEN).create());
+         commandSender.sendMessage(new ComponentBuilder("Last Server Played: ").color(ChatColor.RED).append(playerData.getString("lastServer")).color(ChatColor.GREEN).create());
+-        if (playerData.contains("lastLogout"))
++        if (playerData.contains("lastLogout") && !online)
+             commandSender.sendMessage(new ComponentBuilder("Last Logout: ").color(ChatColor.RED).append(lastlogoutString).color(ChatColor.GREEN).create());
+     }
+ }
+Index: src/main/java/com/i54m/punisher/chats/AdminChat.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/com/i54m/punisher/chats/AdminChat.java b/src/main/java/com/i54m/punisher/chats/AdminChat.java
+--- a/src/main/java/com/i54m/punisher/chats/AdminChat.java	(revision 87397483d73bc267af086a3637fd7809a3fee672)
++++ b/src/main/java/com/i54m/punisher/chats/AdminChat.java	(revision 683dab48808ff0b3432608afa410bfb0bb795590)
+@@ -50,7 +50,7 @@
+         HoverEvent hover = new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(player.getServer().getInfo().getPlayers().size() + " players on this server!").color(ChatColor.RED)
+                 .append("\n" + staff + " Staff on this server!").color(ChatColor.RED).create());
+         String userPrefix = Permissions.getPrefix(player.getUniqueId());
+-        messagetosend = new ComponentBuilder(ChatColor.translateAlternateColorCodes('&', prefix.replace("%server%", player.getServer().getInfo().getName()).replace("%player%", userPrefix + " " + player.getName()))).event(hover).append(message).color(color).create();
++        messagetosend = new ComponentBuilder(ChatColor.translateAlternateColorCodes('&', prefix.replace("%server%", player.getServer().getInfo().getName()).replace("%player%", userPrefix + ChatColor.RESET + " " + color + player.getName()))).event(hover).append(message).color(color).create();
+         for (ProxiedPlayer all : ProxyServer.getInstance().getPlayers()) {
+             if (all.hasPermission("punisher.adminchat")) {
+                 all.sendMessage(messagetosend);
+Index: src/main/java/com/i54m/punisher/chats/StaffChat.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/com/i54m/punisher/chats/StaffChat.java b/src/main/java/com/i54m/punisher/chats/StaffChat.java
+--- a/src/main/java/com/i54m/punisher/chats/StaffChat.java	(revision 87397483d73bc267af086a3637fd7809a3fee672)
++++ b/src/main/java/com/i54m/punisher/chats/StaffChat.java	(revision 683dab48808ff0b3432608afa410bfb0bb795590)
+@@ -50,7 +50,7 @@
+         HoverEvent hover = new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(player.getServer().getInfo().getPlayers().size() + " players on this server!").color(ChatColor.RED)
+                 .append("\n" + staff + " Staff on this server!").color(ChatColor.RED).create());
+         String userPrefix = Permissions.getPrefix(player.getUniqueId());
+-        messagetosend = new ComponentBuilder(ChatColor.translateAlternateColorCodes('&', prefix.replace("%server%", player.getServer().getInfo().getName()).replace("%player%", userPrefix + " " + player.getName()))).event(hover).append(message).color(color).create();
++        messagetosend = new ComponentBuilder(ChatColor.translateAlternateColorCodes('&', prefix.replace("%server%", player.getServer().getInfo().getName()).replace("%player%", userPrefix + ChatColor.RESET + " " + color + player.getName()))).event(hover).append(message).color(color).create();
+         for (ProxiedPlayer all : ProxyServer.getInstance().getPlayers()) {
+             if (all.hasPermission("punisher.staffchat")) {
+                 all.sendMessage(messagetosend);
+Index: pom.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/pom.xml b/pom.xml
+--- a/pom.xml	(revision 683dab48808ff0b3432608afa410bfb0bb795590)
++++ b/pom.xml	(revision 59b0432b31e78c7e01a28ac0bee2124a8d35e620)
+@@ -6,7 +6,7 @@
+ 
+     <groupId>com.i54m.punisher</groupId>
+     <artifactId>The-Punisher-v2</artifactId>
+-    <version>2.3.0B-SNAPSHOT</version>
++    <version>2.3.1B-SNAPSHOT</version>
+     <properties>
+         <timestamp>${maven.build.timestamp}</timestamp>
+         <maven.build.timestamp.format> dd-MM-yy HH:mm:ss</maven.build.timestamp.format>
+@@ -95,7 +95,7 @@
+         <dependency>
+             <groupId>net.dv8tion</groupId>
+             <artifactId>JDA</artifactId>
+-            <version>4.1.1_110</version>
++            <version>4.2.0_227</version>
+             <scope>compile</scope>
+             <exclusions>
+                 <exclusion>
+Index: .idea/jarRepositories.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/jarRepositories.xml b/.idea/jarRepositories.xml
+--- a/.idea/jarRepositories.xml	(revision 59b0432b31e78c7e01a28ac0bee2124a8d35e620)
++++ b/.idea/jarRepositories.xml	(revision a3e7e4f0e3e43a923a2f724d8bde1e8b3f287e3b)
+@@ -12,6 +12,11 @@
+       <option name="url" value="https://jcenter.bintray.com" />
+     </remote-repository>
+     <remote-repository>
++      <option name="id" value="jitpack.io" />
++      <option name="name" value="jitpack.io" />
++      <option name="url" value="https://jitpack.io" />
++    </remote-repository>
++    <remote-repository>
+       <option name="id" value="central" />
+       <option name="name" value="Maven Central repository" />
+       <option name="url" value="https://repo1.maven.org/maven2" />

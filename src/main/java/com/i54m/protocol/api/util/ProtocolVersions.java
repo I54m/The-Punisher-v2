@@ -37,7 +37,8 @@ public final class ProtocolVersions {
     public final static int MINECRAFT_1_16_1 = 736;
     public static final int MINECRAFT_1_16_2 = 751;
     public static final int MINECRAFT_1_16_3 = 753;
-    public static final int MINECRAFT_1_16_4 = 754;// https://wiki.vg/Pre-release_protocol https://wiki.vg/Protocol_version_numbers
+    public static final int MINECRAFT_1_16_4 = 754;
+    public static final int MINECRAFT_1_16_5 = MINECRAFT_1_16_4;// https://wiki.vg/Pre-release_protocol https://wiki.vg/Protocol_version_numbers
 
 
     public final static int MINECRAFT_LATEST = MINECRAFT_1_16_4;
