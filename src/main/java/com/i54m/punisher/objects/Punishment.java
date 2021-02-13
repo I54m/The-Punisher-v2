@@ -366,7 +366,7 @@ public class Punishment {
         if (isBan() || isMute())
             if (!getMetaData().requiresAuthorizer())
                 if (PunisherPlugin.getInstance().getConfig().getStringList("Punishment Authorization." + getType() + ".reasons").contains(getReason()) ||
-                        getExpiration() > PunishmentManager.getINSTANCE().translateExpiration(PunisherPlugin.getInstance().getConfig().getString("Punishment Authorization." + getType() + ".duration >"))) {
+                        (getExpiration() - System.currentTimeMillis()) > PunishmentManager.getINSTANCE().translateExpiration(PunisherPlugin.getInstance().getConfig().getString("Punishment Authorization." + getType() + ".duration >"))) {
                     getMetaData().setRequiresAuthorizer(true);
                     if (Permissions.isAuthorizer(punisherUUID)) {
                         setAuthorizerUUID(punisherUUID);
