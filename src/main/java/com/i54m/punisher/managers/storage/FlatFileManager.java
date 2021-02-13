@@ -4,6 +4,7 @@ import com.i54m.punisher.exceptions.ManagerNotStartedException;
 import com.i54m.punisher.exceptions.PunishmentsStorageException;
 import com.i54m.punisher.managers.WorkerManager;
 import com.i54m.punisher.objects.Punishment;
+import com.i54m.punisher.objects.ResetType;
 import com.i54m.punisher.utils.UUIDFetcher;
 import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
@@ -213,6 +214,16 @@ public class FlatFileManager implements StorageManager {
         return lastPunishmentId;
     }
 
+
+    @Override
+    public int getLastID() {
+        if (locked) {
+            ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
+            return -1;
+        }
+        return lastPunishmentId;
+    }
+
     @Override
     public int getPunishmentsAmount() {
         return lastPunishmentId + 1;
@@ -236,6 +247,12 @@ public class FlatFileManager implements StorageManager {
     @Override
     public int getKicksAmount() {
         return kicksAmount;
+    }
+
+    @Override
+    public boolean reset(@NotNull ResetType... resetType) {
+        // TODO: 8/01/2021 fill this out
+        return false;
     }
 
     @Override
