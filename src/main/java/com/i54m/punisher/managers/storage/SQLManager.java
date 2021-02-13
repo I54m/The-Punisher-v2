@@ -5,6 +5,7 @@ import com.i54m.punisher.exceptions.ManagerNotStartedException;
 import com.i54m.punisher.exceptions.PunishmentsStorageException;
 import com.i54m.punisher.managers.WorkerManager;
 import com.i54m.punisher.objects.Punishment;
+import com.i54m.punisher.objects.ResetType;
 import com.i54m.punisher.utils.UUIDFetcher;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.AccessLevel;
@@ -150,7 +151,7 @@ public class SQLManager implements StorageManager {
         String createdb = "SELECT 1";
         if (storageType == StorageType.MY_SQL)
             createdb = "CREATE DATABASE IF NOT EXISTS " + database;
-        String punishments = "CREATE TABLE IF NOT EXISTS `" + database + "`.`punishments` ( " +
+        String punishments = "CREATE TABLE IF NOT EXISTS `" + database + "`.`punisher_punishments` ( " +
                 "`ID` INT NOT NULL , " +
                 "`Type` VARCHAR(4) NOT NULL , " +
                 "`Reason` VARCHAR(256) NOT NULL , " +
@@ -166,12 +167,12 @@ public class SQLManager implements StorageManager {
                 "`MetaData` VARCHAR NULL DEFAULT NULL" +
                 "PRIMARY KEY (`ID`)) " +
                 "ENGINE = InnoDB CHARSET=utf8 COLLATE utf8_general_ci;";
-        String alt_list = "CREATE TABLE IF NOT EXISTS`" + database + "`.`alt_list` ( " +
+        String alt_list = "CREATE TABLE IF NOT EXISTS`" + database + "`.`punisher_alt_list` ( " +
                 "`UUID` VARCHAR(32) NOT NULL , " +
                 "`IP` VARCHAR(32) NOT NULL , " +
                 "PRIMARY KEY (`UUID`)) " +
                 "ENGINE = InnoDB CHARSET=utf8 COLLATE utf8_general_ci;";
-        String ip_history = "CREATE TABLE IF NOT EXISTS`" + database + "`.`ip_history` ( " +
+        String ip_history = "CREATE TABLE IF NOT EXISTS`" + database + "`.`punisher_ip_history` ( " +
                 "`UUID` VARCHAR(32) NOT NULL , " +
                 "`Date` BIGINT NOT NULL , " +
                 "`IP` VARCHAR(32) NOT NULL , " +
@@ -242,7 +243,7 @@ public class SQLManager implements StorageManager {
         }
         WORKER_MANAGER.runWorker(new WorkerManager.Worker(() -> {
             try {
-                String sqlpunishment = "SELECT * FROM `punishments` WHERE `Type`='BAN';";
+                String sqlpunishment = "SELECT * FROM `punisher_punishments` WHERE `Type`='BAN';";
                 PreparedStatement stmtpunishment = connection.prepareStatement(sqlpunishment);
                 ResultSet resultspunishment = stmtpunishment.executeQuery();
                 if (resultspunishment.next()) {
@@ -251,7 +252,7 @@ public class SQLManager implements StorageManager {
                 }
                 resultspunishment.close();
                 stmtpunishment.close();
-                sqlpunishment = "SELECT * FROM `punishments` WHERE `Type`='MUTE';";
+                sqlpunishment = "SELECT * FROM `punisher_punishments` WHERE `Type`='MUTE';";
                 stmtpunishment = connection.prepareStatement(sqlpunishment);
                 resultspunishment = stmtpunishment.executeQuery();
                 if (resultspunishment.next()) {
@@ -260,7 +261,7 @@ public class SQLManager implements StorageManager {
                 }
                 resultspunishment.close();
                 stmtpunishment.close();
-                sqlpunishment = "SELECT * FROM `punishments` WHERE `Type`='WARN';";
+                sqlpunishment = "SELECT * FROM `punisher_punishments` WHERE `Type`='WARN';";
                 stmtpunishment = connection.prepareStatement(sqlpunishment);
                 resultspunishment = stmtpunishment.executeQuery();
                 if (resultspunishment.next()) {
@@ -269,7 +270,7 @@ public class SQLManager implements StorageManager {
                 }
                 resultspunishment.close();
                 stmtpunishment.close();
-                sqlpunishment = "SELECT * FROM `punishments` WHERE `Type`='KICK';";
+                sqlpunishment = "SELECT * FROM `punisher_punishments` WHERE `Type`='KICK';";
                 stmtpunishment = connection.prepareStatement(sqlpunishment);
                 resultspunishment = stmtpunishment.executeQuery();
                 if (resultspunishment.next()) {
@@ -292,7 +293,7 @@ public class SQLManager implements StorageManager {
         }
         try {
             TreeMap<Integer, Punishment> PunishmentCache = new TreeMap<>(PUNISHMENT_CACHE);//to avoid concurrent modification exception if we happen to clear cache while looping over it (unlikely but could still happen)
-            String sqlpunishment = "SELECT * FROM `punishments`;";
+            String sqlpunishment = "SELECT * FROM `punisher_punishments`;";
             PreparedStatement stmtpunishment = connection.prepareStatement(sqlpunishment);
             ResultSet resultspunishment = stmtpunishment.executeQuery();
             ArrayList<Integer> exsistingIDs = new ArrayList<>();
@@ -323,6 +324,15 @@ public class SQLManager implements StorageManager {
     }
 
     @Override
+    public int getLastID() {
+        if (locked) {
+            ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
+            return -1;
+        }
+        return lastPunishmentId;
+    }
+
+    @Override
     public void NewPunishment(@NotNull Punishment punishment) {
         if (locked) {
             ERROR_HANDLER.log(new ManagerNotStartedException(this.getClass()));
@@ -341,7 +351,7 @@ public class SQLManager implements StorageManager {
         cachePunishment(punishment);
         punishment.verify();
         try {
-            String sql1 = "INSERT INTO `punishments` (`ID`, `Type`, `Reason`, `Issue_Date`, `Expiration`, `Target_UUID`, `Target_Name`, `Punisher_UUID`, `Message`, `Status`, `Remover_UUID`)" +
+            String sql1 = "INSERT INTO `punisher_punishments` (`ID`, `Type`, `Reason`, `Issue_Date`, `Expiration`, `Target_UUID`, `Target_Name`, `Punisher_UUID`, `Message`, `Status`, `Remover_UUID`)" +
                     " VALUES ('" + punishment.getId() + "', '" + punishment.getType().toString() + "', '" + punishment.getReason() + "', '" + punishment.getIssueDate() + "', '"
                     + punishment.getExpiration() + "', '" + punishment.getTargetUUID().toString() + "', '" + punishment.getTargetName() + "', '" + punishment.getPunisherUUID().toString() + "', '" + message
                     + "', '" + punishment.getStatus().toString() + "', '" + punishment.getRemoverUUID().toString() + "', '" + punishment.getAuthorizerUUID() + "', '" + punishment.getMetaData().serializeToJson() + "');";
@@ -369,7 +379,7 @@ public class SQLManager implements StorageManager {
                 message = message.replaceAll("\"", "%dubquo%");
             if (message.contains("`"))
                 message = message.replaceAll("`", "%bcktck%");
-            String sql = "UPDATE `punishments` SET " +
+            String sql = "UPDATE `punisher_punishments` SET " +
                     "`Type`='" + punishment.getType().toString() + "', " +
                     "`Reason`='" + punishment.getReason() + "', " +
                     "`Issue_Date`='" + punishment.getIssueDate() + "', " +
@@ -430,9 +440,9 @@ public class SQLManager implements StorageManager {
     private void loadPunishmentsFromDatabase(UUID targetUUID, boolean onlyLoadActive) throws Exception {
         String sqlpunishment;
         if (onlyLoadActive)
-            sqlpunishment = "SELECT * FROM `punishments` WHERE `Target_UUID`='" + targetUUID + "' AND `Status`='Active';";
+            sqlpunishment = "SELECT * FROM `punisher_punishments` WHERE `Target_UUID`='" + targetUUID + "' AND `Status`='Active';";
         else
-            sqlpunishment = "SELECT * FROM `punishments` WHERE `Target_UUID`='" + targetUUID + "' OR `Punisher_UUID`='" + targetUUID + "';";
+            sqlpunishment = "SELECT * FROM `punisher_punishments` WHERE `Target_UUID`='" + targetUUID + "' OR `Punisher_UUID`='" + targetUUID + "';";
         PreparedStatement stmtpunishment = connection.prepareStatement(sqlpunishment);
         ResultSet resultspunishment = stmtpunishment.executeQuery();
         while (resultspunishment.next()) {
@@ -468,7 +478,7 @@ public class SQLManager implements StorageManager {
     public Punishment getPunishmentFromId(int id) throws PunishmentsStorageException {
         try {
             if (PUNISHMENT_CACHE.containsKey(id)) return PUNISHMENT_CACHE.get(id);
-            String sqlpunishment = "SELECT * FROM `punishments` WHERE `ID`='" + id + "';";
+            String sqlpunishment = "SELECT * FROM `punisher_punishments` WHERE `ID`='" + id + "';";
             PreparedStatement stmtpunishment = connection.prepareStatement(sqlpunishment);
             ResultSet resultspunishment = stmtpunishment.executeQuery();
             Punishment punishment = new Punishment(
@@ -511,7 +521,7 @@ public class SQLManager implements StorageManager {
         if (!PUNISHMENT_REASONS.containsKey(reason))
             throw new IllegalArgumentException(reason + " is not a defined reason!!");
         try {
-            String sqlpunishment = "SELECT * FROM `punishments` WHERE `Target_UUID`='" + targetUUID + "' AND `Reason`='" + reason + "';";
+            String sqlpunishment = "SELECT * FROM `punisher_punishments` WHERE `Target_UUID`='" + targetUUID + "' AND `Reason`='" + reason + "';";
             PreparedStatement stmtpunishment = connection.prepareStatement(sqlpunishment);
             ResultSet resultspunishment = stmtpunishment.executeQuery();
             int offences = 0;
@@ -565,7 +575,7 @@ public class SQLManager implements StorageManager {
                         history.put(punishment.getId(), punishment);
                 }
             } else {
-                String sqlpunishment = "SELECT * FROM `punishments` WHERE `Target_UUID`='" + targetUUID + "';";
+                String sqlpunishment = "SELECT * FROM `punisher_punishments` WHERE `Target_UUID`='" + targetUUID + "';";
                 PreparedStatement stmtpunishment = connection.prepareStatement(sqlpunishment);
                 ResultSet resultspunishment = stmtpunishment.executeQuery();
                 while (resultspunishment.next()) {
@@ -619,7 +629,7 @@ public class SQLManager implements StorageManager {
                         history.put(punishment.getId(), punishment);
                 }
             } else {
-                String sqlpunishment = "SELECT * FROM `punishments` WHERE `Punisher_UUID`='" + targetUUID + "';";
+                String sqlpunishment = "SELECT * FROM `punisher_punishments` WHERE `Punisher_UUID`='" + targetUUID + "';";
                 PreparedStatement stmtpunishment = connection.prepareStatement(sqlpunishment);
                 ResultSet resultspunishment = stmtpunishment.executeQuery();
                 while (resultspunishment.next()) {
@@ -664,7 +674,7 @@ public class SQLManager implements StorageManager {
             return null;
         }
         try {
-            String sqlip = "SELECT * FROM `alt_list` WHERE UUID='" + uuid + "'";
+            String sqlip = "SELECT * FROM `punisher_alt_list` WHERE UUID='" + uuid + "'";
             PreparedStatement stmtip = connection.prepareStatement(sqlip);
             ResultSet resultsip = stmtip.executeQuery();
             if (resultsip.next()) {
@@ -686,7 +696,7 @@ public class SQLManager implements StorageManager {
             return null;
         }
         try {
-            String sqlalts = "SELECT * FROM `alt_list` WHERE IP='" + ip + "'";
+            String sqlalts = "SELECT * FROM `punisher_alt_list` WHERE IP='" + ip + "'";
             PreparedStatement stmtalts = connection.prepareStatement(sqlalts);
             ResultSet resultsalts = stmtalts.executeQuery();
             ArrayList<String> alts = new ArrayList<>();
@@ -708,7 +718,7 @@ public class SQLManager implements StorageManager {
             return null;
         }
         try {
-            String sqlip = "SELECT * FROM `ip_history` WHERE UUID='" + uuid + "'";
+            String sqlip = "SELECT * FROM `punisher_ip_history` WHERE UUID='" + uuid + "'";
             PreparedStatement stmtip = connection.prepareStatement(sqlip);
             ResultSet resultsip = stmtip.executeQuery();
             TreeMap<Long, String> iphist = new TreeMap<>();
@@ -731,7 +741,7 @@ public class SQLManager implements StorageManager {
         }
         try {
             //fetch ip
-            String sqlip = "SELECT * FROM `alt_list` WHERE UUID='" + uuid + "'";
+            String sqlip = "SELECT * FROM `punisher_alt_list` WHERE UUID='" + uuid + "'";
             PreparedStatement stmtip = connection.prepareStatement(sqlip);
             ResultSet resultsip = stmtip.executeQuery();
             if (resultsip.next()) { //player has an ip stored in database
@@ -741,12 +751,12 @@ public class SQLManager implements StorageManager {
                 //check if ip has changed from stored ip
                 if (oldip.equals(ip)) return;
                 //update all records with oldip to the new ip (this includes the player we checked's record)
-                String sqlipadd = "UPDATE `alt_list` SET `IP`='" + ip + "' WHERE `IP`='" + oldip + "' ;";
+                String sqlipadd = "UPDATE `punisher_alt_list` SET `IP`='" + ip + "' WHERE `IP`='" + oldip + "' ;";
                 PreparedStatement stmtipadd = connection.prepareStatement(sqlipadd);
                 stmtipadd.executeUpdate();
                 stmtipadd.close();
             } else {//no ip found in database, so we add them to the database with the new ip
-                String sql1 = "INSERT INTO `alt_list` (`UUID`, `IP`) VALUES ('" + uuid + "', '" + ip + "');";
+                String sql1 = "INSERT INTO `punisher_alt_list` (`UUID`, `IP`) VALUES ('" + uuid + "', '" + ip + "');";
                 PreparedStatement stmt1 = connection.prepareStatement(sql1);
                 stmt1.executeUpdate();
                 stmt1.close();
@@ -764,14 +774,14 @@ public class SQLManager implements StorageManager {
         }
         try {
             //check for current ip
-            String sql = "SELECT * FROM `ip_history` WHERE UUID='" + uuid + "'";
+            String sql = "SELECT * FROM `punisher_ip_history` WHERE UUID='" + uuid + "'";
             PreparedStatement stmt = connection.prepareStatement(sql);
             ResultSet results = stmt.executeQuery();
             if (results.next())//if current ip we check if it's changed
                 if (results.getString("ip").equals(ip))
                     return;//if ip has not changed there is no need to update ip history
             //add new iphistory record
-            String addip = "INSERT INTO `ip_history` (`UUID`, `Date`, `IP`) VALUES ('" + uuid + "', '" + System.currentTimeMillis() + "', '" + ip + "');";
+            String addip = "INSERT INTO `punisher_ip_history` (`UUID`, `Date`, `IP`) VALUES ('" + uuid + "', '" + System.currentTimeMillis() + "', '" + ip + "');";
             PreparedStatement addipstmt = connection.prepareStatement(addip);
             addipstmt.executeUpdate();
             addipstmt.close();
@@ -812,6 +822,86 @@ public class SQLManager implements StorageManager {
     @Override
     public int getKicksAmount() {
         return kicksAmount;
+    }
+
+    @Override
+    public boolean reset(@NotNull ResetType... resetTypes) {
+        // TODO: 8/01/2021 fill this out
+        boolean success = false;
+        PUNISHMENT_MANAGER.stop();
+        for (ResetType resetType : resetTypes) {
+            try {
+                switch (resetType) {
+                    case Alts: {
+                        String sql = "TRUNCATE `punisher_alt_list`;";
+                        PreparedStatement stmt = connection.prepareStatement(sql);
+                        stmt.executeUpdate();
+                        stmt.close();
+                        success = true;
+                        continue;
+                    }
+                    case Bans: {
+
+                        success = true;
+                        continue;
+                    }
+                    case Everything: {
+                        //drop database, reputation and playerdata reset
+                        success = true;
+                        break;
+                    }
+                    case History: {
+                        //use a worker to set all punishments metadata appliestohistory=false;
+
+                        success = true;
+                        break;
+                    }
+                    case IpHist: {
+                        String sql = "TRUNCATE `punisher_ip_history`;";
+                        PreparedStatement stmt = connection.prepareStatement(sql);
+                        stmt.executeUpdate();
+                        stmt.close();
+                        success = true;
+                        continue;
+                    }
+                    case Kicks: {
+                        success = true;
+                        continue;
+                    }
+                    case Mutes: {
+                        success = true;
+                        continue;
+                    }
+                    case PlayerData: {
+                        success = true;
+                        continue;
+                    }
+                    case Punishments: {
+                        String sql = "TRUNCATE `punisher_punishments`;";
+                        PreparedStatement stmt = connection.prepareStatement(sql);
+                        stmt.executeUpdate();
+                        stmt.close();
+                        lastPunishmentId = 0;
+                        success = true;
+                        continue;
+                    }
+                    case Reputation: {
+                        success = true;
+                        continue;
+                    }
+                    case Warns: {
+                        success = true;
+                        continue;
+                    }
+                }
+            } catch (Exception e) {
+                ERROR_HANDLER.log(e);
+                success = false;
+            }
+        }
+        resetCache();
+        PUNISHMENT_MANAGER.start();
+        return success;
     }
 
 
