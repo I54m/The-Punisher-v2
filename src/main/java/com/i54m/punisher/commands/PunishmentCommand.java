@@ -32,7 +32,7 @@ public class PunishmentCommand extends Command {
                 player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Usage: /punishment lookup ").color(ChatColor.RED).append(" - ").create());
                 player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Usage: /punishment lock <id>").color(ChatColor.RED).append(" - Lock a punishment from any actions").create());
                 player.sendMessage(new ComponentBuilder(plugin.getPrefix()).append("Usage: /punishment unlock <id>").color(ChatColor.RED).append(" - Remove a Lock on a punishment").create());
-
+// TODO: 13/02/2021 /punishment reissue <id>
                 return;
             }
             switch (strings[0].toLowerCase()) {
