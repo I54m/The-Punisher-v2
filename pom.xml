@@ -142,23 +142,23 @@
                     <relocations>
                         <relocation>
                             <pattern>com.zaxxer.hikari</pattern>
-                            <shadedPattern>com.i54m.punisher.internal.hikari</shadedPattern>
+                            <shadedPattern>com.i54m.punisher.lib.hikari</shadedPattern>
                         </relocation>
                         <relocation>
                             <pattern>org.slf4j</pattern>
-                            <shadedPattern>com.i54m.punisher.internal.slf4j</shadedPattern>
+                            <shadedPattern>com.i54m.punisher.lib.slf4j</shadedPattern>
                         </relocation>
                         <relocation>
                             <pattern>org.jetbrains</pattern>
-                            <shadedPattern>com.i54m.punisher.internal.jetbrains</shadedPattern>
+                            <shadedPattern>com.i54m.punisher.lib.jetbrains</shadedPattern>
                         </relocation>
                         <relocation>
                             <pattern>com.flowpowered</pattern>
-                            <shadedPattern>com.i54m.punisher.internal.flowpowered</shadedPattern>
+                            <shadedPattern>com.i54m.punisher.lib.flowpowered</shadedPattern>
                         </relocation>
                         <relocation>
                             <pattern>net.dv8tion.jda</pattern>
-                            <shadedPattern>com.i54m.punisher.internal.jda</shadedPattern>
+                            <shadedPattern>com.i54m.punisher.lib.jda</shadedPattern>
                             <!--                            if having issues with the jda it might be this shading as compiler says is breaks it's strong encapsulation to do this -->
                         </relocation>
                     </relocations>
