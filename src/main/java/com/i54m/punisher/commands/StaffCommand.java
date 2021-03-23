@@ -19,7 +19,7 @@ public class StaffCommand extends Command {
         super("staff", null, "onlinestaff", "staffonline");
     }
 
-    // TODO: 2/03/2020 test this to make sure that it works correctly
+    // TODO: 2/03/2020 test this to make sure that it works correctly  and do this idea https://i.i54m.com/8xplgAaN.png
     @Override
     public void execute(CommandSender commandSender, String[] strings) {
         boolean staff = false;
