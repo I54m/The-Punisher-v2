@@ -22,9 +22,8 @@
         </repository>
 
         <repository>
-            <id>nuvotifier-repo</id>
-            <name>bintray</name>
-            <url>https://dl.bintray.com/nuvotifier/maven/</url>
+            <id>jitpack</id>
+            <url>https://jitpack.io</url>
         </repository>
 
         <repository>
@@ -72,9 +71,9 @@
         </dependency>
 
         <dependency>
-            <groupId>com.vexsoftware</groupId>
-            <artifactId>nuvotifier-universal</artifactId>
-            <version>2.3.4</version>
+            <groupId>com.github.NuVotifier.NuVotifier</groupId>
+            <artifactId>nuvotifier-bungeecord</artifactId>
+            <version>2.7.2</version>
             <scope>provided</scope>
         </dependency>
 
@@ -173,42 +172,43 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>copy</id>
-                        <phase>install</phase>
-                        <goals>
-                            <goal>copy</goal>
-                        </goals>
-                        <configuration>
-                            <artifactItems>
-                                <artifactItem>
-                                    <groupId>${project.groupId}</groupId>
-                                    <artifactId>${project.artifactId}</artifactId>
-                                    <version>${project.version}</version>
-                                    <type>${project.packaging}</type>
-                                    <overWrite>true</overWrite>
-                                    <outputDirectory>F:\Test server\BUNGEE\plugins\</outputDirectory>
-                                    <destFileName>The-Punisher-${project.version}-${maven.build.timestamp}.jar</destFileName>
-                                </artifactItem>
+<!--            <plugin>-->
+<!--                <groupId>org.apache.maven.plugins</groupId>-->
+<!--                <artifactId>maven-dependency-plugin</artifactId>-->
+<!--                <version>3.3.0</version>-->
+<!--                <executions>-->
+<!--                    <execution>-->
+<!--                        <id>copy</id>-->
+<!--                        <phase>install</phase>-->
+<!--                        <goals>-->
+<!--                            <goal>copy</goal>-->
+<!--                        </goals>-->
+<!--                        <configuration>-->
+<!--                            <artifactItems>-->
 <!--                                <artifactItem>-->
 <!--                                    <groupId>${project.groupId}</groupId>-->
 <!--                                    <artifactId>${project.artifactId}</artifactId>-->
 <!--                                    <version>${project.version}</version>-->
 <!--                                    <type>${project.packaging}</type>-->
 <!--                                    <overWrite>true</overWrite>-->
-<!--                                    <outputDirectory>F:\Test server\SPIGOT_2\plugins\</outputDirectory>-->
-<!--                                    <destFileName>The-Punisher-${project.version}DEVBUILD.jar</destFileName>-->
+<!--                                    <outputDirectory>F:\Test server\BUNGEE\plugins\</outputDirectory>-->
+<!--                                    <destFileName>The-Punisher-${project.version}-${maven.build.timestamp}.jar</destFileName>-->
 <!--                                </artifactItem>-->
-                            </artifactItems>
+<!--&lt;!&ndash;                                <artifactItem>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <groupId>${project.groupId}</groupId>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <artifactId>${project.artifactId}</artifactId>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <version>${project.version}</version>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <type>${project.packaging}</type>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <overWrite>true</overWrite>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <outputDirectory>F:\Test server\SPIGOT_2\plugins\</outputDirectory>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <destFileName>The-Punisher-${project.version}DEVBUILD.jar</destFileName>&ndash;&gt;-->
+<!--&lt;!&ndash;                                </artifactItem>&ndash;&gt;-->
+<!--                            </artifactItems>-->
 
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
+<!--                        </configuration>-->
+<!--                    </execution>-->
+<!--                </executions>-->
+<!--            </plugin>-->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
